@@ -659,14 +659,20 @@ Commit and continue
 
 ### Assistant
 
-Committed the game-logic continuation.
+Committed the game-logic continuation as `ae357ba` (12 files, +1228/−23), then kept going.
 
-- `C/monster.c` — full `domonsters`/`monai`/`createmonster`/`mondie`, plus `initmonsters`, `erasemonsters`, `nmononscr`, `incmont`, `mongold`, `fieldclear` and the collision helpers.
-- `C/digger.c`, `C/bags.c`, `C/drawing.c` — the level-body reconstructions from the previous pass.
-- `SYMBOLS.md`, `ANALYSIS.md`, `C/symbols.h`, `C/README.md`, `C/TODO.md` — verified addresses and record layouts.
-- `digger.lst` / `digger.dat` — 21 new function labels and the monster/digger record maps.
+**Commit `ae357ba` — “Reconstruct the full monster module and finish monai”** (previous `a5ce437`, worklog included):
+- full `monster.c`: `domonsters` spawn logic, complete `monai`, `createmonster`, `mondie`, `initmonsters`, `erasemonsters`, `fieldclear`, collision helpers, `nmononscr`/`incmont`/`mongold`
+- new `bags.c`, `digger.c`, `drawing.c`
+- artifact/label sync across `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `symbols.h`
 
-All `C/*.c` pass `gcc -fsyntax-only -std=c99 -Wall -Wextra`. The vim swap file is untouched and not committed. Next: `updatefire` (`CS:0x4A3E`).
+**Continued after the commit — fireball path (`C/digger.c`):**
+- `updatefire` (`CS:0x4A3E`): launch with `levof10()*3+60` recharge, per-direction `fx/fy`, sprite 15, 7-pixel `ggetpix` probes, `drawfire`, `killmon`/`scorekill` monster hits, the `0x40FE` impact mask, and the edge/impact explosion tests
+- `drawexplosion` (`CS:0x4E66`) and `killfire` (`CS:0x4EE3`)
+- verified `movedrawspr` `0x07B1`, `erasespr` `0x07D3`, `drawfire` `0x24C6`, `ggetpix` `0x56A6`, `getfirepflag` `0x5DD8`, `soundfire` `0x7571`, `soundfireoff` `0x7582`, `soundexplode` `0x75E6`
+- corrected the digger field map: `ddir` `0x3FEC`, `dir` `0x3FEE`, `fx/fy/fdir` `0x3FFA..0x3FFE`, `deathstage`/`deathbag` `0x4002/0x4004`, `emn` `0x400A`; `firepressed` `0x0663` is distinct from `getfirepflag`'s `DS:0x40BC`
+
+All `C/*.c` pass `gcc -fsyntax-only -std=c99 -Wall -Wextra`. Uncommitted: the updatefire batch plus artifact updates (8 files); `C/.TODO.md.swp` untouched. Commit is on `main`, one ahead of `origin/main`, not pushed. Next: `updatedigger` (`CS:0x4F07`) and `diggerdie` (`CS:0x5218`).
 
 ## What was added
 
@@ -676,3 +682,25 @@ All `C/*.c` pass `gcc -fsyntax-only -std=c99 -Wall -Wextra`. The vim swap file i
 - **Corrections**: `pushcount` `0x3FDA` / global `goldtime` `0x3FDC`; monster record fields through `stime` `0x3B3C`; scheduling globals `0x3C0C..0x3C18`; digger `death`/`bag` `0x4002`/`0x4004`; `CS_CREATEMONSTER` fixed to `0x2DD3`.
 
 Artifacts: `C/monster.c` (rewritten), `C/digger.c`, `C/bags.c`, `C/drawing.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`.
+
+## Fireball path: `updatefire`, `drawexplosion`, `killfire`
+
+Previous commit: ae357ba
+
+### User
+
+Commit and continue
+
+### Assistant
+
+Committed the fireball reconstruction and continued with `updatedigger`.
+
+## What was added
+
+- **`updatefire`** (`CS:0x4A3E`): the not-firing branch decrements `rechargetime`, checks `getfirepflag` (`DS:0x40BC`) and `digalive`, sets `rechargetime = levof10()*3 + 60`, clears `notfiring`, computes `fx`/`fy` from `dir` (right `x+8,y+4`; up `x,y+4`; left `x+4,y`; down `x+4,y+8`), copies `fdir = dir`, draws sprite 15 and calls `soundfire`. The firing branch switches on `fdir`, advances by 8 (horizontal) or 7 (vertical), probes the CGA pixels with `ggetpix`, calls `drawfire` for frame 0, then handles monster hits (`killmon` + `scorekill` + `expsn=1`), the `0x40FE` impact mask, and the edge/impact explosion with the reverse 8/7 step and a redraw.
+- **`drawexplosion`** (`CS:0x4E66`): frames 1/2/3 draw and increment `expsn`, `soundexplode` on frame 1, `killfire` + `expsn=0` otherwise.
+- **`killfire`** (`CS:0x4EE3`): sets `notfiring`, `erasespr(15)`, `soundfireoff`.
+- **Verified helpers**: `movedrawspr` `0x07B1`, `erasespr` `0x07D3`, `drawfire` `0x24C6` (returns the collision mask), `ggetpix` `0x56A6`, `getfirepflag` `0x5DD8`, `soundfire` `0x7571`, `soundfireoff` `0x7582`, `soundexplode` `0x75E6`.
+- **Field map**: `ddir` `0x3FEC` (key direction, a port local), `dir` `0x3FEE`, `fx` `0x3FFA`, `fy` `0x3FFC`, `fdir` `0x3FFE`, `deathstage` `0x4002`, `deathbag` `0x4004`, `emn` `0x400A`; `firepressed` `0x0663` is the input latch, while `getfirepflag` reads the separate byte at `DS:0x40BC`.
+
+Artifacts: `C/digger.c`, `C/symbols.h`, `SYMBOLS.md`, `ANALYSIS.md`, `C/README.md`, `C/TODO.md`, `digger.lst`, `digger.dat`, `Worklog.md`.

@@ -237,13 +237,23 @@ erasemonsters/countem sequence.
 ### Game-logic bodies
 
 - **`dodigger` `CS:0x4939`** — uses single-digger globals: x `0x3FDE`,
-  y `0x3FE0`, mdir `0x3FEA`, bagtime `0x3FF0`, alive `0x3FF2`, digvisible
-  `0x3FF4`, notfiring `0x3FF6`, rechargetime `0x3FF8`, expsn `0x4000`,
-  emocttime `0x4016`. It calls `drawdig` `0x263F`, `updatefire` `0x4A3E`,
-  `drawexplosion` `0x4E66`, `updatedigger` `0x4F07`, `diggerdie` `0x5218`,
-  and contains the bonus block (`bonusmode`/`bonustimeleft`/`startbonustimeleft`).
+  y `0x3FE0`, h `0x3FE2`, v `0x3FE4`, rx `0x3FE6`, ry `0x3FE8`, mdir `0x3FEA`,
+  ddir `0x3FEC`, dir `0x3FEE`, bagtime `0x3FF0`, alive `0x3FF2`, digvisible
+  `0x3FF4`, notfiring `0x3FF6`, rechargetime `0x3FF8`, fx `0x3FFA`,
+  fy `0x3FFC`, fdir `0x3FFE`, expsn `0x4000`, deathstage `0x4002`,
+  deathbag `0x4004`, emocttime `0x4016`. It calls `drawdig` `0x263F`,
+  `updatefire` `0x4A3E`, `drawexplosion` `0x4E66`, `updatedigger` `0x4F07`,
+  `diggerdie` `0x5218`, and contains the bonus block
+  (`bonusmode`/`bonustimeleft`/`startbonustimeleft`).
   The port's `digdat[]` loop and simultaneous two-player mode are extensions.
   Reconstructed in `C/digger.c`.
+- **`updatefire` `CS:0x4A3E`** — fire launch (`levof10()*3+60` recharge,
+  `fx`/`fy` from `dir`, sprite 15), the 7-pixel pixel probes (`ggetpix`
+  `0x56A6`), `drawfire` `0x24C6`, monster hits (`killmon`/`scorekill`),
+  the `0x40FE` impact mask, and the edge/impact explosion tests. `drawexplosion`
+  (`0x4E66`) and `killfire` (`0x4EE3`) match the port. Note `updatefire` uses
+  `dir` `0x3FEE`, and `firepressed` `0x0663` is separate from the
+  `getfirepflag` byte at `DS:0x40BC`.
 - **`dobags` `CS:0x3E2D`** — bag records stride `0x28`: x `0x3E9A`, y `0x3E9C`,
   h `0x3E9E`, v `0x3EA0`, dir `0x3EA6`, wobbling `0x3EA8`, exist `0x3EAE`,
   gt `0x3EB0`, goldtime `0x3FDC`. Calls `soundbreak`, `drawgold`, `incpenalty`,
@@ -342,9 +352,9 @@ reference; it is a default/legacy score image. The sector-2 read/check
 
 ## Open items / next work
 
-- Reconstruct the remaining movement/collision bodies: `updatefire`,
-  `updatedigger`, `diggerdie`, `updatebag`/`pushbags`/`pushudbags`,
-  `eatfield`/`hitemerald`, and the sprite/drawing routines.
+- Reconstruct the remaining movement/collision bodies: `updatedigger`,
+  `diggerdie`, `updatebag`/`pushbags`/`pushudbags`, `eatfield`/`hitemerald`,
+  and the sprite/drawing routines.
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.

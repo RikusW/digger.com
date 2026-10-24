@@ -146,8 +146,17 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x47F8` | `0x46F8` | `getnmovingbags` | probable | Post-level loop condition. |
 | `0x48A0` | `0x47A0` | `initdigger` | probable | Called by `drawscreen`/`initchars`. |
 | `0x4939` | `0x4839` | `dodigger` | verified | Per-frame digger update; calls `drawdig`/`updatefire`/`drawexplosion`/`updatedigger`/`diggerdie`; contains the bonus-mode block at `CS:0x4912..0x4A11`. |
-| `0x4A3E` | `0x493E` | `updatefire` | probable | Called by `dodigger`. |
-| `0x4E66` | `0x4D66` | `drawexplosion` | probable | Called by `dodigger`. |
+| `0x4A3E` | `0x493E` | `updatefire` | verified | Launch (`levof10()*3+60` recharge, `fx/fy` per dir, sprite 15), pixel probes in 7-pixel steps, `drawfire`, monster hits (`killmon`/`scorekill`/`expsn=1`), `0x40FE` impact test, edge/impact explosion. |
+| `0x4E66` | `0x4D66` | `drawexplosion` | verified | `expsn` 1..3 draw frame 1..3 + `soundexplode` on 1, then `killfire` and `expsn=0`. |
+| `0x4EE3` | `0x4DE3` | `killfire` | verified | If firing, sets `notfiring`, `erasespr(15)`, `soundfireoff`. |
+| `0x07B1` | `0x06B1` | `movedrawspr` | verified | Sprite `spr&0xF`: stores masked `x`, `y`, calls draw routine `0x935`. |
+| `0x07D3` | `0x06D3` | `erasespr` | verified | Sprite `spr&0xF`: calls erase routine `0x984`. |
+| `0x24C6` | `0x23C6` | `drawfire` | verified | `drawfire(x, y, frame)`; returns the sprite collision mask. |
+| `0x56A6` | `0x55A6` | `ggetpix` | verified | CGA pixel read: `(y&~1)*40 + (y&1)*0x2000`, 2-bit pixel. |
+| `0x5DD8` | `0x5CD8` | `getfirepflag` | verified | Returns `DS:0x40BC`. |
+| `0x7571` | `0x7471` | `soundfire` | verified | Value 500, flag 1. |
+| `0x7582` | `0x7482` | `soundfireoff` | verified | Clears the fire sound flag/value. |
+| `0x75E6` | `0x74E6` | `soundexplode` | verified | Value 1500, duration 10, flag 1; calls `soundfireoff`. |
 | `0x4F07` | `0x4E07` | `updatedigger` | probable | Called by `dodigger`. |
 | `0x5218` | `0x5118` | `diggerdie` | probable | Called by `dodigger`. |
 | `0x55B5` | `0x54B5` | `bonusmode_get` | probable | Getter used by `monai`. |
@@ -272,16 +281,29 @@ Digger globals:
 
 | DS | Port name | Evidence |
 |---:|---|---|
-| `0x3FDE` | `digx` | Read by the `dodigger` bonus block / `drawdig`. |
-| `0x3FE0` | `digy` | Same. |
-| `0x3FEA` | `digmdir` | Movement direction. |
+| `0x3FDE` | `x` | Position; `initdigger` sets `h*20+12`. |
+| `0x3FE0` | `y` | Position; `initdigger` sets `v*18+18`. |
+| `0x3FE2` | `h` | Field coordinates. |
+| `0x3FE4` | `v` | Field coordinates. |
+| `0x3FE6` | `rx` | Sub-cell remainder; gates vertical input. |
+| `0x3FE8` | `ry` | Sub-cell remainder; gates horizontal input. |
+| `0x3FEA` | `mdir` | Movement direction. Set to `-1` when no key is down. |
+| `0x3FEC` | `ddir` | Key direction (port local); `updatedigger` switch writes it. |
+| `0x3FEE` | `dir` | Last valid direction; used by `updatefire` for the launch offset. |
 | `0x3FF0` | `bagtime` | Bag push time. |
-| `0x3FF2` | `digalive` | Alive flag. |
-| `0x3FF4` | `digvisible` | Draw flag. |
+| `0x3FF2` | `alive` | Alive flag; `initdigger` sets 1. |
+| `0x3FF4` | `digvisible` | Draw flag; `initdigger` sets 1. |
 | `0x3FF6` | `notfiring` | No-shot flag. |
 | `0x3FF8` | `rechargetime` | Fire-recharge timer. |
+| `0x3FFA` | `fx` | Fireball position. |
+| `0x3FFC` | `fy` | Fireball position. |
+| `0x3FFE` | `fdir` | Fireball direction. |
 | `0x4000` | `expsn` | Explosion state/frame. |
+| `0x4002` | `deathstage` | `initdigger` sets 1; `killdigger` writes the death state. |
+| `0x4004` | `deathbag` | Bag index written by `killdigger`. |
+| `0x400A` | `emn` | Emerald counter; `initdigger` clears. |
 | `0x4016` | `emocttime` | Emerald-octave timer. |
+| `0x0663` | `firepressed` | Cleared by `initdigger`; set to `-1` by input (`CS:0x0FF0`) and consumed at `CS:0x5BDF`. Distinct from `firepflag`, which `getfirepflag` reads at `DS:0x40BC`. |
 
 Bag array (stride `0x28`, 7 entries):
 

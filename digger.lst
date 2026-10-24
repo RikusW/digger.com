@@ -797,6 +797,7 @@ Disassembly of section .data:
      7a9:	c7 87 13 04 00 00    	mov    WORD PTR [bx+0x413],0x0
      7af:	5d                   	pop    bp
      7b0:	c3                   	ret    
+; --- movedrawspr (verified: sets sprite x/y, calls 0x935) ---
      7b1:	55                   	push   bp
      7b2:	8b ec                	mov    bp,sp
      7b4:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -810,6 +811,7 @@ Disassembly of section .data:
      7ce:	e8 64 01             	call   0x935
      7d1:	5d                   	pop    bp
      7d2:	c3                   	ret    
+; --- erasespr (verified: calls 0x984) ---
      7d3:	55                   	push   bp
      7d4:	8b ec                	mov    bp,sp
      7d6:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -3885,6 +3887,7 @@ Disassembly of section .data:
     24c1:	83 c4 06             	add    sp,0x6
     24c4:	5d                   	pop    bp
     24c5:	c3                   	ret    
+; --- drawfire (returns sprite collision mask) ---
     24c6:	55                   	push   bp
     24c7:	83 ec 02             	sub    sp,0x2
     24ca:	8b ec                	mov    bp,sp
@@ -7972,6 +7975,7 @@ Disassembly of section .data:
     4edf:	eb e4                	jmp    0x4ec5
     4ee1:	5d                   	pop    bp
     4ee2:	c3                   	ret    
+; --- killfire (verified) ---
     4ee3:	55                   	push   bp
     4ee4:	83 ec 02             	sub    sp,0x2
     4ee7:	8b ec                	mov    bp,sp
@@ -8723,6 +8727,7 @@ Disassembly of section .data:
     569e:	c7 06 f0 3f 00 00    	mov    WORD PTR ds:0x3ff0,0x0
     56a4:	5d                   	pop    bp
     56a5:	c3                   	ret    
+; --- ggetpix ---
     56a6:	55                   	push   bp
     56a7:	83 ec 06             	sub    sp,0x6
     56aa:	8b ec                	mov    bp,sp
@@ -9378,6 +9383,7 @@ Disassembly of section .data:
     5dd3:	83 c4 04             	add    sp,0x4
     5dd6:	5d                   	pop    bp
     5dd7:	c3                   	ret    
+; --- getfirepflag (returns DS:0x40BC) ---
     5dd8:	55                   	push   bp
     5dd9:	8b ec                	mov    bp,sp
     5ddb:	a1 bc 40             	mov    ax,ds:0x40bc
@@ -11746,12 +11752,14 @@ Disassembly of section .data:
     756c:	a3 7e 45             	mov    ds:0x457e,ax
     756f:	5d                   	pop    bp
     7570:	c3                   	ret    
+; --- soundfire (verified: value 500, flag 1) ---
     7571:	55                   	push   bp
     7572:	8b ec                	mov    bp,sp
     7574:	c7 06 84 45 f4 01    	mov    WORD PTR ds:0x4584,0x1f4
     757a:	c7 06 82 45 01 00    	mov    WORD PTR ds:0x4582,0x1
     7580:	5d                   	pop    bp
     7581:	c3                   	ret    
+; --- soundfireoff (verified) ---
     7582:	55                   	push   bp
     7583:	8b ec                	mov    bp,sp
     7585:	33 c0                	xor    ax,ax
@@ -11791,6 +11799,7 @@ Disassembly of section .data:
     75e1:	83 c4 04             	add    sp,0x4
     75e4:	5d                   	pop    bp
     75e5:	c3                   	ret    
+; --- soundexplode (verified: value 1500, duration 10) ---
     75e6:	55                   	push   bp
     75e7:	8b ec                	mov    bp,sp
     75e9:	c7 06 90 45 dc 05    	mov    WORD PTR ds:0x4590,0x5dc

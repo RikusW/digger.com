@@ -39,11 +39,12 @@
 
 ## High priority
 
-- **Remaining game bodies**: `updatefire`, `updatedigger`, `diggerdie`; bag
+- **Remaining game bodies**: `updatedigger`, `diggerdie`; bag
   `updatebag`/`pushbags`/`pushudbags`; `eatfield`/`hitemerald`; and the
   sprite/drawing routines (`drawmon`, `drawmondie`, `drawdig`).  The main
-  loop, monster loop (`domonsters`/`monai`/`mondie`/`createmonster`), RNG,
-  bonus mode, and score I/O are done.
+  loop, monster loop (`domonsters`/`monai`/`mondie`/`createmonster`), the
+  fireball (`updatefire`/`drawexplosion`/`killfire`), RNG, bonus mode, and
+  score I/O are done.
 
 ## CGA / DOSBox
 

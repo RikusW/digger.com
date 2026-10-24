@@ -139,6 +139,15 @@ typedef int32_t  s32;
 #define CS_DRAWDIG              0x263Fu  /* drawdig(t,x,y,f) */
 #define CS_UPDATEFIRE           0x4A3Eu  /* updatefire */
 #define CS_DRAWEXPLOSION        0x4E66u  /* drawexplosion */
+#define CS_KILLFIRE             0x4EE3u  /* verified */
+#define CS_MOVEDRAWSPR          0x07B1u
+#define CS_ERASESPR             0x07D3u
+#define CS_DRAWFIRE             0x24C6u  /* drawfire(x, y, frame) -> collision mask */
+#define CS_GGETPIX              0x56A6u  /* ggetpix(x, y) */
+#define CS_GETFIREPFLAG         0x5DD8u  /* returns DS:0x40BC */
+#define CS_SOUNDFIRE            0x7571u  /* verified: value 500, flag 1 */
+#define CS_SOUNDFIREOFF         0x7582u  /* verified: clears the fire sound */
+#define CS_SOUNDEXPLODE         0x75E6u  /* verified: value 1500, duration 10 */
 #define CS_UPDATEDIGGER         0x4F07u  /* updatedigger */
 #define CS_DIGGERDIE            0x5218u  /* diggerdie */
 #define CS_SOUNDBONUS           0x7646u
@@ -266,16 +275,27 @@ typedef int32_t  s32;
 /* Current digger state (single-digger globals in the original). */
 #define DS_DIG_X                0x3FDEu
 #define DS_DIG_Y                0x3FE0u
+#define DS_DIG_H                0x3FE2u
+#define DS_DIG_V                0x3FE4u
+#define DS_DIG_RX               0x3FE6u
+#define DS_DIG_RY               0x3FE8u
 #define DS_DIG_MDIR             0x3FEAu
+#define DS_DIG_DDIR             0x3FECu  /* key direction; the port keeps it local */
+#define DS_DIG_DIR              0x3FEEu  /* last valid direction */
 #define DS_DIG_BAGTIME          0x3FF0u
 #define DS_DIG_ALIVE            0x3FF2u
 #define DS_DIG_VISIBLE          0x3FF4u
 #define DS_DIG_NOTFIRING        0x3FF6u
 #define DS_DIG_RECHARGETIME     0x3FF8u
+#define DS_DIG_FX               0x3FFAu
+#define DS_DIG_FY               0x3FFCu
+#define DS_DIG_FDIR             0x3FFEu
 #define DS_DIG_EXPSN            0x4000u
 #define DS_DIG_DEATH            0x4002u  /* killdigger() writes the death state */
 #define DS_DIG_BAG              0x4004u  /* ... and the bag index */
+#define DS_DIG_EMN              0x400Au
 #define DS_DIG_EMOCTTIME        0x4016u
+#define DS_FIREPRESSED          0x0663u  /* digger fire latch: set by input, consumed at CS:0x5BDF */
 
 /* Monster scheduling globals. */
 #define DS_MONGOTGOLD           0x3C0Cu
