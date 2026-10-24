@@ -97,7 +97,7 @@ int drawspr(int spr, int x, int y);
 
 static u8 csseg[0x10000];      /* the loaded .COM image; sprite sources are CS offsets */
 u8 dsseg[0x10000];             /* data segment; glyphs and strings are DS offsets */
-static u8 cga_mem[0x4000];     /* B800 framebuffer */
+u8 cga_mem[0x4000];            /* B800 framebuffer */
 static u8 sprmaskbyte;          /* DS:0x0623 */
 
 static u16 pixel_addr(int x, int y)

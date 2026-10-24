@@ -882,3 +882,46 @@ The archive item `digger_cga`'s `digger83b.zip` ships a DOSBox configuration tha
 runs the game correctly on current DOSBox.  The `digger.com` in that archive is
 byte-identical to the repo's `digger.com` apart from the embedded
 high-score section, which is expected.  No emulator change is needed.
+
+## Reconstruct the input layer, score accounting and small helpers
+
+Previous commit: 0c0b92a
+
+### User
+
+I looked at CGA.md sources and at https://archive.org/details/digger_cga I found digger83b.zip with a dosbox config file which now properly runs it on my current dosbox. I also compared it to the digger.com I have and it was byte identical except for the hiscore section which is to be expected. 6 is resolved. Finish 1 - 4 each in its own commit.
+
+### Assistant
+
+Reconstructed the remaining small helpers (item 2) in `input.c` plus the
+existing modules.
+
+## What was added
+
+- **Input layer** (`C/input.c`): `install_keyboard`/`restore_keyboard`
+  (`0x0E06`/`0x0E2F`), the INT 9 `keyboard_isr` (`0x0E48`) with its 21-entry
+  scan-code dispatch (keypad arrows, Ctrl+arrow CRTC shift, F1 fire, F7 music
+  toggle, F9 sound toggle, Esc menu, Ctrl+Alt+Del reboot), `sample_mouse`
+  (`0x0DBB`), `input_init` (`0x5B3F`), `readdir` (`0x5BB9`), `readkey`
+  (`0x5C5E`), `getdir` (`0x5D71`) and `delay` (`0x023F`).
+- **Digger/monster helpers**: `diggerx`/`diggery`/`digalive`, `digresettime`,
+  `bonusmode_get`, `reversedir`, `getfirepflag`, `ggetpix`, `killdigger`,
+  `initdigger`, `erasediggers`, `killmon`, `cleanupbags`.
+- **Score accounting** (`game.c`): `addscore` (32-bit, 999999 cap, extra life
+  every 20000 up to 5), the four score wrappers, `sceatm`, `initscores`,
+  `setdead`, `checklevdone`.
+- **Sound events** (`sound.c`): `soundfire`/`soundfireoff`, `soundexplode`,
+  `soundgold`, `soundbreak`, `soundfall`, `soundwobble`, `soundeatm`,
+  `soundem`, `soundbonus`, their off counterparts, `musicoff`,
+  `soundstopall`, `soundpause`/`soundpauseoff`, `soundlevdone` and its note
+  player.
+- **CGA wrappers** (`cga.c`): `setretr`, `gclear`, `gpal`, `gbackground`,
+  `ginten`, `blit_title`, plus the `inportb`/`outportb` primitives.
+- **Field/state**: `getfield` (`0x7207`); `testpause` (`0x8B55`) with the
+  pause screen and `PRESS ANY KEY`.
+
+Artifacts: `C/input.c`, `C/digger.c`, `C/monster.c`,
+`C/bags.c`, `C/game.c`, `C/sound.c`, `C/cga.c`, `C/field.c`,
+`C/state.c`, `C/main.c`, `C/sprite.c`, `C/symbols.h`,
+`C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`,
+`digger.lst`, `Worklog.md`.

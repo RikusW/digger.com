@@ -88,7 +88,7 @@ typedef int32_t  s32;
 #define CS_ADDLIFE              0x8B0Cu  /* verified */
 #define CS_CURPLAYER            0x8B45u  /* verified getter */
 #define CS_NPLAYERS             0x8B4Du  /* probable getter */
-#define CS_TESTPAUSE            0x8B55u  /* probable */
+#define CS_TESTPAUSE            0x8B55u  /* verified: pause screen + PRESS ANY KEY */
 #define CS_SOUNDPAUSE           0x7CB3u  /* verified: sets soundpaused */
 #define CS_SOUNDPAUSEOFF        0x7CBEu  /* verified: clears soundpaused */
 #define CS_INPORTB              0x8DDDu  /* probable runtime helper */
@@ -135,7 +135,7 @@ typedef int32_t  s32;
 #define CS_DODIGGER             0x4939u  /* verified by bonus block at CS:0x4912..0x4A11 */
 #define CS_DOMONSTERS           0x2C90u  /* verified structure */
 #define CS_DOBAGS               0x3E2Du  /* verified */
-#define CS_CHECKLEVDONE         0x89F2u  /* probable */
+#define CS_CHECKLEVDONE         0x89F2u  /* verified: levdone = (countem==0 || monleft==0) && digalive */
 #define CS_INITLEVEL            0x89A4u  /* probable */
 #define CS_DRAWSCREEN           0x89CDu  /* probable */
 #define CS_INITCHARS            0x89E4u  /* probable */
@@ -145,7 +145,7 @@ typedef int32_t  s32;
 #define CS_INITBONUSMODE        0x5528u  /* verified */
 #define CS_ENDBONUSMODE         0x5562u  /* verified */
 #define CS_ERASEBONUS           0x5575u  /* verified */
-#define CS_SOUNDLEVDONE         0x7310u  /* probable */
+#define CS_SOUNDLEVDONE         0x7310u  /* verified: blocking level-done tune */
 #define CS_MUSICOFF             0x7A63u  /* probable */
 #define CS_SOUNDSTOP            0x71D7u  /* probable */
 #define CS_UPDATEFIRE           0x4A3Eu  /* updatefire */
@@ -232,6 +232,15 @@ typedef int32_t  s32;
 #define CS_SCEATM               0x5598u  /* verified: addscore(msc*200), msc <<= 1 */
 #define CS_SOUNDEATM            0x7891u  /* verified */
 #define CS_SCOREKILL            0x689Fu  /* verified: addscore(250) */
+#define CS_ADDSCORE             0x5FA1u  /* verified: 32-bit score, extra life every 20000 */
+#define CS_DRAWNUMBER           0x1617u  /* draw a 32-bit decimal number */
+#define CS_SETDEAD              0x8B2Au
+#define CS_SOUNDSTOPALL         0x72D7u  /* stops every effect and the music */
+#define CS_SOUNDLEVDONEOFF      0x7303u
+#define CS_KEYBOARD_ISR         0x0E48u  /* INT 9 handler, 21-entry scan-code table */
+#define CS_SAMPLE_MOUSE         0x0DBBu  /* joystick/mouse port sampler */
+#define CS_DELAY                0x023Fu
+#define CS_RESTORE_KEYBOARD     0x0E2Fu
 #define CS_KILLEMERALD          0x5AE0u  /* clears the emerald below (h, v+1) */
 #define CS_COUNTEM              0x5A94u  /* counts emeralds for emmask */
 #define CS_DRAWEMERALD          0x208Au  /* verified: 4x10, sources 0x16E4/0x170D */

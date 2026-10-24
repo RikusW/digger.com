@@ -453,3 +453,293 @@ void soundddie(void)
     soundddievalue = 20000;
     soundddieflag = 1;
 }
+
+/* ---- sound event wrappers ------------------------------------------- */
+
+static u16 fireflag;          /* DS:0x4582 */
+static u16 firevalue;         /* DS:0x4584 */
+static u16 firen;             /* DS:0x4586 */
+static u16 breakflag;         /* DS:0x4594 */
+static u16 breakduration;     /* DS:0x4596 */
+static u16 breakfreq;         /* DS:0x4598 */
+static u16 fallvalue;         /* DS:0x4576 */
+static u16 fallflag;          /* DS:0x4578 */
+static u16 falln;             /* DS:0x457C */
+static u16 wobbleflag;        /* DS:0x457E */
+static u16 wobblen;           /* DS:0x4580 */
+static u16 goldflag;          /* DS:0x45BE */
+static u16 goldvalue;         /* DS:0x45C0 */
+static u16 goldduration;      /* DS:0x45C2 */
+static u16 goldfreq;          /* DS:0x45C4 */
+static u16 goldn;             /* DS:0x45C6 */
+static u16 eatmflag;          /* DS:0x45A6 */
+static u16 eatmvalue;         /* DS:0x45A8 */
+static u16 eatmduration;      /* DS:0x45AA */
+static u16 eatmn;             /* DS:0x45AC */
+static u16 emflag;            /* DS:0x459C */
+static u16 bonusflag;         /* DS:0x4588 */
+static u16 bonusoff;          /* DS:0x458A */
+static u16 levdoneflag;       /* DS:0x45B8 */
+static u16 levdonecounter;    /* DS:0x45BA */
+static u16 levdoneduration;   /* DS:0x45BC */
+
+static u16 explodeflag;       /* DS:0x458E */
+static u16 explodevalue;      /* DS:0x4590 */
+static u16 explodeduration;   /* DS:0x4592 */
+static u16 oneupflag;         /* DS:0x45B4 */
+
+/* CS:0x7571 (file 0x7471) */
+void soundfire(void)
+{
+    firevalue = 500;
+    fireflag = 1;
+}
+
+/* CS:0x7582 (file 0x7482) */
+void soundfireoff(void)
+{
+    firen = 0;
+    fireflag = 0;
+}
+
+/* CS:0x75E6 (file 0x74E6) */
+void soundexplode(void)
+{
+    /* DS:0x4590 / 0x4592 / 0x458E */
+    explodevalue = 1500;
+    explodeduration = 10;
+    explodeflag = 1;
+    soundfireoff();
+}
+
+/* CS:0x7807 (file 0x7707) */
+void soundgold(void)
+{
+    goldduration = 500;
+    goldfreq = 4000;
+    goldn = 30;
+    goldvalue = 0;
+    goldflag = 1;
+}
+
+/* CS:0x7497 (file 0x7397) */
+void soundbreak(void)
+{
+    breakduration = 3;
+    if (breakfreq < 0x3A98)
+        breakfreq = 0x3A98;
+    breakflag = 1;
+}
+
+/* CS:0x74BC (file 0x73BC) */
+void soundbreakoff(void)
+{
+    breakflag = 0;
+}
+
+/* CS:0x7430 (file 0x7330) */
+void soundfall(void)
+{
+    fallvalue = 1000;
+    fallflag = 1;
+}
+
+/* CS:0x7441 (file 0x7341) */
+void soundfalloff(void)
+{
+    falln = 0;
+    fallflag = 0;
+}
+
+/* CS:0x7559 (file 0x7459) */
+void soundwobble(void)
+{
+    wobbleflag = 1;
+}
+
+/* CS:0x7564 (file 0x7464) */
+void soundwobbleoff(void)
+{
+    wobblen = 0;
+    wobbleflag = 0;
+}
+
+/* CS:0x7891 (file 0x7791) */
+void soundeatm(void)
+{
+    eatmduration = 20;
+    eatmn = 3;
+    eatmvalue = 2000;
+    eatmflag = 1;
+}
+
+/* CS:0x76CC (file 0x75CC) */
+void soundem(void)
+{
+    emflag = 1;
+}
+
+/* CS:0x7646 (file 0x7546) */
+void soundbonus(void)
+{
+    bonusflag = 1;
+}
+
+/* CS:0x7651 (file 0x7551) */
+void soundbonusoff(void)
+{
+    bonusoff = 0;
+    bonusflag = 0;
+}
+
+/* CS:0x7A63 (file 0x7963) */
+void musicoff(void)
+{
+    musicp = 0;
+    musicplaying = 0;
+}
+
+void soundexplodeoff(void);
+void soundemoff(void);
+void soundemeraldoff(void);
+void soundgoldoff(void);
+void soundeatmoff(void);
+void soundddieoff(void);
+void sound1upoff(void);
+void soundlevdoneupdate(void);
+void soundlevdoneoff(void);
+void soundpause(void);
+extern void delay(int n);
+
+/* CS:0x72D7 (file 0x71D7) - stop every effect and the music. */
+void soundstopall(void)
+{
+    soundfalloff();
+    soundwobbleoff();
+    soundfireoff();
+    musicoff();
+    soundbonusoff();
+    soundexplodeoff();
+    soundbreakoff();
+    soundemoff();
+    soundemeraldoff();
+    soundddieoff();
+    soundgoldoff();
+    soundeatmoff();
+    sound1upoff();
+}
+
+/* CS:0x7CB3 (file 0x7BB3) */
+void soundpause(void)
+{
+    soundpaused = 1;
+}
+
+/* CS:0x7CBE (file 0x7BBE) */
+void soundpauseoff(void)
+{
+    soundpaused = 0;
+}
+
+/* CS:0x7303 (file 0x7203) - stop the level-done tune. */
+void soundlevdoneoff(void)
+{
+    soundpaused = 0;
+    levdoneflag = 0;
+}
+
+/* CS:0x7310 (file 0x7210) - play the level-done tune, blocking until the
+ * ISR clears DS:0x45B8. */
+void soundlevdone(void)
+{
+    u8 last = 0;
+
+    soundstopall();
+    levdonecounter = 0;
+    levdoneduration = 20;
+    levdoneflag = 1;
+    soundpaused = 1;
+    while (levdoneflag) {
+        if (timerclock != last) {
+            soundlevdoneupdate();
+            last = timerclock;
+        }
+    }
+}
+
+/* ---- remaining sound off routines and the level-done tune ------------ */
+
+/* CS:0x7600 (file 0x7500) */
+void soundexplodeoff(void)
+{
+    explodeflag = 0;
+}
+
+/* CS:0x76C1 (file 0x75C1) */
+void soundemoff(void)
+{
+    emflag = 0;
+}
+
+/* CS:0x76EC (file 0x75EC) */
+void soundemeraldoff(void)
+{
+    soundemeraldflag = 0;
+}
+
+/* CS:0x77FC (file 0x76FC) */
+void soundgoldoff(void)
+{
+    goldflag = 0;
+}
+
+/* CS:0x7886 (file 0x7786) */
+void soundeatmoff(void)
+{
+    eatmflag = 0;
+}
+
+/* CS:0x7928 (file 0x7828) */
+void soundddieoff(void)
+{
+    soundddieflag = 0;
+}
+
+/* CS:0x7A00 (file 0x7900) */
+void sound1upoff(void)
+{
+    oneupflag = 0;
+}
+
+/* CS:0x7351 (file 0x7251) - one note of the level-done tune, called from
+ * the timer tick while soundlevdone() waits. */
+void soundlevdoneupdate(void)
+{
+    static const u16 freq[11] = {
+        0x8E8, 0x712, 0x5F2, 0x7F0, 0x6AC, 0x54C,
+        0x712, 0x5F2, 0x4B8, 0x474, 0x474
+    };
+
+    if (!sndflag) {
+        delay(100);
+        levdoneflag = 0;
+        return;
+    }
+    if (levdonecounter > 10)
+        return;
+
+    t2val = freq[levdonecounter];
+    musvol = 50;
+    t0val = (u16)(t2val + 0x23);
+    setsoundmode();
+    sett0();
+    sett2val(t2val);
+
+    if (levdoneduration > 0)
+        levdoneduration--;
+    else {
+        levdoneduration = 20;
+        if (++levdonecounter > 10)
+            soundlevdoneoff();
+    }
+}

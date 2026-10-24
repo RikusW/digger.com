@@ -42,7 +42,7 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x1155` | `0x1055` | `cga_shift_dec` | verified | CRTC R2--, clamp `0x2A..0x2E`. |
 | `0x17EB` | `0x16EB` | `cga_blit_rle` | verified | `DS:0x0DAC` to `B800`, 0x4000 bytes, `0xFE` escape. |
 | `0x5EEA` | `0x5DEA` | `score_init`? | probable | Initializes 32-bit score fields to 0 and next-bonus fields to `0x4E20` (20000). |
-| `0x5FA1` | `0x5EA1` | `score_add`? | probable | Adds to score; the `0x4E20` step at `CS:0x6034` is the extra-life bonus. |
+| `0x5FA1` | `0x5EA1` | `addscore` | verified | 32-bit per-player score; caps at 999999 (wraps to 0), draws it, grants an extra life every 20000 up to 5 lives, then three `incpenalty` calls. |
 | `0x689F` | `0x679F` | `scorekill` | verified | Calls `score_add(250)`. |
 | `0x68AD` | `0x67AD` | `scoreemerald` | verified | Calls `score_add(25)`. |
 | `0x68BB` | `0x67BB` | `scoreoctave` | verified | Calls `score_add(250)`; called from `soundemerald` on wrap-around. |
@@ -168,8 +168,27 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x225C` | `0x215C` | `drawtopblob` | verified | `x-4, y-6`, 6x6. |
 | `0x22A2` | `0x21A2` | `drawbottomblob` | verified | `x-4, y+15`, 6x6. |
 | `0x39A9` | `0x38A9` | `killmon` | verified | Clears flag/alive, `erasespr(mon+8)`. |
+| `0x569B` | `0x559B` | `digresettime` | verified | `bagtime=0`. |
+| `0x5DD8` | `0x5CD8` | `getfirepflag` | verified | Returns `DS:0x40BC`. |
+| `0x56A6` | `0x55A6` | `ggetpix` | verified | Reads a 2-bit CGA pixel at `(x,y)`. |
+| `0x023F` | `0x013F` | `delay` | verified | Busy loop, `n*100` iterations. |
+| `0x5B3F` | `0x5A3F` | `input_init` | verified | Mouse/joystick detection and reset of the direction/fire state. |
+| `0x5C5E` | `0x5B5E` | `readkey` | verified | Returns nonzero to start the game; ignores scan code 1 and break codes. |
+| `0x0DBB` | `0x0CBB` | `sample_mouse` | verified | Port 0x201: bit 0 = X count, bit 1 = Y count, bits 4/5 = buttons. |
+| `0x0E06` | `0x0D06` | `install_keyboard` | verified | Hooks INT 9, saves the old vector at `DS:0x0647/0x0649`. |
+| `0x0E2F` | `0x0D2F` | `restore_keyboard` | verified | Restores the saved INT 9 vector. |
+| `0x0E48` | `0x0D48` | `keyboard_isr` | verified | Scan code, port 0x61 acknowledge, 21-entry dispatch, EOI. |
+| `0x72D7` | `0x71D7` | `soundstopall` | verified | Calls the 13 effect/music off routines. |
+| `0x7807` | `0x7707` | `soundgold` | verified | duration 500, freq 4000, n 30, flag 1. |
+| `0x7430` | `0x7330` | `soundfall` | verified | value 1000, flag 1. |
+| `0x7559` | `0x7459` | `soundwobble` | verified | flag 1. |
+| `0x7891` | `0x7791` | `soundeatm` | verified | duration 20, n 3, value 2000, flag 1. |
+| `0x76CC` | `0x75CC` | `soundem` | verified | flag 1. |
+| `0x7646` | `0x7546` | `soundbonus` | verified | flag 1. |
+| `0x7A63` | `0x7963` | `musicoff` | verified | Clears `musicp` and `musicplaying`. |
+| `0x7310` | `0x7210` | `soundlevdone` | verified | Blocking 11-note level-done tune driven by `DS:0x024E`. |
 | `0x5598` | `0x5498` | `sceatm` | verified | `addscore(msc*200)`, then `msc <<= 1` (`DS:0x4014`). |
-| `0x5668` | `0x5568` | `killdigger` | verified | Single-digger kill: stores death `DS:0x4002`, bag `DS:0x4004`, clears alive, `musicoff`. |
+| `0x5668` | `0x5568` | `killdigger` | verified | Ignore if already in death states 2/3/4; `musicoff`, alive=0, store death/bag. |
 | `0x57F1` | `0x56F1` | `hitemerald` | verified | Uses `embox[8]={8,12,12,9,16,12,6,9}`; draws at `embox[dir]`, erases + returns hit at `embox[dir+1]`; emerald map bytes at `DS:0x4018`. |
 | `0x5AE0` | `0x59E0` | `killemerald` | verified | Clears the emerald at `(h, v+1)` and erases its sprite. |
 | `0x5A94` | `0x5994` | `countem` | verified | Counts emeralds selected by `emmask`. |
@@ -198,7 +217,7 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x47B5` | `0x46B5` | `removebags` | verified | `removebag()` for the bags in the mask. |
 | `0x47F8` | `0x46F8` | `getnmovingbags` | verified | Counts `exist`, `gt<10`, and (`gt!=0` or `wobbling`). |
 | `0x4853` | `0x4753` | `getgold` | verified | Draws frame 6; on a digger hit scores/sounds/resets bagtime, else `mongold()`; removes the bag. |
-| `0x48A0` | `0x47A0` | `initdigger` | probable | Called by `drawscreen`/`initchars`. |
+| `0x48A0` | `0x47A0` | `initdigger` | verified | Full single-digger reset (`h=7`, `v=9`, `x=152`, `y=180`, dirs LEFT/RIGHT, flags, `movedrawspr(0)`). |
 | `0x4939` | `0x4839` | `dodigger` | verified | Per-frame digger update; calls `drawdig`/`updatefire`/`drawexplosion`/`updatedigger`/`diggerdie`; contains the bonus-mode block at `CS:0x4912..0x4A11`. |
 | `0x4A3E` | `0x493E` | `updatefire` | verified | Launch (`levof10()*3+60` recharge, `fx/fy` per dir, sprite 15), pixel probes in 7-pixel steps, `drawfire`, monster hits (`killmon`/`scorekill`/`expsn=1`), `0x40FE` impact test, edge/impact explosion. |
 | `0x4E66` | `0x4D66` | `drawexplosion` | verified | `expsn` 1..3 draw frame 1..3 + `soundexplode` on 1, then `killfire` and `expsn=0`. |
@@ -213,11 +232,11 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x75E6` | `0x74E6` | `soundexplode` | verified | Value 1500, duration 10, flag 1; calls `soundfireoff`. |
 | `0x4F07` | `0x4E07` | `updatedigger` | verified | `readdir`/`getdir`, input gating by `rx`/`ry`, edge stop, `eatfield`, blob move, `hitemerald` (score/sound/cooldown), `drawdig`, bag push, bonus-mode monster kills, bonus pickup, coordinate update. |
 | `0x5218` | `0x5118` | `diggerdie` | verified | Death states 1..5: bag settle, animation frames 10..14, fall arc 3/5/6/6/5/3/0, `setdead(1)`. Life loss/respawn are handled by the main loop, not here. |
-| `0x55B5` | `0x54B5` | `bonusmode_get` | probable | Getter used by `monai`. |
-| `0x55BD` | `0x54BD` | `reversedir` | probable | Direction reversal used by `monai`. |
-| `0x5650` | `0x5550` | `diggerx` | probable | Digger x accessor. |
-| `0x5658` | `0x5558` | `diggery` | probable | Digger y accessor. |
-| `0x5660` | `0x5560` | `digalive` | probable | Returns `DS:0x3FF2`; called by `domonsters`. |
+| `0x55B5` | `0x54B5` | `bonusmode_get` | verified | Returns `DS:0x4012`. |
+| `0x55BD` | `0x54BD` | `reversedir` | verified | RIGHT<->LEFT, UP<->DOWN, others unchanged. |
+| `0x5650` | `0x5550` | `diggerx` | verified | Returns `DS:0x3FDE`. |
+| `0x5658` | `0x5558` | `diggery` | verified | Returns `DS:0x3FE0`. |
+| `0x5660` | `0x5560` | `digalive` | verified | Returns `DS:0x3FF2`. |
 | `0x56E8` | `0x55E8` | `makeemfield` | verified | `emmask` 1/2; sets/clears the emerald bit per `getlevch(x,y,levplan())=='C'`. |
 | `0x5777` | `0x5677` | `drawemeralds` | verified | Sets `emmask`, draws every selected emerald. |
 | `0x6A48` | `0x6948` | `makefield` | verified | Fills `0xFFFF`, clears `0xD03F` for `S/V` and `0xDFE0` for `S/H`, saves to the per-player copy. |
@@ -232,7 +251,7 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x5562` | `0x5462` | `endbonusmode` | verified | `bonusmode=0`, ginten(0). |
 | `0x5575` | `0x5475` | `erasebonus` | verified | If visible, erase sprite 0x0E; ginten(0). |
 | `0x5A94` | `0x5994` | `countem` | probable | Level-completion check. |
-| `0x5BB9` | `0x5AB9` | `readdir`/input | probable | Called once per game frame. |
+| `0x5BB9` | `0x5AB9` | `readdir` | verified | Merges the key edge/hold directions, sets `firepflag`, samples the mouse when active. |
 | `0x5D71` | `0x5C71` | `getdir` | verified | Returns `DS:0x40B0`, or `-1` for pause. |
 | `0x5DE0` | `0x5CE0` | `initscores` | verified | Calls `addscore(0)`. |
 | `0x5DED` | `0x5CED` | `loadscores` | verified | Reads sector 7, parses `s` + ten entries. |

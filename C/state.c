@@ -86,3 +86,40 @@ int nplayers_get(void)
  * DS:0x508B, waits for a key and restores the screen.  Not reconstructed
  * line-by-line yet.
  */
+
+/* CS:0x8B55 (file 0x8A55) */
+extern volatile u8 keypressed;
+extern void soundpause(void);
+extern void soundpauseoff(void);
+extern void sett2val(u16 v);
+extern void setsoundt2(void);
+extern void cleartopline(void);
+extern void writestring(int s, int x, int y, int color);
+extern void drawhighscore(void);
+extern void addscore(int n);
+extern void drawlives(void);
+extern void delay(int n);
+
+void testpause(void)
+{
+    u8 k = keypressed;
+
+    if (k == 0x39 || k == 0xB9) {
+        soundpause();
+        sett2val(40);
+        setsoundt2();
+        cleartopline();
+        writestring(0x508B, 0x50, 0, 1);      /* "PRESS ANY KEY" */
+        while (keypressed == 0x39)
+            ;
+        while (keypressed & 0x80)
+            ;
+        cleartopline();
+        drawhighscore();
+        addscore(0);
+        drawlives();
+        delay(200);
+        keypressed = 0;
+    } else
+        soundpauseoff();
+}

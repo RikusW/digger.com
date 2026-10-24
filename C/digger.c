@@ -582,3 +582,113 @@ void diggerdie(void)
         break;
     }
 }
+
+/* ---- accessors and small state transitions --------------------------- */
+
+/* CS:0x5650 / 0x5658 / 0x5660 (files 0x5550/0x5558/0x5560) */
+int diggerx(void)
+{
+    return dig_x;
+}
+
+int diggery(void)
+{
+    return dig_y;
+}
+
+int digalive(void)
+{
+    return dig_alive;
+}
+
+/* CS:0x569B (file 0x559B) */
+void digresettime(void)
+{
+    dig_bagtime = 0;
+}
+
+/* CS:0x55B5 (file 0x54B5) */
+int bonusmode_get(void)
+{
+    return bonusmode;
+}
+
+/* CS:0x55BD (file 0x54BD) */
+int reversedir(int dir)
+{
+    switch (dir) {
+    case DIR_RIGHT: return DIR_LEFT;
+    case DIR_UP:    return DIR_DOWN;
+    case DIR_LEFT:  return DIR_RIGHT;
+    case DIR_DOWN:  return DIR_UP;
+    }
+    return dir;
+}
+
+/* DS:0x40BC - the current fire-key state maintained by the input layer. */
+static s16 firepflag;          /* DS:0x40BC */
+
+extern u8 cga_mem[0x4000];
+
+/* CS:0x5DD8 (file 0x5CD8) */
+int getfirepflag(void)
+{
+    return firepflag;
+}
+
+void setfirepflag(int v)
+{
+    firepflag = (s16)v;
+}
+
+/* CS:0x56A6 (file 0x55A6) */
+int ggetpix(int x, int y)
+{
+    /* The original reads the CGA framebuffer directly:
+     *   addr = (y & ~1) * 40 + (y & 1) * 0x2000 + (x >> 2)
+     * and extracts the 2-bit pixel at (3 - (x & 3)) * 2. */
+    int addr = (y & ~1) * 40 + ((y & 1) ? 0x2000 : 0) + (x >> 2);
+    return (cga_mem[addr] >> ((3 - (x & 3)) * 2)) & 3;
+}
+
+/* CS:0x5668 (file 0x5568) */
+void killdigger(int death, int bag)
+{
+    if (dig_deathstage == 2 || dig_deathstage == 4 || dig_deathstage == 3)
+        return;
+    musicoff();
+    dig_alive = 0;
+    dig_deathstage = (u16)death;
+    dig_deathbag = (u16)bag;
+}
+
+/* CS:0x48A0 (file 0x47A0) */
+void initdigger(void)
+{
+    dig_h = 7;
+    dig_v = 9;
+    dig_x = dig_h * 20 + 12;
+    dig_y = dig_v * 18 + 18;
+    dig_ddir = DIR_LEFT;
+    dig_mdir = DIR_LEFT;
+    dig_dir = DIR_RIGHT;
+    dig_rx = 0;
+    dig_ry = 0;
+    dig_bagtime = 0;
+    dig_alive = 1;
+    dig_deathstage = 1;
+    dig_visible = 1;
+    movedrawspr(0, dig_x, dig_y);
+    dig_notfiring = 1;
+    dig_expsn = 0;
+    emocttime = 0;
+    bonusmode = 0;
+    dig_rechargetime = 0;
+}
+
+/* CS:0x4926 (file 0x4826) */
+void erasediggers(void)
+{
+    erasespr(0);
+    dig_visible = 0;
+}

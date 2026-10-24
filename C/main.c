@@ -44,13 +44,13 @@ static s16 dead0;              /* DS:0x4FDE */
 static s16 dead1;              /* DS:0x4FE6 */
 static s16 checkbyte;          /* DS:0x5016 */
 static s16 menuflag;           /* DS:0x0665 */
-static volatile u8 keypressed; /* DS:0x0658 */
+extern volatile u8 keypressed; /* DS:0x0658, input.c */
 
 /* externs */
 extern void setretr(int on);
 extern void cga_init(void);
 extern void gpal(int pal);
-extern void ginten(int on);
+extern void gbackground(int color);
 extern void gclear(int color);
 extern void cga_mode_off(void);
 extern void cga_mode_on(void);
@@ -61,7 +61,7 @@ extern int readkey(void);              /* CS:0x5C5E */
 extern void loadscores(void);
 extern void initscores(void);          /* CS:0x5EEA */
 extern void initsound(void);           /* CS:0x7D10 */
-extern void playmusic(int n);          /* CS:0x72D7 */
+extern void soundstopall(void);        /* CS:0x72D7 */
 extern void setorder(u16 *p);
 extern void creatembspr(void);
 extern void initmbspr(void);
@@ -182,7 +182,7 @@ void main_title(void)
     cga_init();
     setretr(1);
     gpal(0);
-    ginten(0);
+    gbackground(0);
 
     install_keyboard();
     input_init();
@@ -201,7 +201,7 @@ void main_title(void)
     nplayers = 1;
 
 restart:
-    playmusic(0);
+    soundstopall();
     setorder((u16 *)0x4FBE);   /* alternate title draw order */
     creatembspr();
     input_init();

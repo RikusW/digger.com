@@ -156,6 +156,7 @@ Disassembly of section .data:
      23a:	83 c4 02             	add    sp,0x2
      23d:	5d                   	pop    bp
      23e:	c3                   	ret    
+; --- delay (n*100 busy loop) ---
      23f:	55                   	push   bp
      240:	83 ec 06             	sub    sp,0x6
      243:	8b ec                	mov    bp,sp
@@ -248,7 +249,6 @@ Disassembly of section .data:
      2f0:	17                   	pop    ss
      2f1:	5d                   	pop    bp
      2f2:	c3                   	ret    
-; --- disk_check ---
 ; --- disk_signature ---
      2f3:	e8 2b 00             	call   0x321
      2f6:	73 27                	jae    0x31f
@@ -267,7 +267,6 @@ Disassembly of section .data:
      31f:	f9                   	stc    
      320:	c3                   	ret    
 ; --- read_sector2 (disk signature/copy protection) ---
-; --- read_sector2 ---
      321:	8c d8                	mov    ax,ds
      323:	8e c0                	mov    es,ax
      325:	b4 02                	mov    ah,0x2
@@ -1407,6 +1406,7 @@ Disassembly of section .data:
      db6:	75 9b                	jne    0xd53
      db8:	c3                   	ret    
      db9:	00 00                	add    BYTE PTR [bx+si],al
+; --- sample_mouse (port 0x201) ---
      dbb:	55                   	push   bp
      dbc:	8b ec                	mov    bp,sp
      dbe:	ba 01 02             	mov    dx,0x201
@@ -1455,6 +1455,7 @@ Disassembly of section .data:
      e27:	a3 47 06             	mov    ds:0x647,ax
      e2a:	89 1e 49 06          	mov    WORD PTR ds:0x649,bx
      e2e:	c3                   	ret    
+; --- restore_keyboard ---
      e2f:	a1 47 06             	mov    ax,ds:0x647
      e32:	8b 1e 49 06          	mov    bx,WORD PTR ds:0x649
      e36:	bf 24 00             	mov    di,0x24
@@ -1467,6 +1468,7 @@ Disassembly of section .data:
      e45:	fb                   	sti    
      e46:	1f                   	pop    ds
      e47:	c3                   	ret    
+; --- keyboard_isr (INT 9, 21-entry table) ---
      e48:	fb                   	sti    
      e49:	50                   	push   ax
      e4a:	51                   	push   cx
@@ -6047,7 +6049,7 @@ Disassembly of section .data:
     39a4:	83 c4 06             	add    sp,0x6
     39a7:	5d                   	pop    bp
     39a8:	c3                   	ret    
-; --- killmon ---
+; --- killmon (verified) ---
     39a9:	55                   	push   bp
     39aa:	83 ec 04             	sub    sp,0x4
     39ad:	8b ec                	mov    bp,sp
@@ -7453,7 +7455,7 @@ Disassembly of section .data:
     489b:	83 c4 0a             	add    sp,0xa
     489e:	5d                   	pop    bp
     489f:	c3                   	ret    
-; --- initdigger ---
+; --- initdigger (verified) ---
     48a0:	55                   	push   bp
     48a1:	83 ec 02             	sub    sp,0x2
     48a4:	8b ec                	mov    bp,sp
@@ -8776,6 +8778,7 @@ Disassembly of section .data:
     5696:	83 c4 02             	add    sp,0x2
     5699:	5d                   	pop    bp
     569a:	c3                   	ret    
+; --- digresettime ---
     569b:	55                   	push   bp
     569c:	8b ec                	mov    bp,sp
     569e:	c7 06 f0 3f 00 00    	mov    WORD PTR ds:0x3ff0,0x0
@@ -10006,6 +10009,7 @@ Disassembly of section .data:
     6340:	83 c4 02             	add    sp,0x2
     6343:	5d                   	pop    bp
     6344:	c3                   	ret    
+; --- drawlives ---
     6345:	55                   	push   bp
     6346:	83 ec 06             	sub    sp,0x6
     6349:	8b ec                	mov    bp,sp
@@ -11570,6 +11574,7 @@ Disassembly of section .data:
     72d2:	83 c4 02             	add    sp,0x2
     72d5:	5d                   	pop    bp
     72d6:	c3                   	ret    
+; --- soundstopall ---
     72d7:	55                   	push   bp
     72d8:	8b ec                	mov    bp,sp
     72da:	e8 64 01             	call   0x7441
@@ -11587,6 +11592,7 @@ Disassembly of section .data:
     72fe:	e8 ff 06             	call   0x7a00
     7301:	5d                   	pop    bp
     7302:	c3                   	ret    
+; --- soundlevdoneoff ---
     7303:	55                   	push   bp
     7304:	8b ec                	mov    bp,sp
     7306:	33 c0                	xor    ax,ax
@@ -11594,7 +11600,7 @@ Disassembly of section .data:
     730b:	a3 b8 45             	mov    ds:0x45b8,ax
     730e:	5d                   	pop    bp
     730f:	c3                   	ret    
-; --- soundlevdone? ---
+; --- soundlevdone (blocking tune) ---
     7310:	55                   	push   bp
     7311:	83 ec 04             	sub    sp,0x4
     7314:	8b ec                	mov    bp,sp
@@ -11618,6 +11624,7 @@ Disassembly of section .data:
     734c:	83 c4 04             	add    sp,0x4
     734f:	5d                   	pop    bp
     7350:	c3                   	ret    
+; --- soundlevdoneupdate (one note) ---
     7351:	55                   	push   bp
     7352:	83 ec 02             	sub    sp,0x2
     7355:	8b ec                	mov    bp,sp
@@ -11691,6 +11698,7 @@ Disassembly of section .data:
     742b:	83 c4 02             	add    sp,0x2
     742e:	5d                   	pop    bp
     742f:	c3                   	ret    
+; --- soundfall ---
     7430:	55                   	push   bp
     7431:	8b ec                	mov    bp,sp
     7433:	c7 06 76 45 e8 03    	mov    WORD PTR ds:0x4576,0x3e8
@@ -11802,6 +11810,7 @@ Disassembly of section .data:
     7554:	83 c4 02             	add    sp,0x2
     7557:	5d                   	pop    bp
     7558:	c3                   	ret    
+; --- soundwobble ---
     7559:	55                   	push   bp
     755a:	8b ec                	mov    bp,sp
     755c:	c7 06 7e 45 01 00    	mov    WORD PTR ds:0x457e,0x1
@@ -11871,6 +11880,7 @@ Disassembly of section .data:
     75fb:	e8 84 ff             	call   0x7582
     75fe:	5d                   	pop    bp
     75ff:	c3                   	ret    
+; --- soundexplodeoff ---
     7600:	55                   	push   bp
     7601:	8b ec                	mov    bp,sp
     7603:	c7 06 8e 45 00 00    	mov    WORD PTR ds:0x458e,0x0
@@ -11948,6 +11958,7 @@ Disassembly of section .data:
     76bc:	83 c4 02             	add    sp,0x2
     76bf:	5d                   	pop    bp
     76c0:	c3                   	ret    
+; --- soundemoff ---
     76c1:	55                   	push   bp
     76c2:	8b ec                	mov    bp,sp
     76c4:	c7 06 9c 45 00 00    	mov    WORD PTR ds:0x459c,0x0
@@ -11968,6 +11979,7 @@ Disassembly of section .data:
     76e7:	e8 d7 ff             	call   0x76c1
     76ea:	5d                   	pop    bp
     76eb:	c3                   	ret    
+; --- soundemeraldoff ---
     76ec:	55                   	push   bp
     76ed:	8b ec                	mov    bp,sp
     76ef:	c7 06 a0 45 00 00    	mov    WORD PTR ds:0x45a0,0x0
@@ -12065,11 +12077,13 @@ Disassembly of section .data:
     77f7:	83 c4 02             	add    sp,0x2
     77fa:	5d                   	pop    bp
     77fb:	c3                   	ret    
+; --- soundgoldoff ---
     77fc:	55                   	push   bp
     77fd:	8b ec                	mov    bp,sp
     77ff:	c7 06 be 45 00 00    	mov    WORD PTR ds:0x45be,0x0
     7805:	5d                   	pop    bp
     7806:	c3                   	ret    
+; --- soundgold ---
     7807:	55                   	push   bp
     7808:	8b ec                	mov    bp,sp
     780a:	c7 06 c2 45 f4 01    	mov    WORD PTR ds:0x45c2,0x1f4
@@ -12111,6 +12125,7 @@ Disassembly of section .data:
     7881:	83 c4 02             	add    sp,0x2
     7884:	5d                   	pop    bp
     7885:	c3                   	ret    
+; --- soundeatmoff ---
     7886:	55                   	push   bp
     7887:	8b ec                	mov    bp,sp
     7889:	c7 06 a6 45 00 00    	mov    WORD PTR ds:0x45a6,0x0
@@ -12168,6 +12183,7 @@ Disassembly of section .data:
     7923:	83 c4 02             	add    sp,0x2
     7926:	5d                   	pop    bp
     7927:	c3                   	ret    
+; --- soundddieoff ---
     7928:	55                   	push   bp
     7929:	8b ec                	mov    bp,sp
     792b:	c7 06 ae 45 00 00    	mov    WORD PTR ds:0x45ae,0x0
@@ -12240,6 +12256,7 @@ Disassembly of section .data:
     79fb:	83 c4 02             	add    sp,0x2
     79fe:	5d                   	pop    bp
     79ff:	c3                   	ret    
+; --- sound1upoff ---
     7a00:	55                   	push   bp
     7a01:	8b ec                	mov    bp,sp
     7a03:	c7 06 b4 45 00 00    	mov    WORD PTR ds:0x45b4,0x0
@@ -13132,7 +13149,6 @@ Disassembly of section .data:
     829c:	d1 e6                	shl    si,1
     829e:	2e ff a4 20 82       	jmp    WORD PTR cs:[si-0x7de0]
     82a3:	e9 76 ff             	jmp    0x821c
-; --- main/title loop? ---
 ; --- main (start-up, title, menu, life loop) ---
     82a6:	55                   	push   bp
     82a7:	83 ec 0c             	sub    sp,0xc
@@ -14014,7 +14030,7 @@ Disassembly of section .data:
     8b25:	83 c4 02             	add    sp,0x2
     8b28:	5d                   	pop    bp
     8b29:	c3                   	ret    
-; --- setdead?  (per-player field) ---
+; --- setdead (per-player dead flag) ---
     8b2a:	55                   	push   bp
     8b2b:	83 ec 02             	sub    sp,0x2
     8b2e:	8b ec                	mov    bp,sp
@@ -14255,7 +14271,6 @@ Disassembly of section .data:
     8d28:	83 c4 04             	add    sp,0x4
     8d2b:	5d                   	pop    bp
     8d2c:	c3                   	ret    
-; --- strcpy?  (C runtime) ---
 ; --- strcpy_ds (C runtime) ---
     8d2d:	55                   	push   bp
     8d2e:	83 ec 04             	sub    sp,0x4

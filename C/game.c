@@ -89,20 +89,20 @@ static u16 bonus_msc;           /* DS:0x4014; probable */
 
 extern void cga_set_intensity(int on);   /* ginten(), CGA path */
 extern int levof10(void);
-extern void draw_bonus_sprite(int x, int y);
-extern void erase_sprite(int n);
+extern void drawbonus(int x, int y);
+extern void erasespr(int n);
 
 void createbonus(void)
 {
     bonusvisible = 1;
-    draw_bonus_sprite(0x124, 0x12);
+    drawbonus(0x124, 0x12);
 }
 
 void erasebonus(void)
 {
     if (bonusvisible) {
         bonusvisible = 0;
-        erase_sprite(0x0E);
+        erasespr(0x0E);
     }
     cga_set_intensity(0);
 }
@@ -187,7 +187,7 @@ extern void addscore(int n);
 extern void initscores(void);
 extern void drawlives(void);
 extern void music(int tune);
-extern void playmusic(int tune);
+extern void soundstopall(void);
 extern void musicoff(void);
 extern void readdir(void);
 extern void dodigger(void);
@@ -218,7 +218,7 @@ static s16 g_levdone[2];              /* DS:0x4FE4 / 0x4FEC */
 static s16 g_levnotdrawn;             /* DS:0x5010 */
 static s16 g_banner;                  /* DS:0x5012 */
 static s16 g_checkbyte;               /* DS:0x5016 */
-static u8 g_keypressed;               /* DS:0x0658 */
+extern volatile u8 keypressed;        /* DS:0x0658, input.c */
 
 void game(void)
 {
@@ -259,7 +259,7 @@ void game(void)
     addscore(0);
 
 frame:
-    g_keypressed = 0;
+    keypressed = 0;
     writestring(0x5065, 0x6C, 0, 3);      /* blank score line */
     initscores();
     drawlives();
@@ -313,7 +313,7 @@ frame:
         }
     }
 
-    playmusic(0);
+    soundstopall();
     killfire();
     erasebonus();
     cleanupbags();
@@ -343,4 +343,117 @@ frame:
             g_level[g_curplayer] = 1000;
         initlevel();
     }
+}
+
+/* ---- score state and wrappers --------------------------------------- */
+
+extern void draw_number(u32 value, int x, int y, int digits, int color);
+extern int getlives(int which);
+extern void addlife(int which);
+extern void drawlives(void);
+extern void incpenalty(void);
+
+static u32 score0;              /* DS:0x40C6/0x40C8 */
+static u32 score1;              /* DS:0x40CA/0x40CC */
+static u32 nextbonus0 = 20000;  /* DS:0x40CE/0x40D0 */
+static u32 nextbonus1 = 20000;  /* DS:0x40D2/0x40D4 */
+static s16 msc = 1;             /* DS:0x4014, doubles during bonus mode */
+
+/* CS:0x8B2A (file 0x8A2A) */
+void setdead(int dead)
+{
+    g_dead[g_curplayer] = (s16)dead;
+}
+
+/* CS:0x5FA1 (file 0x5EA1) */
+void addscore(int n)
+{
+    if (g_curplayer == 0) {
+        score0 += (u32)(s16)n;
+        if (score0 > 999999u)
+            score0 = 0;
+        draw_number(score0, 0, 0, 6, 1);
+        if (score0 >= nextbonus0) {
+            if (getlives(1) < 5) {
+                addlife(1);
+                drawlives();
+            }
+            nextbonus0 += 20000;
+        }
+    } else {
+        score1 += (u32)(s16)n;
+        if (score1 > 999999u)
+            score1 = 0;
+        draw_number(score1, score1 < 100000u ? 0xEC : 0xF8, 0, 6, 1);
+        if (score1 >= nextbonus1) {
+            if (getlives(2) < 5) {
+                addlife(2);
+                drawlives();
+            }
+            nextbonus1 += 20000;
+        }
+    }
+    incpenalty();
+    incpenalty();
+    incpenalty();
+}
+
+/* CS:0x689F (file 0x679F) */
+void scorekill(void)
+{
+    addscore(250);
+}
+
+/* CS:0x68AD (file 0x67AD) */
+void scoreemerald(void)
+{
+    addscore(25);
+}
+
+/* CS:0x68BB (file 0x67BB) */
+void scoreoctave(void)
+{
+    addscore(250);
+}
+
+/* CS:0x68C9 (file 0x67C9) */
+void scoregold(void)
+{
+    addscore(500);
+}
+
+/* CS:0x68D7 (file 0x67D7) */
+void scorebonus(void)
+{
+    addscore(1000);
+}
+
+/* CS:0x5598 (file 0x5498) */
+void sceatm(void)
+{
+    addscore(msc * 200);
+    msc <<= 1;
+}
+
+/* CS:0x5DE0 (file 0x5CE0) */
+void initscores(void)
+{
+    addscore(0);
+}
+
+/* CS:0x89F2 (file 0x88F2) */
+extern int monleft(void);
+extern int digalive(void);
+
+void checklevdone(void)
+{
+    if (countem() != 0 && monleft() != 0) {
+        g_levdone[g_curplayer] = 0;
+        return;
+    }
+    if (!digalive()) {
+        g_levdone[g_curplayer] = 0;
+        return;
+    }
+    g_levdone[g_curplayer] = 1;
 }

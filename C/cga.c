@@ -236,3 +236,71 @@ void cga_blit_rle(const u8 *src)
         }
     }
 }
+
+/* ---- game-level wrappers -------------------------------------------- */
+
+extern u8 dsseg[0x10000];
+
+/* CS:0x0540 (file 0x0440) */
+void setretr(int on)
+{
+    cga_retrace_flag = (u8)on;
+}
+
+/* CS:0x04AE (file 0x03AE) */
+void gclear(int color)
+{
+    cga_clear(color);
+}
+
+/* CS:0x04E7 (file 0x03E7) */
+void gpal(int pal)
+{
+    cga_palette(pal);
+}
+
+/* CS:0x0520 (file 0x0420) */
+void gbackground(int color)
+{
+    cga_set_background(color);
+}
+
+/* CS:0x054B (file 0x044B) */
+void ginten(int on)
+{
+    cga_set_intensity(on);
+}
+
+/* CS:0x17EB (file 0x16EB) */
+void blit_title(void)
+{
+    cga_blit_rle(&dsseg[0x0DAC]);
+}
+
+/* ---- port I/O primitives (C runtime helpers 0x8DDD/0x8DE8) ----------- */
+
+#if defined(__i386__) || defined(__x86_64__)
+u8 inportb(u16 port)
+{
+    u8 v;
+    __asm__ volatile ("inb %1, %0" : "=a"(v) : "Nd"(port));
+    return v;
+}
+
+void outportb(u16 port, u8 value)
+{
+    __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
+}
+#else
+u8 inportb(u16 port)
+{
+    (void)port;
+    return 0;
+}
+
+void outportb(u16 port, u8 value)
+{
+    (void)port;
+    (void)value;
+}
+#endif

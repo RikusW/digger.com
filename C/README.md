@@ -59,6 +59,10 @@ reconstructed from the 8086 disassembly.
 | `drawbackg`, `drawemerald`/`eraseemerald`, blob draws | reconstructed | `drawing.c` |
 | `creatembspr`, `initmbspr`, `createdbfspr`, `initdbfspr` | reconstructed | `drawing.c` |
 | Start-up, title screen, menu and life loop (`main` `0x82A6`) | reconstructed | `main.c` |
+| Keyboard ISR, mouse sampling, `readdir`/`getdir`/`readkey`, `delay` | reconstructed | `input.c` |
+| Accessors, `setdead`, `addscore`/score wrappers, `sceatm`, `killdigger`/`killmon` | reconstructed | `digger.c`/`monster.c`/`game.c` |
+| Sound-event one-liners, `soundstopall`, `soundlevdone`, pause | reconstructed | `sound.c` |
+| CGA wrappers (`setretr`, `gpal`, `gbackground`, `ginten`, `gclear`, `blit_title`) | reconstructed | `cga.c` |
 | Title font/glyphs and `writestring` (`0x08E5`/`0x11E4`/`0x11A4`) | reconstructed | `main.c` |
 | Disk-signature check (`0x026C`/`0x02F3`/`0x0321`) and hang | reconstructed | `main.c` |
 | Sprite engine (`setrdrwflgs`, `collide`, `bcollides`, `putis`, `putims`, `getis`) | reconstructed | `sprite.c` |

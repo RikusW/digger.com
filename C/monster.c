@@ -573,3 +573,15 @@ int fieldclear(int dir, int x, int y)
     }
     return 0;
 }
+
+/* CS:0x39A9 (file 0x38A9) */
+void killmon(int mon)
+{
+    if (mondat[mon].flag) {
+        mondat[mon].flag = 0;
+        mondat[mon].alive = 0;
+        erasespr(mon + 8);
+        if (bonusmode_get())
+            totalmonsters++;
+    }
+}

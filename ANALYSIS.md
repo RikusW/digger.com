@@ -342,6 +342,17 @@ erasemonsters/countem sequence. `game()` is reconstructed in `C/game.c`.
   calls `initmbspr` + `game` per frame. The title text uses a 64-entry
   font (`CS:0x1523`) of `[w][h][2bpp]` glyphs; `writestring` advances 12
   pixels per character (`drawglyph` `0x08E5`, `drawchar` `0x11E4`).
+- **Input, score and sound helpers** — the INT 9 handler (`0x0E48`) reads
+  port 0x60, acknowledges via 0x61 and dispatches on a 21-entry scan-code
+  table: keypad arrows set the direction flags, Ctrl+arrow shifts CRTC R2,
+  F1 is fire, F7 toggles music, F9 toggles sound, Esc sets the menu flag and
+  Ctrl+Alt+Del reboots. `input_init` (`0x5B3F`) detects the joystick/mouse
+  on port 0x201; `sample_mouse` (`0x0DBB`) counts the two axis bits and the
+  button bits. `readdir`/`getdir`/`readkey` merge key edges with mouse
+  directions. `addscore` (`0x5FA1`) is a 32-bit per-player score capped at
+  999999 with an extra life every 20000 points (up to 5); the score
+  wrappers, `sceatm`, `setdead`, the accessors and the sound-event one-liners
+  are reconstructed alongside it.
 - **Sprite engine** — 16 sprites plus a misc slot; per-sprite property arrays
   at `DS:0x03CF..0x0603` (`sprrdrwf`, `sprrecf`, `sprenf`, sources, boxes,
   sizes) and the draw-order table at `0x0627` (0..15). `setrdrwflgs`

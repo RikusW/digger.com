@@ -486,3 +486,25 @@ void getgold(int bag)
         mongold();
     removebag(bag);
 }
+
+/* CS:0x3D2F (file 0x3C2F) */
+void cleanupbags(void)
+{
+    int bag;
+
+    soundfalloff();
+    for (bag = 1; bag <= 7; bag++) {
+        if (bagdat[bag].exist &&
+            ((bagdat[bag].h == 7 && bagdat[bag].v == 9) ||
+             bagdat[bag].xr != 0 || bagdat[bag].yr != 0 ||
+             bagdat[bag].gt != 0 || bagdat[bag].fallh != 0 ||
+             bagdat[bag].wobbling)) {
+            bagdat[bag].exist = 0;
+            erasespr(bag);
+        }
+        if (curplayer_get() == 0)
+            memcpy(&bagdat1[bag], &bagdat[bag], sizeof(bagrec));
+        else
+            memcpy(&bagdat2[bag], &bagdat[bag], sizeof(bagrec));
+    }
+}

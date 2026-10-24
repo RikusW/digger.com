@@ -294,3 +294,9 @@ void drawemeralds(void)
             if (emfield[y][x] & emmask)
                 drawemerald(x * 20 + 12, y * 18 + 21);
 }
+
+/* CS:0x7207 (file 0x7107) */
+int getfield(int h, int v)
+{
+    return field[v][h];
+}
