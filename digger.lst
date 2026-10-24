@@ -13,12 +13,7 @@
 ; Labels marked '?' are probable: inferred from the matching digger C port.
 ;
 
-
-digger.com:     file format binary
-
-
 Disassembly of section .data:
-
 00000100 <.data>:
      100:	fa                   	cli    
      101:	b8 68 8e             	mov    ax,0x8e68
@@ -277,7 +272,7 @@ Disassembly of section .data:
      331:	bb 46 00             	mov    bx,0x46
      334:	cd 13                	int    0x13
      336:	c3                   	ret    
-; --- saved data segment (CS word, set by INT 8 hook at CS:0x0339) ---
+; --- saved data segment (CS word set by the INT 8 hook) ---
      337:	00 00                	add    BYTE PTR [bx+si],al
 ; --- INT 8 hook setup (save old vector, point at CS:0x0397) ---
      339:	8c d8                	mov    ax,ds
@@ -323,7 +318,7 @@ Disassembly of section .data:
      394:	fb                   	sti    
      395:	1f                   	pop    ds
      396:	c3                   	ret    
-; --- timer_isr  (INT 8: speaker toggle/PWM, soundint accumulator) ---
+; --- timer_isr  (speaker toggle/PWM, soundint accumulator) ---
      397:	fb                   	sti    
      398:	50                   	push   ax
      399:	51                   	push   cx
@@ -2316,7 +2311,7 @@ Disassembly of section .data:
     17e6:	83 c4 06             	add    sp,0x6
     17e9:	5d                   	pop    bp
     17ea:	c3                   	ret    
-; --- video RLE blit?  (copies DS:0x0dac to B800) ---
+; --- video RLE blit?  (DS:0x0DAC -> B800) ---
     17eb:	06                   	push   es
     17ec:	55                   	push   bp
     17ed:	b8 00 b8             	mov    ax,0xb800
@@ -9407,7 +9402,7 @@ Disassembly of section .data:
     5ee5:	83 c4 03             	add    sp,0x3
     5ee8:	5d                   	pop    bp
     5ee9:	c3                   	ret    
-; --- score_init?  (sets 32-bit scores to 0, next bonus to 20000) ---
+; --- score_init?  (scores=0, next bonus=20000) ---
     5eea:	55                   	push   bp
     5eeb:	8b ec                	mov    bp,sp
     5eed:	33 c0                	xor    ax,ax
@@ -9483,7 +9478,7 @@ Disassembly of section .data:
     5f9c:	83 c4 02             	add    sp,0x2
     5f9f:	5d                   	pop    bp
     5fa0:	c3                   	ret    
-; --- score_add?  (adds to score; 20000 extra-life step) ---
+; --- score_add?  (999999 wrap, next-bonus step) ---
     5fa1:	55                   	push   bp
     5fa2:	83 ec 04             	sub    sp,0x4
     5fa5:	8b ec                	mov    bp,sp
@@ -10426,6 +10421,7 @@ Disassembly of section .data:
     689e:	c3                   	ret    
     689f:	55                   	push   bp
     68a0:	8b ec                	mov    bp,sp
+; --- scorekill/scoreoctave wrapper  (250) ---
     68a2:	b8 fa 00             	mov    ax,0xfa
     68a5:	50                   	push   ax
     68a6:	e8 f8 f6             	call   0x5fa1
@@ -10434,6 +10430,7 @@ Disassembly of section .data:
     68ac:	c3                   	ret    
     68ad:	55                   	push   bp
     68ae:	8b ec                	mov    bp,sp
+; --- scoreemerald wrapper  (25) ---
     68b0:	b8 19 00             	mov    ax,0x19
     68b3:	50                   	push   ax
     68b4:	e8 ea f6             	call   0x5fa1
@@ -10442,6 +10439,7 @@ Disassembly of section .data:
     68ba:	c3                   	ret    
     68bb:	55                   	push   bp
     68bc:	8b ec                	mov    bp,sp
+; --- scoreoctave/scorekill wrapper  (250) ---
     68be:	b8 fa 00             	mov    ax,0xfa
     68c1:	50                   	push   ax
     68c2:	e8 dc f6             	call   0x5fa1
@@ -10450,6 +10448,7 @@ Disassembly of section .data:
     68c8:	c3                   	ret    
     68c9:	55                   	push   bp
     68ca:	8b ec                	mov    bp,sp
+; --- scoregold wrapper  (500) ---
     68cc:	b8 f4 01             	mov    ax,0x1f4
     68cf:	50                   	push   ax
     68d0:	e8 ce f6             	call   0x5fa1
@@ -10458,6 +10457,7 @@ Disassembly of section .data:
     68d6:	c3                   	ret    
     68d7:	55                   	push   bp
     68d8:	8b ec                	mov    bp,sp
+; --- scorebonus wrapper  (1000) ---
     68da:	b8 e8 03             	mov    ax,0x3e8
     68dd:	50                   	push   ax
     68de:	e8 c0 f6             	call   0x5fa1
@@ -11543,7 +11543,6 @@ Disassembly of section .data:
     7449:	a3 78 45             	mov    ds:0x4578,ax
     744c:	5d                   	pop    bp
     744d:	c3                   	ret    
-; --- soundfallupdate  (mapped) ---
     744e:	55                   	push   bp
     744f:	83 ec 02             	sub    sp,0x2
     7452:	8b ec                	mov    bp,sp
@@ -11585,7 +11584,7 @@ Disassembly of section .data:
     74bf:	c7 06 94 45 00 00    	mov    WORD PTR ds:0x4594,0x0
     74c5:	5d                   	pop    bp
     74c6:	c3                   	ret    
-; --- soundbreakupdate  (mapped) ---
+; --- soundbreakupdate  (mapped via soundint) ---
     74c7:	55                   	push   bp
     74c8:	8b ec                	mov    bp,sp
     74ca:	83 3e 94 45 00       	cmp    WORD PTR ds:0x4594,0x0
@@ -11857,7 +11856,7 @@ Disassembly of section .data:
     7793:	c7 06 a0 45 01 00    	mov    WORD PTR ds:0x45a0,0x1
     7799:	5d                   	pop    bp
     779a:	c3                   	ret    
-; --- soundemeraldupdate  (mapped via soundint call order) ---
+; --- soundemeraldupdate  (mapped) ---
     779b:	55                   	push   bp
     779c:	83 ec 02             	sub    sp,0x2
     779f:	8b ec                	mov    bp,sp
@@ -11954,7 +11953,6 @@ Disassembly of section .data:
     78a6:	c7 06 a6 45 01 00    	mov    WORD PTR ds:0x45a6,0x1
     78ac:	5d                   	pop    bp
     78ad:	c3                   	ret    
-; --- soundeatmupdate  (mapped) ---
     78ae:	55                   	push   bp
     78af:	83 ec 02             	sub    sp,0x2
     78b2:	8b ec                	mov    bp,sp
@@ -12305,17 +12303,19 @@ Disassembly of section .data:
     7cae:	83 c4 04             	add    sp,0x4
     7cb1:	5d                   	pop    bp
     7cb2:	c3                   	ret    
+; --- soundpause  (sets DS:0x45D2=1) ---
     7cb3:	55                   	push   bp
     7cb4:	8b ec                	mov    bp,sp
     7cb6:	c7 06 d2 45 01 00    	mov    WORD PTR ds:0x45d2,0x1
     7cbc:	5d                   	pop    bp
     7cbd:	c3                   	ret    
+; --- soundpauseoff  (clears DS:0x45D2) ---
     7cbe:	55                   	push   bp
     7cbf:	8b ec                	mov    bp,sp
     7cc1:	c7 06 d2 45 00 00    	mov    WORD PTR ds:0x45d2,0x0
     7cc7:	5d                   	pop    bp
     7cc8:	c3                   	ret    
-; --- speaker/timer shutdown? ---
+; --- soundoff?  (speaker off, timer 0 idle) ---
     7cc9:	55                   	push   bp
     7cca:	83 ec 04             	sub    sp,0x4
     7ccd:	8b ec                	mov    bp,sp
@@ -12348,7 +12348,7 @@ Disassembly of section .data:
     7d0b:	83 c4 04             	add    sp,0x4
     7d0e:	5d                   	pop    bp
     7d0f:	c3                   	ret    
-; --- PIT timer 2 setup? ---
+; --- initsound? ---
     7d10:	55                   	push   bp
     7d11:	83 ec 04             	sub    sp,0x4
     7d14:	8b ec                	mov    bp,sp
@@ -12430,7 +12430,7 @@ Disassembly of section .data:
     7dd4:	83 c4 04             	add    sp,0x4
     7dd7:	5d                   	pop    bp
     7dd8:	c3                   	ret    
-; --- sett0? ---
+; --- sett0  (timer 0 divisor, 4*t0val accumulator) ---
     7dd9:	55                   	push   bp
     7dda:	83 ec 04             	sub    sp,0x4
     7ddd:	8b ec                	mov    bp,sp
@@ -12485,7 +12485,7 @@ Disassembly of section .data:
     7e77:	83 c4 04             	add    sp,0x4
     7e7a:	5d                   	pop    bp
     7e7b:	c3                   	ret    
-; --- setsoundt2? ---
+; --- setsoundt2 ---
     7e7c:	55                   	push   bp
     7e7d:	83 ec 04             	sub    sp,0x4
     7e80:	8b ec                	mov    bp,sp
@@ -12511,7 +12511,7 @@ Disassembly of section .data:
     7eb3:	83 c4 04             	add    sp,0x4
     7eb6:	5d                   	pop    bp
     7eb7:	c3                   	ret    
-; --- setsoundmode? ---
+; --- setsoundmode ---
     7eb8:	55                   	push   bp
     7eb9:	83 ec 04             	sub    sp,0x4
     7ebc:	8b ec                	mov    bp,sp
@@ -12539,6 +12539,7 @@ Disassembly of section .data:
     7efa:	83 c4 04             	add    sp,0x4
     7efd:	5d                   	pop    bp
     7efe:	c3                   	ret    
+; --- startint8  (INT 8 hook + timer 0) ---
     7eff:	55                   	push   bp
     7f00:	83 ec 02             	sub    sp,0x2
     7f03:	8b ec                	mov    bp,sp
@@ -12561,6 +12562,7 @@ Disassembly of section .data:
     7f31:	83 c4 02             	add    sp,0x2
     7f34:	5d                   	pop    bp
     7f35:	c3                   	ret    
+; --- stopint8  (restore INT 8 + timer 0) ---
     7f36:	55                   	push   bp
     7f37:	83 ec 04             	sub    sp,0x4
     7f3a:	8b ec                	mov    bp,sp
@@ -12607,7 +12609,7 @@ Disassembly of section .data:
     7f9d:	83 c4 04             	add    sp,0x4
     7fa0:	5d                   	pop    bp
     7fa1:	c3                   	ret    
-; --- sett2val? ---
+; --- sett2val  (timer 2 divisor) ---
     7fa2:	55                   	push   bp
     7fa3:	83 ec 02             	sub    sp,0x2
     7fa6:	8b ec                	mov    bp,sp
@@ -12631,7 +12633,7 @@ Disassembly of section .data:
     7fd0:	83 c4 02             	add    sp,0x2
     7fd3:	5d                   	pop    bp
     7fd4:	c3                   	ret    
-; --- settimer2_write? ---
+; --- timer2  (write port 0x42) ---
     7fd5:	55                   	push   bp
     7fd6:	83 ec 02             	sub    sp,0x2
     7fd9:	8b ec                	mov    bp,sp
@@ -12653,7 +12655,7 @@ Disassembly of section .data:
     7ffc:	83 c4 02             	add    sp,0x2
     7fff:	5d                   	pop    bp
     8000:	c3                   	ret    
-; --- getlevch ---
+; --- getlevch  (level switch, y*15+x) ---
     8001:	55                   	push   bp
     8002:	83 ec 02             	sub    sp,0x2
     8005:	8b ec                	mov    bp,sp
@@ -13711,6 +13713,7 @@ Disassembly of section .data:
     8a2d:	83 c4 02             	add    sp,0x2
     8a30:	5d                   	pop    bp
     8a31:	c3                   	ret    
+; --- incpenalty  (DS:0x5014++) ---
     8a32:	55                   	push   bp
     8a33:	8b ec                	mov    bp,sp
     8a35:	ff 06 14 50          	inc    WORD PTR ds:0x5014
@@ -13739,6 +13742,7 @@ Disassembly of section .data:
     8a61:	8b e5                	mov    sp,bp
     8a63:	5d                   	pop    bp
     8a64:	c3                   	ret    
+; --- levplan  ((l&3)+5 for l>8) ---
     8a65:	55                   	push   bp
     8a66:	83 ec 04             	sub    sp,0x4
     8a69:	8b ec                	mov    bp,sp
@@ -13756,6 +13760,7 @@ Disassembly of section .data:
     8a88:	83 c4 04             	add    sp,0x4
     8a8b:	5d                   	pop    bp
     8a8c:	c3                   	ret    
+; --- levof10  (min(level,10)) ---
     8a8d:	55                   	push   bp
     8a8e:	83 ec 02             	sub    sp,0x2
     8a91:	8b ec                	mov    bp,sp
@@ -13777,6 +13782,7 @@ Disassembly of section .data:
     8ab8:	83 c4 02             	add    sp,0x2
     8abb:	5d                   	pop    bp
     8abc:	c3                   	ret    
+; --- levno  (level of curplayer) ---
     8abd:	55                   	push   bp
     8abe:	83 ec 02             	sub    sp,0x2
     8ac1:	8b ec                	mov    bp,sp
@@ -13788,6 +13794,7 @@ Disassembly of section .data:
     8ad0:	83 c4 02             	add    sp,0x2
     8ad3:	5d                   	pop    bp
     8ad4:	c3                   	ret    
+; --- setlev?  (writes level field) ---
     8ad5:	55                   	push   bp
     8ad6:	83 ec 02             	sub    sp,0x2
     8ad9:	8b ec                	mov    bp,sp
@@ -13800,6 +13807,7 @@ Disassembly of section .data:
     8aeb:	83 c4 02             	add    sp,0x2
     8aee:	5d                   	pop    bp
     8aef:	c3                   	ret    
+; --- getlives ---
     8af0:	55                   	push   bp
     8af1:	83 ec 02             	sub    sp,0x2
     8af4:	8b ec                	mov    bp,sp
@@ -13813,6 +13821,7 @@ Disassembly of section .data:
     8b07:	83 c4 02             	add    sp,0x2
     8b0a:	5d                   	pop    bp
     8b0b:	c3                   	ret    
+; --- addlife  (lives++ + drawlives) ---
     8b0c:	55                   	push   bp
     8b0d:	83 ec 02             	sub    sp,0x2
     8b10:	8b ec                	mov    bp,sp
@@ -13825,6 +13834,7 @@ Disassembly of section .data:
     8b25:	83 c4 02             	add    sp,0x2
     8b28:	5d                   	pop    bp
     8b29:	c3                   	ret    
+; --- setdead?  (per-player field) ---
     8b2a:	55                   	push   bp
     8b2b:	83 ec 02             	sub    sp,0x2
     8b2e:	8b ec                	mov    bp,sp
@@ -13837,16 +13847,19 @@ Disassembly of section .data:
     8b40:	83 c4 02             	add    sp,0x2
     8b43:	5d                   	pop    bp
     8b44:	c3                   	ret    
+; --- curplayer getter  (DS:0x500C) ---
     8b45:	55                   	push   bp
     8b46:	8b ec                	mov    bp,sp
     8b48:	a1 0c 50             	mov    ax,ds:0x500c
     8b4b:	5d                   	pop    bp
     8b4c:	c3                   	ret    
+; --- nplayers getter?  (DS:0x500E) ---
     8b4d:	55                   	push   bp
     8b4e:	8b ec                	mov    bp,sp
     8b50:	a1 0e 50             	mov    ax,ds:0x500e
     8b53:	5d                   	pop    bp
     8b54:	c3                   	ret    
+; --- testpause?  (pause key flow) ---
     8b55:	55                   	push   bp
     8b56:	83 ec 06             	sub    sp,0x6
     8b59:	8b ec                	mov    bp,sp
@@ -13911,6 +13924,7 @@ Disassembly of section .data:
     8be6:	8b 46 00             	mov    ax,WORD PTR [bp+0x0]
     8be9:	89 46 00             	mov    WORD PTR [bp+0x0],ax
     8bec:	eb f8                	jmp    0x8be6
+; --- finish/exit? ---
     8bee:	55                   	push   bp
     8bef:	83 ec 02             	sub    sp,0x2
     8bf2:	8b ec                	mov    bp,sp
@@ -13918,6 +13932,7 @@ Disassembly of section .data:
     8bf7:	83 c4 02             	add    sp,0x2
     8bfa:	5d                   	pop    bp
     8bfb:	c3                   	ret    
+; --- long_multiply?  (C runtime) ---
     8bfc:	55                   	push   bp
     8bfd:	83 ec 04             	sub    sp,0x4
     8c00:	8b ec                	mov    bp,sp
@@ -14059,6 +14074,7 @@ Disassembly of section .data:
     8d28:	83 c4 04             	add    sp,0x4
     8d2b:	5d                   	pop    bp
     8d2c:	c3                   	ret    
+; --- strcpy?  (C runtime) ---
     8d2d:	55                   	push   bp
     8d2e:	83 ec 04             	sub    sp,0x4
     8d31:	8b ec                	mov    bp,sp
@@ -14073,6 +14089,7 @@ Disassembly of section .data:
     8d47:	83 c4 04             	add    sp,0x4
     8d4a:	5d                   	pop    bp
     8d4b:	c3                   	ret    
+; --- itoa?  (C runtime) ---
     8d4c:	55                   	push   bp
     8d4d:	83 ec 14             	sub    sp,0x14
     8d50:	8b ec                	mov    bp,sp

@@ -8,7 +8,8 @@ Artifacts:
 - `digger.lst` — full annotated 8086 disassembly, CS:IP addresses.
 - `digger.dat` — data-segment hex dump, DS offsets, known tables labelled.
 - `SYMBOLS.md` — address/offset symbol tables with confidence levels.
-- `C/` — C decompilation progress (sound, timer ISR, levels, notes).
+- `C/` — C decompilation progress (timer/speaker ISR, sound helpers,
+  music, levels, game-state accessors, scoring notes).
 
 ## How the binary is organised
 
@@ -64,24 +65,29 @@ embed the 1200 default: with no `.sco` file it starts from zeros.
 
 ### Music timing
 
-The effective `soundint` rate is 18.2 Hz: the ISR runs at the timer rate and
-accumulates `timerrate` into a 16-bit counter; it overflows every
-`1,193,181 / 65,536 = 18.2` times per second. This matches the port's
-`timercount`/`timerrate` logic.
+The effective `soundint` rate is 72.8 Hz. `sett0` (`CS:0x7DD9`) stores
+`4*t0val` in the ISR accumulator at `DS:0x024A` (or `0xFFFF` for
+`t0val >= 0x3E80`); the timer-0 IRQ rate is `1,193,181/t0val`, so the 16-bit
+accumulator overflows `4*1,193,181/65,536 ≈ 72.8` times per second. The port
+stores `t0val` and subtracts `0x4000` from the 16-bit accumulator after each
+carry in `newsnd.c:getsample()`, which also yields
+`1,193,181/16,384 ≈ 72.8 Hz`. Measured on the port: 360 calls in 5 s (72.0 Hz).
 
-At 18.2 Hz:
+At 72.8 Hz:
 
 | Tune | Notes | Duration |
 |---|---:|---:|
-| original `T1` | 43 | 21.4 s |
-| original `T2` | 89 | 49.8 s |
-| port's merged bonus jingle | 160 | 84.4 s |
+| original `T1` | 43 | 5.4 s |
+| original `T2` | 89 | 12.4 s |
+| port's merged bonus jingle | 160 | 21.1 s |
 
 The port's bonus mode lasts `250 - 20*level` frames; the matching original
-constant has not been located yet. If the original is similar, its bonus music
-is interrupted before `T1` reaches the embedded score block, which would
-explain why `T1` has no sentinel. In the port, the bridge/`T2` section is
-effectively inaudible in normal play.
+constant has not been located yet. `T1` is short enough that, depending on the
+original's frame rate, it may reach the embedded score block; the music player
+would then read the score text as note/duration data. The port's bridge/`T2`
+extends the music to 21.1 s, which still outlasts the port's bonus mode, so that
+part is normally inaudible. Locating the original's bonus timer is an open
+item.
 
 ## Exact code matches
 
@@ -114,6 +120,23 @@ soundeatmupdate, soundfallupdate, sound1upupdate, soundbonusupdate
 then setsoundt2 / setsoundmode+sett0, then sett2val
 ```
 
+### Sound hardware helpers
+
+The sound-control layer was decompiled and matches the port:
+
+- `sett0` (`CS:0x7DD9`): writes the timer-0 divisor `t0val`, clamps `t0val` to
+  1000 for wavetypes 1/2, sets the ISR accumulator (`4*t0val` or `0xFFFF`),
+  clamps `musvol` to 1..50, stores `pulsewidth = musvol`, and calls
+  `setsoundmode`.
+- `setsoundt2` (`CS:0x7E7C`) and `setsoundmode` (`CS:0x7EB8`): same state
+  flags (`spkrmode`, `soundt0flag`) and port `0x61` speaker-gate writes.
+- `sett2val` (`CS:0x7FA2`) and `timer2` (`CS:0x7FD5`): write the timer-2
+  divisor to port `0x42`.
+- `startint8` (`CS:0x7EFF`) / `stopint8` (`CS:0x7F36`): hook/restore INT 8 and
+  program timer 0. `soundoff` (`CS:0x7CC9`, probable) clears the speaker gate
+  and sets timer 0 to `0xFFFF`; `initsound` (`CS:0x7D10`, probable) performs
+  the same state initialisation as the port.
+
 ### Music — `CS:0x7A70` and `CS:0x7B02`
 
 `music(tune)` sets the same state and the same three envelope parameter sets as
@@ -128,7 +151,11 @@ jingle, dirge.
   (`0x8E8, 0x7F0, 0x712, 0x6AC, 0x5F2, 0x54C, 0x4B8, 0x474`), duration 7,
   state 0, flag 1.
 - `soundddie` (`CS:0x7933`): state 0, value 20000, flag 1.
-- Scoring/extra life uses `0x4E20` (20000), matching the port's
+- Score event wrappers at `CS:0x68A2/0x68B0/0x68BE/0x68CC/0x68DA` add
+  250/25/250/500/1000. These match the port's `scorekill`, `scoreemerald`,
+  `scoreoctave`, `scoregold`, and `scorebonus`. The port's simultaneous
+  `scorekill2` (125+125) is an addition.
+- The extra-life step uses `0x4E20` (20000), matching the port's
   `bonusscore`.
 
 ### `getlevch` — `CS:0x8001`
@@ -136,6 +163,21 @@ jingle, dirge.
 The original switches on levels 1..8 and returns
 `levelData[level-1][y*15 + x]`, with each level in its own 150-byte array.
 The port's `leveldat` flattening is equivalent.
+
+### Game-state utilities — `CS:0x8A32..CS:0x8B55`
+
+The high-call-count region is the core state layer and matches the port:
+
+- `incpenalty` (`CS:0x8A32`, 52 callers) increments `DS:0x5014`; this is the
+  port's `incpenalty()`.
+- `levno` (`CS:0x8ABD`) returns the level at `DS:0x4FE2 + 8*curplayer`.
+- `levplan` (`CS:0x8A65`) calls `levno` and applies `(l&3)+5` for `l>8`.
+- `levof10` (`CS:0x8A8D`) returns `min(level,10)`.
+- `getlives` (`CS:0x8AF0`) and `addlife` (`CS:0x8B0C`) read/increment the two
+  lives fields at `DS:0x4FE0`/`DS:0x4FE8`; `addlife` calls `drawlives`.
+- The `curplayer` getter (`CS:0x8B45`), probable `nplayers` getter
+  (`CS:0x8B4D`), and `testpause` (`CS:0x8B55`) match the port's state access
+  and pause flow.
 
 ## Differences
 
@@ -157,10 +199,12 @@ The port's `leveldat` flattening is equivalent.
 ### Behavioral differences
 
 - **RNG**: the port's `randno`/`randnos` use a 32-bit LCG with multiplier
-  `0x15A4E35`. That constant appears nowhere in the binary. The original uses
-  16-bit multiply/divide-based random logic; its exact algorithm has not been
-  identified yet. The port also seeds from `getlrt()`, which returns 0 on SDL,
-  so its random sequence is deterministic.
+  `0x15A4E35`. That constant appears nowhere in the binary. There is no
+  `idiv word [bp+disp]`, and the 32-bit divide helper is only called from
+  number formatting, so the original is likely a 16-bit or inlined generator,
+  or a table-driven one. Its exact algorithm has not been identified yet.
+  The port also seeds from `getlrt()`, which returns 0 on SDL, so its random
+  sequence is deterministic.
 - **PWM emulation**: the original's mode-1 pulse is a CPU busy-loop whose
   length depends on CPU speed (hence `calibrate()`/`getkips()`); the port
   approximates it with `pwlut` and the sample-level `getsample` model, plus the

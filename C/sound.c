@@ -16,7 +16,7 @@
 
 /* Timer/speaker state (DS offsets from symbols.h). */
 static u16 spkrmode;        /* DS:0x0248 */
-static u16 timerrate;       /* DS:0x024A */
+static u16 timerrate;       /* DS:0x024A: sett0 stores 4*t0val (or 0xFFFF) */
 static u16 timercount;      /* DS:0x024C */
 static u8  timerclock;      /* DS:0x024E */
 static u16 pulsewidth;      /* DS:0x024F */
@@ -52,9 +52,12 @@ static u16 soundddien;      /* DS:0x45B0 */
 static u16 soundddievalue;  /* DS:0x45B2 */
 static u16 soundddieflag;   /* DS:0x45AE */
 
-/* Sound/music enable flags.  The exact original offsets are in soundint:
- * 0x0667 (soundflag), 0x4566 (sndflag), 0x0669 (musicflag). */
-static u16 soundflag, musicflag, sndflag;
+/* Sound/music enable flags. */
+static u16 soundflag;       /* DS:0x0667 */
+static u16 musicflag;       /* DS:0x0669 */
+static u16 sndflag;         /* DS:0x4566 */
+static u16 int8flag;        /* DS:0x4568 */
+static u16 soundt0flag;     /* DS:0x456A */
 
 /* Music tables (see symbols.h for addresses). */
 extern const u16 ds_bonus_t1[];   /* DS:0x45E4, 86 words */
@@ -83,6 +86,9 @@ void sett2val(u16 v);
 void timer2(u16 v);
 void soundoff(void);
 void soundddieoff(void);
+void soundstop(void);
+void initint8(void);
+void restoreint8(void);
 u8 inportb(u16 port);
 void outportb(u16 port, u8 value);
 
@@ -93,7 +99,10 @@ void outportb(u16 port, u8 value);
  *
  * The original saves all registers, loads DS/ES from cs:[0x337], drives the
  * PC speaker on port 0x61, then accumulates timerrate into a 16-bit counter.
- * Every overflow is one soundint tick (18.2 Hz for the standard PIT setup).
+ * Every overflow is one soundint tick.  sett0() stores 4*t0val in
+ * DS:0x024A; with a timer-0 IRQ rate of 1,193,181/t0val this gives
+ * 4*1,193,181/65,536 = 72.8 Hz.  The port emulates the same rate by storing
+ * t0val and subtracting 0x4000 after each carry in newsnd.c:getsample().
  */
 void timer_isr(void)
 {
@@ -169,6 +178,142 @@ void soundint(void)
         }
         sett2val(t2val);
     }
+}
+
+/* ---- sound hardware control ------------------------------------------ */
+
+/* CS:0x7FD5 (file 0x7ED5) - verified: write a 16-bit divisor to PIT timer 2. */
+void timer2(u16 t2v)
+{
+    outportb(0x42, (u8)(t2v & 0xFF));
+    outportb(0x42, (u8)(t2v >> 8));
+}
+
+/* CS:0x7DD9 (file 0x7CD9) - verified against port sett0(). */
+void sett0(void)
+{
+    if (!sndflag)
+        return;
+
+    timer2(t2val);                    /* timer2_write(t2val) */
+
+    /* The port clamps for wavetype 1 or 2; the original tests both cases. */
+    if (t0val < 1000 && (wavetype == 1 || wavetype == 2))
+        t0val = 1000;
+
+    /* PIT timer 0 divisor = t0val (mode 3 is set by initsound/stopint8). */
+    outportb(0x40, (u8)(t0val & 0xFF));
+    outportb(0x40, (u8)(t0val >> 8));
+
+    /*
+     * ISR accumulator.  The original uses 4*t0val for t0val < 0x3E80,
+     * otherwise 0xFFFF, which keeps the soundint tick at 72.8 Hz.
+     * The port stores t0val and subtracts 0x4000 after each carry instead.
+     */
+    if (t0val < 0x3E80)
+        timerrate = (u16)(4 * t0val);
+    else
+        timerrate = 0xFFFF;
+
+    if (musvol < 1)
+        musvol = 1;
+    if (musvol > 50)
+        musvol = 50;
+    pulsewidth = musvol;             /* original: musvol (volume folded into pwlut) */
+
+    setsoundmode();
+}
+
+/* CS:0x7E7C (file 0x7D7C) - verified against port setsoundt2(). */
+void setsoundt2(void)
+{
+    if (soundt0flag) {
+        spkrmode = 0;
+        soundt0flag = 0;
+        /* Original setspkrt2(): enable the speaker/timer-2 gate. */
+        outportb(0x61, (u8)((inportb(0x61) & ~0x03) | 0x03));
+    }
+}
+
+/* CS:0x7EB8 (file 0x7DB8) - verified against port setsoundmode(). */
+void setsoundmode(void)
+{
+    spkrmode = wavetype;
+    if (!soundt0flag && sndflag) {
+        soundt0flag = 1;
+        outportb(0x61, (u8)((inportb(0x61) & ~0x03) | 0x03));
+    }
+}
+
+/* CS:0x7FA2 (file 0x7EA2) - verified against port sett2val(). */
+void sett2val(u16 t2v)
+{
+    if (sndflag)
+        timer2(t2v);
+}
+
+/* CS:0x7CC9 (file 0x7BC9) - probable soundoff(). */
+void soundoff(void)
+{
+    outportb(0x61, (u8)(inportb(0x61) & ~0x03));
+    outportb(0x40, 0xFF);
+    outportb(0x40, 0xFF);             /* timer 0 divisor 0xFFFF */
+}
+
+/* CS:0x7EFF (file 0x7DFF) - verified against port startint8(). */
+void startint8(void)
+{
+    if (!int8flag) {
+        initint8();                   /* INT 8 hook at CS:0x0339 */
+        timerrate = 0xFFFF;
+        outportb(0x40, 0x00);
+        outportb(0x40, 0x40);         /* timer 0 divisor 0x4000 */
+        int8flag = 1;
+    }
+}
+
+/* CS:0x7F36 (file 0x7E36) - verified structurally; matches stopint8(). */
+void stopint8(void)
+{
+    if (int8flag) {
+        restoreint8();
+        int8flag = 0;
+    }
+    sett2val(40);
+    outportb(0x61, (u8)((inportb(0x61) & ~0x03) | 0x03));
+    outportb(0x43, 0x36);             /* timer 0, mode 3 */
+    outportb(0x40, 0x00);
+    outportb(0x40, 0x80);             /* timer 0 divisor 0x8000 */
+}
+
+/* CS:0x7D10 (file 0x7C10) - probable initsound(); state setup verified. */
+void initsound(void)
+{
+    outportb(0x43, 0xB6);             /* timer 2, mode 3, LSB/MSB */
+    outportb(0x42, 0x20);
+    outportb(0x42, 0x00);             /* timer 2 divisor 0x0020 */
+    outportb(0x61, (u8)((inportb(0x61) & ~0x03) | 0x03));
+
+    outportb(0x43, 0x36);             /* timer 0, mode 3 */
+    outportb(0x40, 0x00);
+    outportb(0x40, 0x80);             /* timer 0 divisor 0x8000 */
+
+    wavetype = 2;
+    t0val = 12000;
+    musvol = 8;
+    t2val = 40;
+    soundt0flag = 1;
+    sndflag = 1;
+    spkrmode = 0;
+    int8flag = 0;
+
+    setsoundt2();
+    soundstop();
+    startint8();
+
+    timerrate = 0xFFFF;
+    outportb(0x40, 0x00);
+    outportb(0x40, 0x40);             /* timer 0 divisor 0x4000 */
 }
 
 /* ---- music ------------------------------------------------------------ */

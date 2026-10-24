@@ -17,6 +17,22 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x0397` | `0x0297` | `timer_isr` | verified | Toggles/speaker-pulses port `0x61`; `timercount += timerrate`; on 16-bit overflow calls `soundint`. |
 | `0x5EEA` | `0x5DEA` | `score_init`? | probable | Initializes 32-bit score fields to 0 and next-bonus fields to `0x4E20` (20000). |
 | `0x5FA1` | `0x5EA1` | `score_add`? | probable | Adds to score; the `0x4E20` step at `CS:0x6034` is the extra-life bonus. |
+| `0x68A2` | `0x67A2` | scorekill/scoreoctave wrapper | probable | Calls `score_add(250)`. |
+| `0x68B0` | `0x67B0` | scoreemerald wrapper | probable | Calls `score_add(25)`. |
+| `0x68BE` | `0x67BE` | scoreoctave/scorekill wrapper | probable | Calls `score_add(250)`. |
+| `0x68CC` | `0x67CC` | scoregold wrapper | probable | Calls `score_add(500)`. |
+| `0x68DA` | `0x67DA` | scorebonus wrapper | probable | Calls `score_add(1000)`. |
+| `0x7CB3` | `0x7BB3` | `soundpause` | verified | Sets `DS:0x45D2=1`. |
+| `0x7CBE` | `0x7BBE` | `soundpauseoff` | verified | Sets `DS:0x45D2=0`. |
+| `0x8A32` | `0x8932` | `incpenalty` | verified | `DS:0x5014++`; 52 callers. |
+| `0x8A65` | `0x8965` | `levplan` | verified | Calls `levno`; `(l&3)+5` for `l>8`. |
+| `0x8A8D` | `0x898D` | `levof10` | verified | `min(level,10)`. |
+| `0x8ABD` | `0x89BD` | `levno` | verified | Level of `curplayer` (`DS:0x4FE2+8*curplayer`). |
+| `0x8AF0` | `0x89F0` | `getlives` | verified | Reads the two lives fields. |
+| `0x8B0C` | `0x8A0C` | `addlife` | verified | Increments lives, calls `drawlives`. |
+| `0x8B45` | `0x8A45` | `curplayer` getter | verified | Returns `DS:0x500C`. |
+| `0x8B4D` | `0x8A4D` | `nplayers` getter | probable | Returns `DS:0x500E`. |
+| `0x8B55` | `0x8A55` | `testpause` | probable | Pause key handling; see `state.c`. |
 | `0x7227` | `0x7127` | `soundint` | verified | Same call order as the port's `soundint()`. |
 | `0x74C7` | `0x73C7` | `soundbreakupdate` | mapped | 4th call in `soundint`. |
 | `0x74EC` | `0x73EC` | `soundwobbleupdate` | mapped | 2nd call in `soundint`. |
@@ -32,13 +48,15 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x7A1C` | `0x791C` | `sound1upupdate` | mapped | 12th call in `soundint`. |
 | `0x7A70` | `0x7970` | `music` | verified | Same three envelope parameter sets as the port. |
 | `0x7B02` | `0x7A02` | `musicupdate` | verified | Same state machine, `*3/*6/*10` duration scaling, sentinel `0x7D64`. |
-| `0x7CC9` | `0x7BC9` | speaker/timer shutdown? | probable | Reads/writes port `0x61`; writes `0x40`. |
-| `0x7D10` | `0x7C10` | PIT timer 2 setup? | probable | Writes `0xB6` to port `0x43`, then values to port `0x42`. |
-| `0x7DD9` | `0x7CD9` | `sett0`? | probable | Called by `soundint` after `setsoundmode`; computes note/pulse state. |
-| `0x7E7C` | `0x7D7C` | `setsoundt2`? | probable | Called by `soundint` when `t0val==0x7D00` or `t2val!=40`. |
-| `0x7EB8` | `0x7DB8` | `setsoundmode`? | probable | Called by `soundint` in the normal path. |
-| `0x7FA2` | `0x7EA2` | `sett2val`? | probable | Called at the end of `soundint`. |
-| `0x7FD5` | `0x7ED5` | `settimer2_write`? | probable | Writes a 16-bit divisor to port `0x42` (LSB then MSB). |
+| `0x7CC9` | `0x7BC9` | `soundoff` | probable | Clears port `0x61` bits 0-1; writes `0xFF` twice to timer 0. |
+| `0x7D10` | `0x7C10` | `initsound` | probable | Programs timers, sets wavetype/t0val/musvol/t2val, calls setsoundt2/soundstop/startint8. |
+| `0x7DD9` | `0x7CD9` | `sett0` | verified | Writes timer 0 divisor, sets `DS:0x024A=4*t0val` (or `0xFFFF`), clamps `musvol`, calls `setsoundmode`. |
+| `0x7E7C` | `0x7D7C` | `setsoundt2` | verified | `spkrmode=0`, clears `soundt0flag`, enables the speaker gate in port `0x61`. |
+| `0x7EB8` | `0x7DB8` | `setsoundmode` | verified | `spkrmode=wavetype`; enables the speaker gate if needed. |
+| `0x7EFF` | `0x7DFF` | `startint8` | verified | Hooks INT 8, sets `timerrate=0xFFFF`, timer 0 divisor `0x4000`, `int8flag=1`. |
+| `0x7F36` | `0x7E36` | `stopint8` | verified | Restores INT 8, `sett2val(40)`, re-enables the gate, timer 0 divisor `0x8000`. |
+| `0x7FA2` | `0x7EA2` | `sett2val` | verified | If `sndflag`, writes a 16-bit divisor to port `0x42`. |
+| `0x7FD5` | `0x7ED5` | `timer2` / `timer2_write` | verified | Writes a 16-bit divisor to port `0x42` (LSB then MSB). |
 | `0x8001` | `0x7F01` | `getlevch` | verified | Switches on level 1..8; `y*15+x`; per-level bases. |
 | `0x82A6` | `0x81A6` | `main`/title loop? | probable | Calls init/score/title routines; reads keys; prints `DS:0x4FBE`. |
 | `0x8C7D` | `0x8B7D` | `long_divide`? | probable | C runtime 32-bit divide helper. |
@@ -78,11 +96,16 @@ These are data-segment variables, not tables. Names are from the port; offsets c
 | DS | Port name | Evidence |
 |---:|---|---|
 | `0x0248` | `spkrmode` | ISR tests 0/1/other. |
-| `0x024A` | `timerrate` | ISR adds this to `timercount`. |
+| `0x024A` | `timerrate` | ISR adds this to `timercount`; `sett0` stores `4*t0val` (or `0xFFFF`). |
 | `0x024C` | `timercount` | ISR accumulator. |
 | `0x024E` | `timerclock` | Byte incremented before `soundint`. |
 | `0x024F` | `pulsewidth` | ISR PWM loop count. |
 | `0x0251/0x0253` | old INT 8 vector | Saved by the hook. |
+| `0x0667` | `soundflag` | `soundint` tests it. |
+| `0x0669` | `musicflag` | Set together with `sndflag`. |
+| `0x4566` | `sndflag` | `sett0`/`sett2val` test it. |
+| `0x4568` | `int8flag` | `startint8`/`stopint8`. |
+| `0x456A` | `soundt0flag` | `setsoundt2`/`setsoundmode`. |
 | `0x456C` | `wavetype` | `musicupdate` writes 1. |
 | `0x456E` | `t2val` | `soundint` sets 40. |
 | `0x4570` | `t0val` | `soundint` sets `0x7D00`; `musicupdate` sets note. |
@@ -105,3 +128,15 @@ These are data-segment variables, not tables. Names are from the port; offsets c
 | `0x45DE` | `musicreleaserate` | 4/1/1. |
 | `0x45E0` | `musicstage` | 0/1/2. |
 | `0x45E2` | `musicn` | Note counter. |
+
+## Game state (BSS, inferred)
+
+| DS | Port name | Evidence |
+|---:|---|---|
+| `0x0658` | `keypressed` | `testpause` and the input code read it. |
+| `0x4FE0` | lives field A | `getlives(arg==1)` / `addlife`. |
+| `0x4FE2` | level, `curplayer` | `levno`: `base + 8*curplayer`. |
+| `0x4FE8` | lives field B | `getlives(other)` / `addlife`. |
+| `0x500C` | `curplayer` | Getter at `CS:0x8B45`. |
+| `0x500E` | `nplayers`/`diggers`? | Getter at `CS:0x8B4D`. |
+| `0x5014` | `penalty` | `incpenalty` (`CS:0x8A32`). |

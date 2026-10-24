@@ -41,13 +41,31 @@ typedef int32_t  s32;
 #define CS_MUSICUPDATE          0x7B02u
 #define CS_GETLEVCH             0x8001u
 #define CS_MAIN_TITLE           0x82A6u  /* probable */
-#define CS_SOUND_SHUTDOWN       0x7CC9u  /* probable */
-#define CS_PIT_TIMER2_SETUP     0x7D10u  /* probable */
-#define CS_SETT0                0x7DD9u  /* probable */
-#define CS_SETSOUNDT2           0x7E7Cu  /* probable */
-#define CS_SETSOUNDMODE         0x7EB8u  /* probable */
-#define CS_SETT2VAL             0x7FA2u  /* probable */
-#define CS_SETTIMER2_WRITE      0x7FD5u  /* probable */
+#define CS_SOUND_OFF            0x7CC9u  /* probable: speaker off + timer 0 idle */
+#define CS_INITSOUND            0x7D10u  /* probable */
+#define CS_SETT0                0x7DD9u  /* verified */
+#define CS_SETSOUNDT2           0x7E7Cu  /* verified */
+#define CS_SETSOUNDMODE         0x7EB8u  /* verified */
+#define CS_STARTINT8            0x7EFFu  /* verified */
+#define CS_STOPINT8             0x7F36u  /* verified */
+#define CS_SETT2VAL             0x7FA2u  /* verified */
+#define CS_TIMER2_WRITE         0x7FD5u  /* verified: writes port 0x42 */
+#define CS_SCOREWRAP_250A       0x68A2u  /* probable: scorekill/scoreoctave */
+#define CS_SCOREWRAP_25         0x68B0u  /* probable: scoreemerald */
+#define CS_SCOREWRAP_250B       0x68BEu  /* probable: scoreoctave/scorekill */
+#define CS_SCOREWRAP_500        0x68CCu  /* probable: scoregold */
+#define CS_SCOREWRAP_1000       0x68DAu  /* probable: scorebonus */
+#define CS_INCPENALTY           0x8A32u  /* verified */
+#define CS_LEVPLAN              0x8A65u  /* verified */
+#define CS_LEVOF10              0x8A8Du  /* verified */
+#define CS_LEVNO                0x8ABDu  /* verified */
+#define CS_GETLIVES             0x8AF0u  /* verified */
+#define CS_ADDLIFE              0x8B0Cu  /* verified */
+#define CS_CURPLAYER            0x8B45u  /* verified getter */
+#define CS_NPLAYERS             0x8B4Du  /* probable getter */
+#define CS_TESTPAUSE            0x8B55u  /* probable */
+#define CS_SOUNDPAUSE           0x7CB3u  /* verified: sets soundpaused */
+#define CS_SOUNDPAUSEOFF        0x7CBEu  /* verified: clears soundpaused */
 #define CS_INPORTB              0x8DDDu  /* probable runtime helper */
 #define CS_OUTPORTB             0x8DE8u  /* probable runtime helper */
 #define CS_LONG_DIVIDE          0x8C7Du  /* probable runtime helper */
@@ -56,13 +74,18 @@ typedef int32_t  s32;
 
 /* Sound/timer state (DS offsets). */
 #define DS_SPKRMODE             0x0248u
-#define DS_TIMERRATE            0x024Au
+#define DS_TIMERRATE            0x024Au  /* ISR accumulator: sett0 stores 4*t0val (or 0xFFFF) */
 #define DS_TIMERCOUNT           0x024Cu
 #define DS_TIMERCLOCK           0x024Eu  /* byte */
 #define DS_PULSEWIDTH           0x024Fu
 #define DS_OLD_INT8_OFFSET      0x0251u
 #define DS_OLD_INT8_SEGMENT     0x0253u
+#define DS_SOUNDFLAG            0x0667u
+#define DS_MUSICFLAG            0x0669u
 
+#define DS_SNDFLAG              0x4566u
+#define DS_INT8FLAG             0x4568u
+#define DS_SOUNDT0FLAG          0x456Au
 #define DS_WAVETYPE             0x456Cu
 #define DS_T2VAL                0x456Eu
 #define DS_T0VAL                0x4570u
@@ -91,6 +114,13 @@ typedef int32_t  s32;
 #define DS_MUSICRELEASERATE     0x45DEu
 #define DS_MUSICSTAGE           0x45E0u
 #define DS_MUSICN               0x45E2u
+#define DS_CURPLAYER            0x500Cu
+#define DS_NPLAYERS             0x500Eu  /* probable */
+#define DS_PENALTY              0x5014u
+#define DS_LEVEL_BASE           0x4FE2u  /* + 8*curplayer */
+#define DS_LIVES_A              0x4FE0u
+#define DS_LIVES_B              0x4FE8u
+#define DS_KEYPRESSED           0x0658u
 
 /* Data tables (DS offsets). */
 #define DS_CGA_MSG1             0x0195u

@@ -253,3 +253,113 @@ Everything is left uncommitted. There is a `.ANALYSIS.md.swp` vim swap file in t
 ### User
 
 commit it
+
+## Complete sound hardware layer and map core game-state functions
+
+Previous commit: c6fd3f8
+
+### User
+
+Continue the decompiling and comparison
+
+### Assistant
+
+I'll continue with the sound hardware layer first, then map the game loop and RNG, updating the reverse-engineering artifacts as I go.
+
+### Assistant
+
+The sound helpers expose a potential timing discrepancy, so let me verify the port's actual music tempo against the original's accumulator constants before writing it up.
+
+### Assistant
+
+The counter shows ~69–72 Hz, not 18.2 — the port's `timercount -= 0x4000` after each carry is what reproduces the original's `4*t0val` accumulator. Let me confirm over 5 s, then correct the analysis.
+
+### Assistant
+
+The sound layer is now fully mapped. Next I'll try to identify the original RNG by inspecting the 16-bit multiply/divide routines that could be `randno`.
+
+### Assistant
+
+The bonus timer constant isn't the `0xFA` hits (those are score additions). Let me finish the sound-helper decompilation and capture the score-value call sites.
+
+### Assistant
+
+Excellent: the high-call-count region contains `incpenalty`, `levplan`, `levof10`, `levno`, `getlives`, `addlife`, and `curplayer` — all matching port functions. Let me continue through that region to find the RNG.
+
+### Assistant
+
+The new functions need to appear in the disassembly map too. Let me regenerate `digger.lst` and `digger.dat` with the completed symbol set.
+
+### Assistant
+
+Continued the decompilation and comparison. The sound layer is now complete, the core state layer is mapped, and one timing result from the previous pass was corrected.
+
+## Corrected timing result
+
+The earlier “18.2 Hz” conclusion was wrong. `sett0` (`CS:0x7DD9`) stores **`4*t0val`** in the ISR accumulator (`DS:0x024A`), so with the timer-0 IRQ rate of `1,193,181/t0val` the `soundint` rate is:
+
+```
+4 * 1,193,181 / 65,536 ≈ 72.8 Hz
+```
+
+The port reaches the same rate differently: `timerrate=t0val` plus `timercount -= 0x4000` after every carry in `newsnd.c:getsample()`, giving `1,193,181/16,384 ≈ 72.8 Hz`. I instrumented the port: **360 `soundint` calls in 5 s (72.0 Hz)**. Corrected jingle durations:
+
+| Tune | Notes | Duration @72.8 Hz |
+|---|---:|---:|
+| original `T1` | 43 | 5.4 s |
+| original `T2` | 89 | 12.4 s |
+| port's merged bonus jingle | 160 | 21.1 s |
+
+## Completed sound layer
+
+Reconstructed in `C/sound.c` from the binary:
+
+- `sett0` (`CS:0x7DD9`) — timer-0 divisor, 1000-tick clamp, `4*t0val` accumulator, `musvol`/`pulsewidth` clamp, `setsoundmode`.
+- `setsoundt2` (`CS:0x7E7C`), `setsoundmode` (`CS:0x7EB8`) — same `spkrmode`/`soundt0flag` logic and port `0x61` speaker-gate writes.
+- `sett2val` (`CS:0x7FA2`), `timer2` (`CS:0x7FD5`) — timer-2 divisor writes.
+- `startint8` (`CS:0x7EFF`), `stopint8` (`CS:0x7F36`) — INT 8 hook/restore and timer 0 programming.
+- `soundoff` (`CS:0x7CC9`, probable), `initsound` (`CS:0x7D10`, probable), `soundpause`/`soundpauseoff` (`CS:0x7CB3`/`CS:0x7CBE`).
+
+## Game-state layer
+
+New `C/state.c` reconstructs the high-call-count state functions, all matching the port:
+
+- `incpenalty` (`CS:0x8A32`, **52 callers**) → `DS:0x5014++`.
+- `levno` (`CS:0x8ABD`) → level at `DS:0x4FE2 + 8*curplayer`.
+- `levplan` (`CS:0x8A65`) → `(l&3)+5` for `l>8`.
+- `levof10` (`CS:0x8A8D`) → `min(level,10)`.
+- `getlives` (`CS:0x8AF0`), `addlife` (`CS:0x8B0C`) → lives fields at `DS:0x4FE0`/`DS:0x4FE8`.
+- `curplayer` getter (`CS:0x8B45`), probable `nplayers` getter (`CS:0x8B4D`), `testpause` flow (`CS:0x8B55`).
+
+Scoring is also confirmed:
+
+- `score_add` (`CS:0x5FA1`) has the 999999 wrap, next-bonus step of `0x4E20`, and three `incpenalty` calls — matching `scores.c:addscore`.
+- Wrappers at `CS:0x68A2..0x68DA` add **250 / 25 / 250 / 500 / 1000**, exactly matching `scorekill`, `scoreemerald`, `scoreoctave`, `scoregold`, `scorebonus`. The port’s `scorekill2` (125+125) is a simultaneous-mode addition.
+
+## RNG status
+
+Still open, but narrowed. The binary contains:
+
+- no `0x15A4E35` (or common 16-bit LCG constants);
+- no `idiv word [bp+disp]`;
+- the long-multiply helper is called only once (string-to-number conversion);
+- the long-divide helper only from number formatting.
+
+So the original is likely a **16-bit/inlined generator or a table**, not the port’s 32-bit LCG. The next step is tracing calls from the monster/fire update functions.
+
+## Artifacts updated
+
+- `ANALYSIS.md` — corrected timing, sound-helper matches, state-function matches, RNG search results.
+- `SYMBOLS.md` — new verified/probable code symbols and game-state DS fields.
+- `digger.lst` — regenerated with the full symbol set.
+- `digger.dat` — regenerated with the new state-field labels.
+- `C/sound.c` — completed sound hardware layer.
+- `C/state.c` — **new**; core state accessors.
+- `C/game.c` — `addscore` structure and score-wrapper values.
+- `C/symbols.h`, `README.md`, `TODO.md` — updated status and addresses.
+
+All changes are uncommitted. When you want them committed, I’ll add this exchange to `Worklog.md` with the previous commit hash (`c6fd3f8`) and commit.
+
+### User
+
+Commit it

@@ -29,8 +29,11 @@ reconstructed from the 8086 disassembly.
 | `music`, `musicupdate` | reconstructed | `sound.c` |
 | `soundemerald`, `soundddie` | reconstructed | `sound.c` |
 | `getlevch`, level data | reconstructed | `levels.c` |
-| Score/bonus init | notes + fragments | `game.c` |
-| `sett0`, `setsoundmode`, `setsoundt2`, `sett2val` | identified, not yet decompiled | `TODO.md` |
+| `incpenalty`, `levno`, `levplan`, `levof10`, `getlives`, `addlife`, `curplayer` | reconstructed | `state.c` |
+| `nplayers` getter, `testpause` | getter done; pause flow noted | `state.c` |
+| `sett0`, `setsoundt2`, `setsoundmode`, `sett2val`, `timer2` | reconstructed | `sound.c` |
+| `startint8`, `stopint8`, `soundoff`, `initsound` | reconstructed (some probable) | `sound.c` |
+| `addscore`, fixed-score wrappers, score init | structure + fragments | `game.c` |
 | Game logic (digger/monster/bags/drawing/input) | not yet started | `TODO.md` |
 | RNG | not yet identified | `TODO.md` |
 
