@@ -62,9 +62,8 @@
 
 ## Low priority
 
-- Name the remaining C runtime helpers (long arithmetic at `0x8BFC`, the
-  number formatter, the string routines).
-- Add a label map for every function boundary; the current `.lst` labels are
-  the verified/probable subset.
-- Produce a byte-for-byte diff tool that compares this reconstruction's data
-  tables with `digger.com` after any future edits.
+- None outstanding.  The C runtime helpers are named and reconstructed in
+  `runtime.c`, every call target is labelled in `digger.lst` and listed in
+  `FUNCTIONS.md` (`tools/label_functions.py`), and
+  `tools/compare_tables.py` byte-compares the reconstructed tables with
+  `digger.com`.

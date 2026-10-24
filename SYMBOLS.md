@@ -96,10 +96,18 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x5B3F` | `0x5A3F` | `input_init` | verified | Resets the keyboard-controller/input state. |
 | `0x5C5E` | `0x5B5E` | `readkey` | verified | Returns nonzero when a normal key press should start the game. |
 | `0x0E06` | `0x0D06` | `install_keyboard` | verified | Saves the old keyboard vector and installs the handler. |
-| `0x8C7D` | `0x8B7D` | `long_divide`? | probable | C runtime 32-bit divide helper. |
-| `0x8DDD` | `0x8CDD` | `inportb`? | probable | C runtime port read helper. |
-| `0x8DE8` | `0x8CE8` | `outportb`? | probable | C runtime port write helper. |
-| `0x8E23` | `0x8D23` | `long_compare`? | probable | C runtime 32-bit compare helper. |
+| `0x8C7D` | `0x8B7D` | `ldivmod` | verified | Signed 32/32 divide; quotient AX:BX, remainder DX (and high word CX). |
+| `0x8DDD` | `0x8CDD` | `inportb` | verified | `in al,dx; xor ah,ah`. |
+| `0x8DE8` | `0x8CE8` | `outportb` | verified | `out dx,al`. |
+| `0x8E23` | `0x8D23` | `lcmp` | verified | Signed 32-bit compare; callers use the flags (`jl`/`jge`). |
+| `0x0172` | `0x0072` | `__exit` | verified | Restores SP from `DS:0x0000` and far-returns to DOS. |
+| `0x017B` | `0x007B` | `parse_cmdline` | verified | Skips spaces and fills the argv array at `DS:0x0004`. |
+| `0x0227` | `0x0127` | `iabs` | verified | Integer absolute value. |
+| `0x80F5` | `0x7FF5` | `digit_value` | verified | `'1'..'9'` → 1..9, otherwise 0. |
+| `0x8155` | `0x8055` | `toupper_c` | verified | Lowercase to uppercase. |
+| `0x8BFC` | `0x8AFC` | `lmul` | verified | Signed 32x32 multiply; only the low 32 bits are kept. |
+| `0x8C6D` | `0x8B6D` | `exit_process` | verified | Pushes the status and tails into `__exit`. |
+| `0x8D4C` | `0x8C4C` | `ultoa` | verified | Unsigned long to decimal with a minimum field width. |
 | `0x17EB` | `0x16EB` | video RLE blit? | probable | Copies `DS:0x0DAC` to `B800`; `0xFE` starts a run. |
 
 ### Game loop, RNG, score storage
@@ -116,7 +124,6 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x1826` | `0x1726` | `creatembspr` | verified | Sets a third frame per sprite (1..7 and 8..13), calls `createdbfspr`, resets the six monster leg counters. |
 | `0x1E9D` | `0x1D9D` | `drawgold` | verified | Frames 0..6, 4x15, seven source pairs; returns the collision mask. |
 | `0x263F` | `0x253F` | `drawdig` | verified | Global leg animation (0x2700/0x2702), 4 directions x 3 legs x fire/no-fire, death frames 10..15; sprite 0. |
-| `0x2BC1` | `0x2AC1` | `initmonsters` | probable | Called by `drawscreen`/`initchars`. |
 | `0x2C90` | `0x2B90` | `domonsters` | verified | Six monsters, stride 0x28, `hnt > 10-levof10()`, `randno(15-levof10())`, calls `monai`. |
 | `0x2E75` | `0x2D75` | `monai` | verified | Whole update: direction selection, wall stop, `eatfield`, blob drawing and movement, `hitemerald`, `stime`, `hnt`, `drawmon`, bag/monster/digger collisions, coordinate update. Digger 0 is chased directly (no per-monster `chase` field). |
 | `0x2BC1` | `0x2AC1` | `initmonsters` | verified | Clears flags; `mongaptime=45-2*levof10()`, `totalmonsters=levof10()+5`, `maxmononscr` 3/4/5, `nextmontime=10`, `unbonusflag=1`. |
@@ -256,7 +263,7 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x5DE0` | `0x5CE0` | `initscores` | verified | Calls `addscore(0)`. |
 | `0x5DED` | `0x5CED` | `loadscores` | verified | Reads sector 7, parses `s` + ten `[3 initials][2 pad][6 digits]` entries into `DS:0x4134`/`0x4108`; falls back to zeroed entries when the header is wrong. |
 | `0x6521` | `0x6421` | `savescores` | verified | Builds the same `s`+ten-entry 512-byte buffer and writes sector 7. |
-| `0x71D7` | `0x71D7` | `soundstop` | probable | Post-level sound stop. |
+| `0x71D7` | `0x70D7` | `soundstop` | probable | Post-level sound stop. |
 | `0x7310` | `0x7210` | `soundlevdone` | probable | Level-done tune. |
 | `0x7A63` | `0x7963` | `musicoff` | probable | Music off. |
 | `0x86F1` | `0x85F1` | `game` | verified | Runs a whole life/level: signature re-check; on a new level `drawscreen`, optional `PLAYER n` banner (15 colour flashes); frame loop `readdir`/`dodigger`/`domonsters`/`dobags`/penalty/`testpause`/`checklevdone`; on death/level end a 20-frame bag-settle loop, then `playmusic(0)`, `killfire`, `erasebonus`, `cleanupbags`, `savefield`, `erasemonsters`, level advance (countem/levdone) and life loss. |
@@ -303,7 +310,6 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x4DFC` | `0xDB6C` | 150 B | level 6 | verified |
 | `0x4E92` | `0xDC02` | 150 B | level 7 | verified |
 | `0x4F28` | `0xDC98` | 150 B | level 8 | verified |
-| `0x4FBE` | `0xDD2E` | text | NUL-separated UI strings | verified |
 | `0x509A` | `0xDE0A` | 257 B | C `ctype` / character-class table | verified |
 | `0x4FBE` | `0xDD2E` | 32 B | title sprite draw order: `14,13,7,6,5,4,3,2,1,12,11,10,9,8,15,0` | verified |
 | `0x5018` | `0xDD88` | text | `"D I G G E R"` title string | verified |

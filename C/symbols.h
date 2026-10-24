@@ -93,8 +93,16 @@ typedef int32_t  s32;
 #define CS_SOUNDPAUSEOFF        0x7CBEu  /* verified: clears soundpaused */
 #define CS_INPORTB              0x8DDDu  /* probable runtime helper */
 #define CS_OUTPORTB             0x8DE8u  /* probable runtime helper */
-#define CS_LONG_DIVIDE          0x8C7Du  /* probable runtime helper */
-#define CS_LONG_COMPARE         0x8E23u  /* probable runtime helper */
+#define CS_LONG_DIVIDE          0x8C7Du  /* ldivmod: signed 32/32 */
+#define CS_LONG_COMPARE         0x8E23u  /* lcmp: signed 32-bit compare */
+#define CS_RT_EXIT              0x0172u  /* stack reset + far return to DOS */
+#define CS_RT_PARSE_CMDLINE     0x017Bu
+#define CS_RT_ABS               0x0227u  /* iabs */
+#define CS_RT_DIGIT_VALUE       0x080F5u /* 0x1..0x9 -> 1..9, else 0 */
+#define CS_RT_TOUPPER           0x08155u
+#define CS_RT_LMUL              0x08BFCu  /* signed 32x32 -> low 32 */
+#define CS_RT_EXIT_PROCESS      0x08C6Du  /* exit(status) */
+#define CS_RT_ULTOA             0x08D4Cu  /* unsigned long -> decimal */
 #define CS_VIDEO_RLE_BLIT       0x17EBu  /* DS:0x0DAC -> B800, 0x4000 bytes */
 #define CS_CGA_ENTRY            0x03F4u  /* probe, init, startup message */
 #define CS_CGA_VIDEO_INIT       0x03FCu

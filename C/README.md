@@ -60,6 +60,7 @@ reconstructed from the 8086 disassembly.
 | `drawbackg`, `drawemerald`/`eraseemerald`, blob draws | reconstructed | `drawing.c` |
 | `creatembspr`, `initmbspr`, `createdbfspr`, `initdbfspr` | reconstructed | `drawing.c` |
 | Start-up, title screen, menu and life loop (`main` `0x82A6`) | reconstructed | `main.c` |
+| C runtime helpers (`lmul`, `ldivmod`, `lcmp`, `iabs`, `digit_value`, `toupper_c`, `ultoa`, `exit_process`) | reconstructed | `runtime.c` |
 | Score/menu display (`drawscore`, `drawhighscore`, `drawlives`, `draw_menu`, `gameover`) | reconstructed | `display.c` |
 | High-score table and sector-7 storage (`loadscores`/`savescores`, formatting) | reconstructed | `scores.c` |
 | Keyboard ISR, mouse sampling, `readdir`/`getdir`/`readkey`, `delay` | reconstructed | `input.c` |

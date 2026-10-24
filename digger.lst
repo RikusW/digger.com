@@ -15,6 +15,7 @@
 
 Disassembly of section .data:
 00000100 <.data>:
+; --- loc_0100 ---
      100:	fa                   	cli    
      101:	b8 68 8e             	mov    ax,0x8e68
      104:	05 10 00             	add    ax,0x10
@@ -69,10 +70,12 @@ Disassembly of section .data:
      16c:	e8 0c 00             	call   0x17b
      16f:	8b e5                	mov    sp,bp
      171:	cb                   	retf   
+; --- __exit (stack reset + far return) ---
      172:	a1 00 00             	mov    ax,ds:0x0
      175:	2d 04 00             	sub    ax,0x4
      178:	8b e0                	mov    sp,ax
      17a:	cb                   	retf   
+; --- parse_cmdline ---
      17b:	55                   	push   bp
      17c:	83 ec 04             	sub    sp,0x4
      17f:	8b ec                	mov    bp,sp
@@ -145,6 +148,7 @@ Disassembly of section .data:
      222:	83 c4 04             	add    sp,0x4
      225:	5d                   	pop    bp
      226:	c3                   	ret    
+; --- iabs ---
      227:	55                   	push   bp
      228:	83 ec 02             	sub    sp,0x2
      22b:	8b ec                	mov    bp,sp
@@ -307,6 +311,7 @@ Disassembly of section .data:
      371:	ee                   	out    dx,al
      372:	1f                   	pop    ds
      373:	c3                   	ret    
+; --- loc_0374 ---
      374:	b8 ff ff             	mov    ax,0xffff
      377:	ba 40 00             	mov    dx,0x40
      37a:	ee                   	out    dx,al
@@ -378,7 +383,6 @@ Disassembly of section .data:
      3f1:	59                   	pop    cx
      3f2:	58                   	pop    ax
      3f3:	cf                   	iret   
-; --- CGA video init entry ---
 ; --- cga_start (probe, init, startup message) ---
      3f4:	55                   	push   bp
      3f5:	8b ec                	mov    bp,sp
@@ -430,7 +434,6 @@ Disassembly of section .data:
      452:	e8 4b 00             	call   0x4a0
      455:	c3                   	ret    
 ; --- cga_print_text (INT 10h teletype) ---
-; --- cga_print_text (INT 10h teletype) ---
      456:	06                   	push   es
      457:	b8 40 00             	mov    ax,0x40
      45a:	8e c0                	mov    es,ax
@@ -454,6 +457,7 @@ Disassembly of section .data:
      47e:	46                   	inc    si
      47f:	eb e7                	jmp    0x468
      481:	c3                   	ret    
+; --- loc_0482 ---
      482:	55                   	push   bp
      483:	8b ec                	mov    bp,sp
      485:	e8 02 00             	call   0x48a
@@ -469,6 +473,7 @@ Disassembly of section .data:
      495:	58                   	pop    ax
      496:	5a                   	pop    dx
      497:	c3                   	ret    
+; --- loc_0498 ---
      498:	55                   	push   bp
      499:	8b ec                	mov    bp,sp
      49b:	e8 02 00             	call   0x4a0
@@ -522,6 +527,7 @@ Disassembly of section .data:
      4ed:	e8 02 00             	call   0x4f2
      4f0:	5d                   	pop    bp
      4f1:	c3                   	ret    
+; --- loc_04F2 ---
      4f2:	80 e3 01             	and    bl,0x1
      4f5:	b1 05                	mov    cl,0x5
      4f7:	d2 e3                	shl    bl,cl
@@ -553,6 +559,7 @@ Disassembly of section .data:
      526:	e8 02 00             	call   0x52b
      529:	5d                   	pop    bp
      52a:	c3                   	ret    
+; --- loc_052B ---
      52b:	80 e3 0f             	and    bl,0xf
      52e:	a0 b5 03             	mov    al,ds:0x3b5
      531:	24 f0                	and    al,0xf0
@@ -562,6 +569,7 @@ Disassembly of section .data:
      53b:	ba d9 03             	mov    dx,0x3d9
      53e:	ee                   	out    dx,al
      53f:	c3                   	ret    
+; --- loc_0540 ---
      540:	55                   	push   bp
      541:	8b ec                	mov    bp,sp
      543:	8a 46 04             	mov    al,BYTE PTR [bp+0x4]
@@ -680,7 +688,6 @@ Disassembly of section .data:
      625:	59                   	pop    cx
      626:	5b                   	pop    bx
      627:	c3                   	ret    
-; --- CGA block put? ---
 ; --- cga_draw_block (replace line) ---
      628:	55                   	push   bp
      629:	8b ec                	mov    bp,sp
@@ -699,7 +706,6 @@ Disassembly of section .data:
      650:	e8 2f 00             	call   0x682
      653:	5d                   	pop    bp
      654:	c3                   	ret    
-; --- CGA block XOR? ---
 ; --- cga_xor_block (XOR line) ---
      655:	55                   	push   bp
      656:	8b ec                	mov    bp,sp
@@ -718,7 +724,6 @@ Disassembly of section .data:
      67d:	e8 02 00             	call   0x682
      680:	5d                   	pop    bp
      681:	c3                   	ret    
-; --- CGA block worker? ---
 ; --- cga_line (Bresenham) ---
      682:	a1 bb 03             	mov    ax,ds:0x3bb
      685:	2b 06 b7 03          	sub    ax,WORD PTR ds:0x3b7
@@ -963,6 +968,7 @@ Disassembly of section .data:
      930:	e8 eb 02             	call   0xc1e
      933:	5d                   	pop    bp
      934:	c3                   	ret    
+; --- loc_0935 ---
      935:	8b 87 5f 05          	mov    ax,WORD PTR [bx+0x55f]
      939:	89 87 33 04          	mov    WORD PTR [bx+0x433],ax
      93d:	8b 87 7f 05          	mov    ax,WORD PTR [bx+0x57f]
@@ -984,6 +990,7 @@ Disassembly of section .data:
      97d:	e8 93 03             	call   0xd13
      980:	e8 c5 03             	call   0xd48
      983:	c3                   	ret    
+; --- loc_0984 ---
      984:	e8 78 02             	call   0xbff
      987:	c7 87 13 04 00 00    	mov    WORD PTR [bx+0x413],0x0
      98d:	e8 d5 00             	call   0xa65
@@ -1501,6 +1508,7 @@ Disassembly of section .data:
      e71:	59                   	pop    cx
      e72:	58                   	pop    ax
      e73:	cf                   	iret   
+; --- loc_0E74 ---
      e74:	be 76 06             	mov    si,0x676
      e77:	a0 58 06             	mov    al,ds:0x658
      e7a:	b9 15 00             	mov    cx,0x15
@@ -1640,6 +1648,7 @@ Disassembly of section .data:
     1059:	c3                   	ret    
     105a:	c7 06 65 06 ff ff    	mov    WORD PTR ds:0x665,0xffff
     1060:	c3                   	ret    
+; --- loc_1061 ---
     1061:	c7 06 59 06 ff ff    	mov    WORD PTR ds:0x659,0xffff
     1067:	80 3e 4d 06 00       	cmp    BYTE PTR ds:0x64d,0x0
     106c:	74 0c                	je     0x107a
@@ -1723,6 +1732,7 @@ Disassembly of section .data:
     1178:	5a                   	pop    dx
     1179:	c3                   	ret    
     117a:	c3                   	ret    
+; --- loc_117B ---
     117b:	55                   	push   bp
     117c:	8b ec                	mov    bp,sp
     117e:	1e                   	push   ds
@@ -1734,6 +1744,7 @@ Disassembly of section .data:
     118c:	1f                   	pop    ds
     118d:	5d                   	pop    bp
     118e:	c3                   	ret    
+; --- loc_118F ---
     118f:	55                   	push   bp
     1190:	8b ec                	mov    bp,sp
     1192:	1e                   	push   ds
@@ -2196,6 +2207,7 @@ Disassembly of section .data:
     1612:	83 c4 06             	add    sp,0x6
     1615:	5d                   	pop    bp
     1616:	c3                   	ret    
+; --- loc_1617 ---
     1617:	55                   	push   bp
     1618:	83 ec 08             	sub    sp,0x8
     161b:	8b ec                	mov    bp,sp
@@ -2237,6 +2249,7 @@ Disassembly of section .data:
     167c:	83 c4 08             	add    sp,0x8
     167f:	5d                   	pop    bp
     1680:	c3                   	ret    
+; --- loc_1681 ---
     1681:	55                   	push   bp
     1682:	8b ec                	mov    bp,sp
     1684:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -3592,6 +3605,7 @@ Disassembly of section .data:
     21c8:	8b e5                	mov    sp,bp
     21ca:	5d                   	pop    bp
     21cb:	c3                   	ret    
+; --- loc_21CC ---
     21cc:	55                   	push   bp
     21cd:	83 ec 04             	sub    sp,0x4
     21d0:	8b ec                	mov    bp,sp
@@ -3627,6 +3641,7 @@ Disassembly of section .data:
     220f:	83 c4 04             	add    sp,0x4
     2212:	5d                   	pop    bp
     2213:	c3                   	ret    
+; --- loc_2214 ---
     2214:	55                   	push   bp
     2215:	83 ec 04             	sub    sp,0x4
     2218:	8b ec                	mov    bp,sp
@@ -3662,6 +3677,7 @@ Disassembly of section .data:
     2257:	83 c4 04             	add    sp,0x4
     225a:	5d                   	pop    bp
     225b:	c3                   	ret    
+; --- loc_225C ---
     225c:	55                   	push   bp
     225d:	83 ec 04             	sub    sp,0x4
     2260:	8b ec                	mov    bp,sp
@@ -3695,6 +3711,7 @@ Disassembly of section .data:
     229d:	83 c4 04             	add    sp,0x4
     22a0:	5d                   	pop    bp
     22a1:	c3                   	ret    
+; --- loc_22A2 ---
     22a2:	55                   	push   bp
     22a3:	83 ec 04             	sub    sp,0x4
     22a6:	8b ec                	mov    bp,sp
@@ -4092,6 +4109,7 @@ Disassembly of section .data:
     2609:	83 c4 02             	add    sp,0x2
     260c:	5d                   	pop    bp
     260d:	c3                   	ret    
+; --- loc_260E ---
     260e:	55                   	push   bp
     260f:	8b ec                	mov    bp,sp
     2611:	33 c0                	xor    ax,ax
@@ -9537,6 +9555,7 @@ Disassembly of section .data:
     5eac:	83 c4 0c             	add    sp,0xc
     5eaf:	5d                   	pop    bp
     5eb0:	c3                   	ret    
+; --- loc_5EB1 ---
     5eb1:	55                   	push   bp
     5eb2:	83 ec 03             	sub    sp,0x3
     5eb5:	8b ec                	mov    bp,sp
@@ -10417,6 +10436,7 @@ Disassembly of section .data:
     66dc:	83 c4 0e             	add    sp,0xe
     66df:	5d                   	pop    bp
     66e0:	c3                   	ret    
+; --- loc_66E1 ---
     66e1:	55                   	push   bp
     66e2:	83 ec 09             	sub    sp,0x9
     66e5:	8b ec                	mov    bp,sp
@@ -10460,6 +10480,7 @@ Disassembly of section .data:
     6748:	83 c4 09             	add    sp,0x9
     674b:	5d                   	pop    bp
     674c:	c3                   	ret    
+; --- loc_674D ---
     674d:	55                   	push   bp
     674e:	83 ec 06             	sub    sp,0x6
     6751:	8b ec                	mov    bp,sp
@@ -11517,6 +11538,7 @@ Disassembly of section .data:
     7202:	83 c4 10             	add    sp,0x10
     7205:	5d                   	pop    bp
     7206:	c3                   	ret    
+; --- loc_7207 ---
     7207:	55                   	push   bp
     7208:	83 ec 04             	sub    sp,0x4
     720b:	8b ec                	mov    bp,sp
@@ -11725,6 +11747,7 @@ Disassembly of section .data:
     7449:	a3 78 45             	mov    ds:0x4578,ax
     744c:	5d                   	pop    bp
     744d:	c3                   	ret    
+; --- loc_744E ---
     744e:	55                   	push   bp
     744f:	83 ec 02             	sub    sp,0x2
     7452:	8b ec                	mov    bp,sp
@@ -12152,6 +12175,7 @@ Disassembly of section .data:
     78a6:	c7 06 a6 45 01 00    	mov    WORD PTR ds:0x45a6,0x1
     78ac:	5d                   	pop    bp
     78ad:	c3                   	ret    
+; --- loc_78AE ---
     78ae:	55                   	push   bp
     78af:	83 ec 02             	sub    sp,0x2
     78b2:	8b ec                	mov    bp,sp
@@ -12274,6 +12298,7 @@ Disassembly of section .data:
     7a03:	c7 06 b4 45 00 00    	mov    WORD PTR ds:0x45b4,0x0
     7a09:	5d                   	pop    bp
     7a0a:	c3                   	ret    
+; --- loc_7A0B ---
     7a0b:	55                   	push   bp
     7a0c:	8b ec                	mov    bp,sp
     7a0e:	c7 06 b6 45 60 00    	mov    WORD PTR ds:0x45b6,0x60
@@ -12958,6 +12983,7 @@ Disassembly of section .data:
     80f0:	83 c4 02             	add    sp,0x2
     80f3:	5d                   	pop    bp
     80f4:	c3                   	ret    
+; --- digit_value ---
     80f5:	55                   	push   bp
     80f6:	8b ec                	mov    bp,sp
     80f8:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -13005,6 +13031,7 @@ Disassembly of section .data:
     814c:	d1 e6                	shl    si,1
     814e:	2e ff a4 2e 81       	jmp    WORD PTR cs:[si-0x7ed2]
     8153:	eb d5                	jmp    0x812a
+; --- toupper_c ---
     8155:	55                   	push   bp
     8156:	8b ec                	mov    bp,sp
     8158:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -14194,6 +14221,7 @@ Disassembly of section .data:
     8c68:	83 c4 04             	add    sp,0x4
     8c6b:	5d                   	pop    bp
     8c6c:	c3                   	ret    
+; --- exit_process ---
     8c6d:	55                   	push   bp
     8c6e:	8b ec                	mov    bp,sp
     8c70:	ff 76 06             	push   WORD PTR [bp+0x6]
@@ -14299,7 +14327,7 @@ Disassembly of section .data:
     8d47:	83 c4 04             	add    sp,0x4
     8d4a:	5d                   	pop    bp
     8d4b:	c3                   	ret    
-; --- itoa?  (C runtime) ---
+; --- ultoa (unsigned long -> decimal, field width) ---
     8d4c:	55                   	push   bp
     8d4d:	83 ec 14             	sub    sp,0x14
     8d50:	8b ec                	mov    bp,sp
