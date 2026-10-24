@@ -39,12 +39,14 @@
 
 ## High priority
 
-- **Remaining game bodies**: only the sprite/drawing routines are left:
-  `drawmon`/`drawmondie`/`drawdig`/`drawgold`, `makefield`/`makeemfield`,
-  `drawstatics`/`drawemeralds`, the blob draws, and `initmbspr`/`creatembspr`.
-  Every game-state body is reconstructed: main loop, digger
+- **All game and rendering bodies are reconstructed**: main loop, digger
   (`dodigger`/`updatedigger`/`diggerdie`), fireball, monsters, bags, field
-  and emerald helpers, RNG, bonus mode, and score I/O.
+  and emerald helpers, RNG, bonus mode, score I/O, and the drawing layer
+  (`drawmon`/`drawmondie`/`drawdig`/`drawgold`/`drawfire`, `makefield`/
+  `makeemfield`/`drawfield`/`drawstatics`/`drawemeralds`, `drawbackg`,
+  the blob/emerald helpers, and the sprite-buffer initialisers).
+- The remaining work is the low-level pixel layer: `setspr`/`drawspr`/
+  `drawmiscspr`/`getis`, the CGA sprite/tile data and the title bitmap.
 
 ## CGA / DOSBox
 

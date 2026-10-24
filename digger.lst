@@ -769,6 +769,7 @@ Disassembly of section .data:
      74b:	03 0e cb 03          	add    cx,WORD PTR ds:0x3cb
      74f:	e8 5e fe             	call   0x5b0
      752:	eb c6                	jmp    0x71a
+; --- setspr2 (verified) ---
      754:	55                   	push   bp
      755:	8b ec                	mov    bp,sp
      757:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -820,6 +821,7 @@ Disassembly of section .data:
      7df:	e8 a2 01             	call   0x984
      7e2:	5d                   	pop    bp
      7e3:	c3                   	ret    
+; --- drawspr (verified: returns collision mask) ---
      7e4:	55                   	push   bp
      7e5:	8b ec                	mov    bp,sp
      7e7:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -833,6 +835,7 @@ Disassembly of section .data:
      7ff:	e8 95 01             	call   0x997
      802:	5d                   	pop    bp
      803:	c3                   	ret    
+; --- setspr (verified) ---
      804:	55                   	push   bp
      805:	8b ec                	mov    bp,sp
      807:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -861,6 +864,7 @@ Disassembly of section .data:
      84a:	a3 25 06             	mov    ds:0x625,ax
      84d:	5d                   	pop    bp
      84e:	c3                   	ret    
+; --- initmiscspr (verified) ---
      84f:	55                   	push   bp
      850:	8b ec                	mov    bp,sp
      852:	bb 20 00             	mov    bx,0x20
@@ -875,6 +879,7 @@ Disassembly of section .data:
      871:	e8 be 01             	call   0xa32
      874:	5d                   	pop    bp
      875:	c3                   	ret    
+; --- getis (verified) ---
      876:	55                   	push   bp
      877:	8b ec                	mov    bp,sp
      879:	e8 3e 04             	call   0xcba
@@ -898,6 +903,7 @@ Disassembly of section .data:
      8a8:	e8 91 01             	call   0xa3c
      8ab:	5d                   	pop    bp
      8ac:	c3                   	ret    
+; --- drawmiscspr (verified) ---
      8ad:	55                   	push   bp
      8ae:	8b ec                	mov    bp,sp
      8b0:	bb 20 00             	mov    bx,0x20
@@ -3386,6 +3392,7 @@ Disassembly of section .data:
     2086:	74 9a                	je     0x2022
     2088:	5d                   	pop    bp
     2089:	c3                   	ret    
+; --- drawemerald (verified) ---
     208a:	55                   	push   bp
     208b:	8b ec                	mov    bp,sp
     208d:	b8 0a 00             	mov    ax,0xa
@@ -3411,6 +3418,7 @@ Disassembly of section .data:
     20bb:	e8 b8 e7             	call   0x876
     20be:	5d                   	pop    bp
     20bf:	c3                   	ret    
+; --- eraseemerald (verified) ---
     20c0:	55                   	push   bp
     20c1:	8b ec                	mov    bp,sp
     20c3:	b8 0a 00             	mov    ax,0xa
@@ -3436,6 +3444,7 @@ Disassembly of section .data:
     20f1:	e8 82 e7             	call   0x876
     20f4:	5d                   	pop    bp
     20f5:	c3                   	ret    
+; --- createdbfspr (verified) ---
     20f6:	55                   	push   bp
     20f7:	8b ec                	mov    bp,sp
     20f9:	33 c0                	xor    ax,ax
@@ -3493,6 +3502,7 @@ Disassembly of section .data:
     2163:	8b e5                	mov    sp,bp
     2165:	5d                   	pop    bp
     2166:	c3                   	ret    
+; --- initdbfspr (verified) ---
     2167:	55                   	push   bp
     2168:	8b ec                	mov    bp,sp
     216a:	33 c0                	xor    ax,ax
@@ -3680,6 +3690,7 @@ Disassembly of section .data:
     22e3:	83 c4 04             	add    sp,0x4
     22e6:	5d                   	pop    bp
     22e7:	c3                   	ret    
+; --- drawfurryblob (verified) ---
     22e8:	55                   	push   bp
     22e9:	83 ec 04             	sub    sp,0x4
     22ec:	8b ec                	mov    bp,sp
@@ -3715,6 +3726,7 @@ Disassembly of section .data:
     232f:	83 c4 04             	add    sp,0x4
     2332:	5d                   	pop    bp
     2333:	c3                   	ret    
+; --- drawsquareblob (verified) ---
     2334:	55                   	push   bp
     2335:	83 ec 04             	sub    sp,0x4
     2338:	8b ec                	mov    bp,sp
@@ -3748,6 +3760,7 @@ Disassembly of section .data:
     2375:	83 c4 04             	add    sp,0x4
     2378:	5d                   	pop    bp
     2379:	c3                   	ret    
+; --- drawbackg (verified) ---
     237a:	55                   	push   bp
     237b:	83 ec 06             	sub    sp,0x6
     237e:	8b ec                	mov    bp,sp
@@ -3887,7 +3900,7 @@ Disassembly of section .data:
     24c1:	83 c4 06             	add    sp,0x6
     24c4:	5d                   	pop    bp
     24c5:	c3                   	ret    
-; --- drawfire (returns sprite collision mask) ---
+; --- drawfire (verified: 2x7, frames 0..3) ---
     24c6:	55                   	push   bp
     24c7:	83 ec 02             	sub    sp,0x2
     24ca:	8b ec                	mov    bp,sp
@@ -10851,6 +10864,7 @@ Disassembly of section .data:
     6bc5:	83 c4 0e             	add    sp,0xe
     6bc8:	5d                   	pop    bp
     6bc9:	c3                   	ret    
+; --- savefield (verified) ---
     6bca:	55                   	push   bp
     6bcb:	83 ec 0e             	sub    sp,0xe
     6bce:	8b ec                	mov    bp,sp
@@ -10895,6 +10909,7 @@ Disassembly of section .data:
     6c39:	83 c4 0e             	add    sp,0xe
     6c3c:	5d                   	pop    bp
     6c3d:	c3                   	ret    
+; --- drawfield (verified) ---
     6c3e:	55                   	push   bp
     6c3f:	83 ec 10             	sub    sp,0x10
     6c42:	8b ec                	mov    bp,sp

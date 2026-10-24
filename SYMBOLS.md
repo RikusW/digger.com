@@ -102,10 +102,10 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x02F3` | `0x01F3` | `disk_check` | verified | Reads sector 2 and checks the BIOS/disk signature. |
 | `0x177F` | `0x167F` | `rand` | verified | Shared game/sound RNG: table `DS:0x0CA7`, counter `DS:0x0DA7`, BIOS tick `0x40:0x006C`. |
 | `0x17C1` | `0x16C1` | `bios_tick_byte` | verified | Reads the byte at `0x40:0x006C`. |
-| `0x1A03` | `0x1903` | `initmbspr` | probable | Called by `initchars`. |
-| `0x1826` | `0x1726` | `creatembspr` | probable | Called by `drawscreen`. |
-| `0x1E9D` | `0x1D9D` | `drawgold` | probable | Called by `dobags`. |
-| `0x263F` | `0x253F` | `drawdig` | probable | Called by `dodigger`. |
+| `0x1A03` | `0x1903` | `initmbspr` | verified | Sets default 4x15 frames for sprites 1..7 (`0x18D6/0x1913`) and 8..13 (`0x1DD0/0x1E0D`), then `initdbfspr`. |
+| `0x1826` | `0x1726` | `creatembspr` | verified | Sets a third frame per sprite (1..7 and 8..13), calls `createdbfspr`, resets the six monster leg counters. |
+| `0x1E9D` | `0x1D9D` | `drawgold` | verified | Frames 0..6, 4x15, seven source pairs; returns the collision mask. |
+| `0x263F` | `0x253F` | `drawdig` | verified | Global leg animation (0x2700/0x2702), 4 directions x 3 legs x fire/no-fire, death frames 10..15; sprite 0. |
 | `0x2BC1` | `0x2AC1` | `initmonsters` | probable | Called by `drawscreen`/`initchars`. |
 | `0x2C90` | `0x2B90` | `domonsters` | verified | Six monsters, stride 0x28, `hnt > 10-levof10()`, `randno(15-levof10())`, calls `monai`. |
 | `0x2E75` | `0x2D75` | `monai` | verified | Whole update: direction selection, wall stop, `eatfield`, blob drawing and movement, `hitemerald`, `stime`, `hnt`, `drawmon`, bag/monster/digger collisions, coordinate update. Digger 0 is chased directly (no per-monster `chase` field). |
@@ -119,8 +119,25 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x3ABB` | `0x39BB` | `nmononscr` | verified | Counts flag-set monsters. |
 | `0x3AEF` | `0x39EF` | `incmont` | verified | Increments `t` for monsters 1..n-1 (`n` clamped to 6). |
 | `0x3B26` | `0x3A26` | `mongold` | verified | Sets `DS:0x3C0C`. |
-| `0x1B84` | `0x1A84` | `drawmon` | probable | Returns the sprite-collision mask: bit 0 digger, bits 1..7 bags, bits 8..13 monsters. |
-| `0x1DDB` | `0x1CDB` | `drawmondie` | probable | Death animation draw. |
+| `0x1B84` | `0x1A84` | `drawmon` | verified | Per-monster leg animation (0x16CC/0x16D8); hobbin set plus nobbin right/left sets; sprite `mon+8`; returns the mask. |
+| `0x1DDB` | `0x1CDB` | `drawmondie` | verified | Hobbin 4x15, nobbin right 4x15, nobbin left 4x14; sprite `mon+8`. |
+| `0x260E` | `0x250E` | `drawbonus` | verified | Sets sprite `0x0E` (4x15) and `movedrawspr(0x0E,x,y)`. |
+| `0x208A` | `0x1F8A` | `drawemerald` | verified | 4x10 misc sprite, sources `0x16E4/0x170D`. |
+| `0x20C0` | `0x1FC0` | `eraseemerald` | verified | 4x10 misc sprite, sources `0x175E/0x1787`. |
+| `0x22E8` | `0x21E8` | `drawfurryblob` | verified | `x-4, y+15`, 6x8, sources `0x282E/0x285F`. |
+| `0x2334` | `0x2234` | `drawsquareblob` | verified | `x-4, y+17`, 6x6, sources `0x2890/0x28B5`. |
+| `0x237A` | `0x227A` | `drawbackg` | verified | Tiles 5x4 over `y=14..199`, `x=0..319`; eight tile source pairs selected by plan. |
+| `0x24C6` | `0x23C6` | `drawfire` | verified | Sprite `0x0F`, 2x7: frame 0 animates three legs, frames 1..3 fixed explosion frames; returns the mask. |
+| `0x20F6` | `0x1FF6` | `createdbfspr` | verified | Three-frame buffers for the digger/bonus/fireball and resets their animation state. |
+| `0x2167` | `0x2067` | `initdbfspr` | verified | One-frame defaults for the digger/bonus/fireball and resets their animation state. |
+| `0x0754` | `0x0654` | `setspr2` | verified | `(spr, src0, src1, src2, w, h, a, b)`. |
+| `0x07E4` | `0x06E4` | `drawspr` | verified | `(spr, x, y)`; returns the collision mask. |
+| `0x0804` | `0x0704` | `setspr` | verified | `(spr, src0, src1, w, h, a, b)`. |
+| `0x084F` | `0x074F` | `initmiscspr` | verified | `(x, y, w, h)` for the misc sprite slot. |
+| `0x08AD` | `0x07AD` | `drawmiscspr` | verified | `(x, y, src0, src1, w, h)`. |
+| `0x0876` | `0x0776` | `getis` | verified | Flushes the sprite buffer. |
+| `0x6C3E` | `0x6B3E` | `drawfield` | verified | Draws wall pieces from the field bits; matches the port's `drawfield()`. |
+| `0x6BCA` | `0x6ACA` | `savefield` | verified | Copies the working field to the per-player saved copy. |
 | `0x21CC` | `0x20CC` | `drawrightblob` | verified | `x+16, y-1`, 2x18. |
 | `0x2214` | `0x2114` | `drawleftblob` | verified | `x-8, y-1`, 2x18. |
 | `0x225C` | `0x215C` | `drawtopblob` | verified | `x-4, y-6`, 6x6. |
@@ -176,10 +193,10 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x5650` | `0x5550` | `diggerx` | probable | Digger x accessor. |
 | `0x5658` | `0x5558` | `diggery` | probable | Digger y accessor. |
 | `0x5660` | `0x5560` | `digalive` | probable | Returns `DS:0x3FF2`; called by `domonsters`. |
-| `0x56E8` | `0x55E8` | `makeemfield` | probable | Called by `initlevel`. |
-| `0x5777` | `0x5677` | `drawemeralds` | probable | Called by `drawscreen`. |
-| `0x6A48` | `0x6948` | `makefield` | probable | Called by `initlevel`. |
-| `0x6B31` | `0x6A31` | `drawstatics` | probable | Called by `drawscreen`. |
+| `0x56E8` | `0x55E8` | `makeemfield` | verified | `emmask` 1/2; sets/clears the emerald bit per `getlevch(x,y,levplan())=='C'`. |
+| `0x5777` | `0x5677` | `drawemeralds` | verified | Sets `emmask`, draws every selected emerald. |
+| `0x6A48` | `0x6948` | `makefield` | verified | Fills `0xFFFF`, clears `0xD03F` for `S/V` and `0xDFE0` for `S/H`, saves to the per-player copy. |
+| `0x6B31` | `0x6A31` | `drawstatics` | verified | Restores the saved field, `setretr(1)`, `gpal(0)`, `ginten(0)`, `drawbackg(levplan())`, `drawfield()`. |
 | `0x7441` | `0x7341` | `soundfalloff` | probable | Called at the end of `dobags`. |
 | `0x7497` | `0x7397` | `soundbreak` | probable | Sets flag/duration 3/freq `0x3A98`; called by `dobags`. |
 | `0x7564` | `0x7464` | `soundwobbleoff` | probable | Called at the end of `dobags`. |

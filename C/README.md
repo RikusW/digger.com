@@ -54,7 +54,11 @@ reconstructed from the 8086 disassembly.
 | `fieldclear`, monster collision/penalty, blob draws | reconstructed | `monster.c` |
 | `pushbags`, `pushudbags`, `removebags`, `bagmask`, `eatfield`, `hitemerald` | mapped (externs) | `monster.c` |
 | `initlevel`/`drawscreen`/`initchars` | reconstructed | `drawing.c` |
-| Sprite/drawing routines (`drawmon`, `drawdig`, `drawgold`, `makefield`, ...) | remaining | `TODO.md` |
+| `makefield`, `savefield`, `drawfield`, `makeemfield`, `drawemeralds`, `drawstatics` | reconstructed | `field.c` |
+| `drawmon`, `drawmondie`, `drawdig`, `drawgold`, `drawbonus`, `drawfire` | reconstructed | `drawing.c` |
+| `drawbackg`, `drawemerald`/`eraseemerald`, blob draws | reconstructed | `drawing.c` |
+| `creatembspr`, `initmbspr`, `createdbfspr`, `initdbfspr` | reconstructed | `drawing.c` |
+| Low-level sprite blitters (`setspr`, `drawspr`, `drawmiscspr`, `getis`) | mapped (externs) | `drawing.c` |
 
 See `ANALYSIS.md` for the comparison and exact-match findings.
 See `CGA.md` for the CGA mode/register analysis and the DOSBox failure

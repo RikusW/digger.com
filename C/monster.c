@@ -74,7 +74,7 @@ extern void createbonus(void);
 extern int fieldclear(int dir, int h, int v);
 extern int getfield(int h, int v);
 extern int drawmon(int mon, int nob, int hdir, int x, int y);
-extern void drawmondie(int mon, int nob, int hdir, int x, int y);
+extern int drawmondie(int mon, int nob, int hdir, int x, int y);
 extern void drawrightblob(int x, int y);
 extern void drawleftblob(int x, int y);
 extern void drawtopblob(int x, int y);

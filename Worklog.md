@@ -749,3 +749,25 @@ Committed the game-state bodies (11 files): `diggerdie`, the full bag module, th
 - **Monsters**: `killmonsters`, `squashmonster(s)`, `checkmonscared`, `monleft`; `checkdiggerunderbag`.
 
 Artifacts: `C/bags.c`, `C/digger.c`, `C/monster.c`, `C/field.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.
+
+## Rendering layer: draws, sprites, field and background
+
+Previous commit: 533ba12
+
+### User
+
+Commit and finish rendering task
+
+### Assistant
+
+Committed the rendering layer (10 files): the draw functions, sprite-buffer initialisers, background tiler, and the field/emerald renderers. All `C/*.c` compile cleanly with `-Wall -Wextra`. Only the low-level pixel blitters and the CGA sprite data remain.
+
+## What was added
+
+- **Sprite initialisers**: `creatembspr` (`0x1826`, third frame per sprite), `initmbspr` (`0x1A03`, default frames), `createdbfspr` (`0x20F6`), `initdbfspr` (`0x2167`, animation reset).
+- **Actors**: `drawmon` (`0x1B84`, per-monster leg state `0x16CC/0x16D8`, hobbin and nobbin right/left frame sets), `drawmondie` (`0x1DDB`), `drawdig` (`0x263F`, four directions x three legs x fire/no-fire, plus death frames 10..15), `drawgold` (`0x1E9D`, seven 4x15 frames), `drawbonus` (`0x260E`), `drawfire` (`0x24C6`, three animated legs and three explosion frames).
+- **Field and background**: `makefield`, `savefield`, `drawfield`, `makeemfield`, `drawemeralds` in `field.c`; `drawstatics` restores the saved field and calls `setretr`/`gpal`/`ginten`/`drawbackg`/`drawfield`; `drawbackg` (`0x237A`) tiles eight 5x4 tile sets over the 320x186 background.
+- **Misc sprites**: `drawemerald`/`eraseemerald` (4x10), `drawrightblob`/`drawleftblob` (2x18), `drawtopblob`/`drawbottomblob` (6x6), `drawfurryblob` (6x8), `drawsquareblob` (6x6).
+- **Mapped primitives**: `setspr` `0x0804`, `setspr2` `0x0754`, `drawspr` `0x07E4`, `initmiscspr` `0x084F`, `drawmiscspr` `0x08AD`, `getis` `0x0876`.
+
+Artifacts: `C/drawing.c`, `C/field.c`, `C/monster.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.

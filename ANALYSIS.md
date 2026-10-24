@@ -322,6 +322,20 @@ erasemonsters/countem sequence.
   `initchars` `CS:0x89E4` calls `initmbspr` `0x1A03`, `initdigger`,
   `initmonsters`. See `C/drawing.c`.
 
+- **Rendering layer** — `creatembspr` `0x1826` / `initmbspr` `0x1A03`
+  build the per-sprite frame buffers (sprites 1..7 = bags, 8..13 = monsters)
+  and call `createdbfspr` `0x20F6` / `initdbfspr` `0x2167` for the digger,
+  bonus and fireball. `drawmon` `0x1B84` and `drawdig` `0x263F` animate legs
+  (per-monster `0x16CC/0x16D8`, digger `0x2700/0x2702`, fireball `0x2704`)
+  and select 4x15 frames from CS source pairs; `drawmondie` `0x1DDB` picks
+  the 4x15/4x14 death frames; `drawgold` `0x1E9D` has seven 4x15 frames;
+  `drawfire` `0x24C6` uses 2x7 frames. The field walls come from
+  `drawfield` `0x6C3E` (matches the port), the tiled background from
+  `drawbackg` `0x237A` (eight 5x4 tile sets chosen by `levplan()`), and the
+  emerald/erase/blob helpers use 4x10, 6x6, 6x8, 2x18 misc sprites. Low-level
+  primitives: `setspr` `0x0804`, `setspr2` `0x0754`, `drawspr` `0x07E4`,
+  `initmiscspr` `0x084F`, `drawmiscspr` `0x08AD`, `getis` `0x0876`.
+
 ### Bonus mode — `CS:0x5510..0x5575`
 
 `initbonusmode` (`CS:0x5528`) sets `bonusmode=1`, `erasebonus`, `ginten(1)`,
@@ -390,9 +404,11 @@ reference; it is a default/legacy score image. The sector-2 read/check
 
 ## Open items / next work
 
-- Reconstruct the sprite/drawing routines (`drawmon`, `drawmondie`,
-  `drawdig`, `drawgold`, `makefield`, `makeemfield`, `drawstatics`,
-  `drawemeralds`, the blob draws and `initmbspr`).
+- Decode the CGA sprite/tile data behind the source addresses
+  (`CS:0x16E4..0x3B00`) and the title bitmap, and reconstruct the low-level
+  sprite blitters (`setspr`, `drawspr`, `drawmiscspr`, `getis`).
+- Reconstruct the title screen and the remaining INT 10h teletype/scroll
+  path.
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.

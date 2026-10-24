@@ -132,13 +132,12 @@ typedef int32_t  s32;
 #define CS_SOUNDLEVDONE         0x7310u  /* probable */
 #define CS_MUSICOFF             0x7A63u  /* probable */
 #define CS_SOUNDSTOP            0x71D7u  /* probable */
-#define CS_DRAWDIG              0x263Fu  /* drawdig(t,x,y,f) */
 #define CS_UPDATEFIRE           0x4A3Eu  /* updatefire */
 #define CS_DRAWEXPLOSION        0x4E66u  /* drawexplosion */
 #define CS_KILLFIRE             0x4EE3u  /* verified */
 #define CS_MOVEDRAWSPR          0x07B1u
 #define CS_ERASESPR             0x07D3u
-#define CS_DRAWFIRE             0x24C6u  /* drawfire(x, y, frame) -> collision mask */
+#define CS_DRAWFIRE             0x24C6u  /* verified: 2x7; returns the collision mask */
 #define CS_GGETPIX              0x56A6u  /* ggetpix(x, y) */
 #define CS_GETFIREPFLAG         0x5DD8u  /* returns DS:0x40BC */
 #define CS_SOUNDFIRE            0x7571u  /* verified: value 500, flag 1 */
@@ -151,7 +150,7 @@ typedef int32_t  s32;
 #define CS_UPDATEBAG            0x3FEDu
 #define CS_REMOVEBAG            0x4703u
 #define CS_GETFIELD             0x7207u
-#define CS_DRAWGOLD             0x1E9Du
+#define CS_DRAWGOLD             0x1E9Du  /* verified: frames 0..6, 4x15 */
 #define CS_SOUNDBREAK           0x7497u
 #define CS_DIGGERX              0x5650u
 #define CS_DIGGERY              0x5658u
@@ -161,13 +160,13 @@ typedef int32_t  s32;
 #define CS_INITBAGS             0x3B31u  /* verified: scans level for 'B' */
 #define CS_MAKEFIELD            0x6A48u  /* probable */
 #define CS_MAKEEMFIELD          0x56E8u  /* probable */
-#define CS_CREATEMBSPR          0x1826u  /* probable */
+#define CS_CREATEMBSPR          0x1826u  /* verified: 3-frame buffers for sprites 1..13 */
 #define CS_DRAWSTATICS          0x6B31u  /* probable */
 #define CS_DRAWBAGS             0x3C93u  /* probable */
 #define CS_DRAWEMERALDS         0x5777u  /* probable */
 #define CS_INITDIGGER           0x48A0u  /* probable */
 #define CS_INITMONSTERS         0x2BC1u  /* probable */
-#define CS_INITMBSPR            0x1A03u  /* probable */
+#define CS_INITMBSPR            0x1A03u  /* verified: default frames for sprites 1..13 */
 #define CS_ERASEMONSTERS        0x2C58u
 #define CS_MONAI                0x2E75u  /* verified */
 #define CS_MONDIE               0x3682u
@@ -177,8 +176,8 @@ typedef int32_t  s32;
 #define CS_MONSTER_COLLISIONS   0x3795u  /* verified */
 #define CS_COLLISION_PENALTIES  0x3767u  /* verified */
 #define CS_FIELDCLEAR           0x3815u  /* verified */
-#define CS_DRAWMON              0x1B84u  /* probable */
-#define CS_DRAWMONDIE           0x1DDBu  /* probable */
+#define CS_DRAWMON              0x1B84u  /* verified: nobbin/hobbin + leg animation */
+#define CS_DRAWMONDIE           0x1DDBu  /* verified: 4x15 / 4x14 death frames */
 #define CS_DRAWRIGHTBLOB        0x21CCu  /* verified: x+16, y-1, 2x18 */
 #define CS_DRAWLEFTBLOB         0x2214u  /* verified: x-8, y-1, 2x18 */
 #define CS_DRAWTOPBLOB          0x225Cu  /* verified: x-4, y-6, 6x6 */
@@ -198,8 +197,17 @@ typedef int32_t  s32;
 #define CS_SCOREKILL            0x689Fu  /* verified: addscore(250) */
 #define CS_KILLEMERALD          0x5AE0u  /* clears the emerald below (h, v+1) */
 #define CS_COUNTEM              0x5A94u  /* counts emeralds for emmask */
-#define CS_DRAWEMERALD          0x208Au
-#define CS_ERASEEMERALD         0x20C0u
+#define CS_DRAWEMERALD          0x208Au  /* verified: 4x10, sources 0x16E4/0x170D */
+#define CS_ERASEEMERALD         0x20C0u  /* verified: 4x10, sources 0x175E/0x1787 */
+#define CS_DRAWBONUS            0x260Eu  /* verified: sprite 0x0E */
+#define CS_DRAWDIG              0x263Fu  /* verified: frames/legs, 4x15 */
+#define CS_CREATEDBFSPR         0x20F6u  /* verified: 3-frame digger/bonus/fire buffers */
+#define CS_INITDBFSPR           0x2167u  /* verified: resets the animation state */
+#define CS_DRAWFURRYBLOB        0x22E8u  /* verified: x-4,y+15, 6x8 */
+#define CS_DRAWSQUAREBLOB       0x2334u  /* verified: x-4,y+17, 6x6 */
+#define CS_DRAWBACKG            0x237Au  /* verified: 8 tile sets, 5x4 */
+#define CS_DRAWFIELD            0x6C3Eu  /* verified: walls from the field bits */
+#define CS_SAVEFIELD            0x6BCAu  /* verified: field -> saved copy */
 #define CS_CHECKMONSCARED       0x3962u  /* monsters on row h facing UP turn DOWN */
 #define CS_SQUASHMONSTER        0x3A7Cu  /* alive=0; death/bag fields */
 #define CS_SQUASHMONSTERS       0x39E7u  /* squash monsters hit by a bag */
@@ -289,8 +297,15 @@ typedef int32_t  s32;
 #define DS_LEVNOTDRAWN          0x5010u
 #define DS_PLAYER_DEAD          0x4FDEu  /* per-player: +8*curplayer; setdead() */
 #define DS_FIELD                0x4438u  /* 15x10 words, row stride 0x1E */
+#define DS_FIELD0               0x41E0u  /* saved field, player 0 */
+#define DS_FIELD1               0x430Cu  /* saved field, player 1 */
 #define DS_EMFIELD              0x4018u  /* 15x10 bytes, row stride 0x0F */
 #define DS_EMMASK               0x40AEu  /* per-player emerald mask */
+#define DS_MONLEG               0x16CCu  /* 6 words: per-monster leg position */
+#define DS_MONDELTA             0x16D8u  /* 6 words: per-monster leg delta */
+#define DS_DIGLEG               0x2700u
+#define DS_DIGDELTA             0x2702u
+#define DS_FIRELEG              0x2704u
 
 /* Current digger state (single-digger globals in the original). */
 #define DS_DIG_X                0x3FDEu
