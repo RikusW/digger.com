@@ -38,9 +38,9 @@ static u16 dig_h;              /* DS:0x3FE2 */
 static u16 dig_v;              /* DS:0x3FE4 */
 static u16 dig_rx;             /* DS:0x3FE6 */
 static u16 dig_ry;             /* DS:0x3FE8 */
-static u16 dig_mdir;           /* DS:0x3FEA */
-static u16 dig_ddir;           /* DS:0x3FEC */
-static u16 dig_dir;            /* DS:0x3FEE */
+static s16 dig_mdir;           /* DS:0x3FEA */
+static s16 dig_ddir;           /* DS:0x3FEC */
+static s16 dig_dir;            /* DS:0x3FEE */
 static u16 dig_bagtime;        /* DS:0x3FF0 */
 static u16 dig_alive;          /* DS:0x3FF2 */
 static u16 dig_visible;        /* DS:0x3FF4 */
@@ -50,12 +50,16 @@ static u16 dig_fx;             /* DS:0x3FFA */
 static u16 dig_fy;             /* DS:0x3FFC */
 static u16 dig_fdir;           /* DS:0x3FFE */
 static u16 dig_expsn;          /* DS:0x4000 */
+static u16 dig_deathstage;     /* DS:0x4002 */
+static u16 dig_deathbag;       /* DS:0x4004 */
+static u16 dig_deathani;       /* DS:0x4006 */
+static u16 dig_deathtime;      /* DS:0x4008 */
 static u16 emocttime;          /* DS:0x4016 */
 static u16 bonusmode;          /* DS:0x4012 */
 static u16 bonustimeleft;      /* DS:0x400E */
 static u16 startbonustimeleft; /* DS:0x400C */
 
-extern void drawdig(int t, int x, int y, int f);
+extern int drawdig(int t, int x, int y, int f);
 extern void updatedigger(void);
 extern void diggerdie(void);
 extern void incpenalty(void);
@@ -77,9 +81,38 @@ extern void soundfire(void);
 extern void soundfireoff(void);
 extern void soundexplode(void);
 
+extern void readdir(void);
+extern int getdir(void);
+extern int reversedir(int dir);
+extern int hitemerald(int x, int y, int rx, int ry, int dir);
+extern void eatfield(int x, int y, int dir);
+extern void drawrightblob(int x, int y);
+extern void drawleftblob(int x, int y);
+extern void drawtopblob(int x, int y);
+extern void drawbottomblob(int x, int y);
+extern void soundeatm(void);
+extern void sceatm(void);
+extern void soundddie(void);
+extern void musicoff(void);
+extern void setdead(int dead);
+extern int getbagdir(int bag);
+extern int bagy(int bag);
+extern int musicflag;          /* DS:0x0669 */
+extern int bagmask(void);
+extern int pushbags(int dir, int mask);
+extern int pushudbags(int mask);
+extern int killmonsters(int mask);
+extern int bonusmode_get(void);
+extern void scoreemerald(void);
+extern void scorebonus(void);
+extern void soundem(void);
+extern void soundemerald(int start);
+extern void initbonusmode(void);
+
 void updatefire(void);
 void drawexplosion(void);
 void killfire(void);
+int checkdiggerunderbag(int h, int v);
 
 void dodigger(void)
 {
@@ -305,5 +338,247 @@ void killfire(void)
         dig_notfiring = 1;
         erasespr(15);
         soundfireoff();
+    }
+}
+
+/* CS:0x4F07 (file 0x4E07) */
+void updatedigger(void)
+{
+    int dir, ddir, diggerox, diggeroy, mask, push, nmon;
+
+    readdir();
+    dir = getdir();
+    if (dir == DIR_RIGHT || dir == DIR_UP || dir == DIR_LEFT || dir == DIR_DOWN)
+        ddir = dir;
+    else
+        ddir = DIR_NONE;
+
+    if (dig_rx == 0 && (ddir == DIR_UP || ddir == DIR_DOWN))
+        dig_dir = dig_mdir = ddir;
+    if (dig_ry == 0 && (ddir == DIR_RIGHT || ddir == DIR_LEFT))
+        dig_dir = dig_mdir = ddir;
+
+    if (dir == DIR_NONE)
+        dig_mdir = DIR_NONE;
+    else
+        dig_mdir = dig_dir;
+
+    if ((dig_x == 292 && dig_mdir == DIR_RIGHT) ||
+        (dig_x == 12 && dig_mdir == DIR_LEFT) ||
+        (dig_y == 180 && dig_mdir == DIR_DOWN) ||
+        (dig_y == 18 && dig_mdir == DIR_UP))
+        dig_mdir = DIR_NONE;
+
+    diggerox = dig_x;
+    diggeroy = dig_y;
+
+    if (dig_mdir != DIR_NONE)
+        eatfield(diggerox, diggeroy, dig_mdir);
+
+    switch (dig_mdir) {
+    case DIR_RIGHT:
+        drawrightblob(dig_x, dig_y);
+        dig_x += 4;
+        break;
+    case DIR_UP:
+        drawtopblob(dig_x, dig_y);
+        dig_y -= 3;
+        break;
+    case DIR_LEFT:
+        drawleftblob(dig_x, dig_y);
+        dig_x -= 4;
+        break;
+    case DIR_DOWN:
+        drawbottomblob(dig_x, dig_y);
+        dig_y += 3;
+        break;
+    }
+
+    if (hitemerald((dig_x - 12) / 20, (dig_y - 18) / 18,
+                   (dig_x - 12) % 20, (dig_y - 18) % 18, dig_mdir)) {
+        scoreemerald();
+        soundem();
+        /* The original passes the emerald cooldown as a start flag;
+         * soundemerald steps the scale itself. */
+        soundemerald(emocttime);
+        emocttime = 9;
+    }
+
+    mask = drawdig(dig_dir, dig_x, dig_y,
+                   dig_notfiring && dig_rechargetime == 0);
+    incpenalty();
+
+    /* Push a bag.  The original only initialises `push` on the horizontal
+     * path; on the vertical path the success value is left in the local.
+     * Initialise it to 1 here so the behaviour is defined. */
+    push = 1;
+    if ((mask & COLL_BAG_BIT) & bagmask()) {
+        if (dig_mdir == DIR_RIGHT || dig_mdir == DIR_LEFT) {
+            push = pushbags(dig_mdir, mask);
+            dig_bagtime++;
+        } else if (!pushudbags(mask))
+            push = 0;
+        if (!push) {
+            dig_x = diggerox;
+            dig_y = diggeroy;
+            drawdig(dig_mdir, dig_x, dig_y,
+                    dig_notfiring && dig_rechargetime == 0);
+            incpenalty();
+            dig_dir = reversedir(dig_mdir);
+        }
+    }
+
+    if ((mask & COLL_MON_BIT) && bonusmode_get()) {
+        nmon = killmonsters(mask);
+        while (nmon != 0) {
+            soundeatm();
+            sceatm();
+            nmon--;
+        }
+    }
+
+    if (mask & 0x4000) {       /* bonus sprite */
+        scorebonus();
+        initbonusmode();
+    }
+
+    dig_h = (dig_x - 12) / 20;
+    dig_rx = (dig_x - 12) % 20;
+    dig_v = (dig_y - 18) / 18;
+    dig_ry = (dig_y - 18) % 18;
+}
+
+/* CS:0x5602 (file 0x5502) */
+int checkdiggerunderbag(int h, int v)
+{
+    if (dig_mdir == DIR_UP || dig_mdir == DIR_DOWN)
+        if ((dig_x - 12) / 20 == h)
+            if ((dig_y - 18) / 18 == v || (dig_y - 18) / 18 + 1 == v)
+                return 1;
+    return 0;
+}
+
+/* CS:0x5218 (file 0x5118) */
+void diggerdie(void)
+{
+    int mask;
+
+    switch (dig_deathstage) {
+    case 1:
+        if (bagy(dig_deathbag) + 6 > dig_y)
+            dig_y = bagy(dig_deathbag) + 6;
+        drawdig(15, dig_x, dig_y, 0);
+        incpenalty();
+        if (getbagdir(dig_deathbag) + 1 == 0) {
+            soundddie();
+            dig_deathtime = 5;
+            dig_deathstage = 2;
+            dig_deathani = 0;
+            dig_y -= 6;
+        }
+        break;
+
+    case 2:
+        if (dig_deathtime != 0) {
+            dig_deathtime--;
+            break;
+        }
+        switch (dig_deathani) {
+        case 0:
+            music(2);
+            mask = drawdig(14, dig_x, dig_y, 0);
+            incpenalty();
+            if (mask & COLL_MON_BIT)
+                killmonsters(mask);
+            dig_deathani = 1;
+            dig_deathtime = 2;
+            break;
+        case 1:
+            drawdig(13, dig_x, dig_y, 0);
+            incpenalty();
+            dig_deathtime = 2;
+            dig_deathani = 2;
+            break;
+        case 2:
+            drawdig(12, dig_x, dig_y, 0);
+            incpenalty();
+            dig_deathani = 3;
+            dig_deathtime = 2;
+            break;
+        case 3:
+            drawdig(11, dig_x, dig_y, 0);
+            incpenalty();
+            dig_deathani = 4;
+            dig_deathtime = 2;
+            break;
+        case 4:
+            drawdig(10, dig_x, dig_y, 0);
+            incpenalty();
+            dig_deathstage = 4;
+            if (musicflag)
+                dig_deathtime = 60;
+            else
+                dig_deathtime = 10;
+            break;
+        }
+        break;
+
+    case 3:
+        dig_deathstage = 5;
+        dig_deathani = 0;
+        dig_deathtime = 0;
+        break;
+
+    case 4:
+        if (dig_deathtime != 0)
+            dig_deathtime--;
+        else
+            setdead(1);
+        break;
+
+    case 5:
+        /* Sinking into the ground: the arc is 3,5,6,6,5,3,0. */
+        switch (dig_deathani) {
+        case 0:
+            drawdig(15, dig_x, dig_y - 3, 0);
+            incpenalty();
+            dig_deathani = 1;
+            soundddie();
+            break;
+        case 1:
+            drawdig(15, dig_x, dig_y - 5, 0);
+            incpenalty();
+            dig_deathani = 2;
+            break;
+        case 2:
+            drawdig(15, dig_x, dig_y - 6, 0);
+            incpenalty();
+            dig_deathani = 3;
+            break;
+        case 3:
+            drawdig(15, dig_x, dig_y - 6, 0);
+            incpenalty();
+            dig_deathani = 4;
+            break;
+        case 4:
+            drawdig(15, dig_x, dig_y - 5, 0);
+            incpenalty();
+            dig_deathani = 5;
+            break;
+        case 5:
+            drawdig(15, dig_x, dig_y - 3, 0);
+            incpenalty();
+            dig_deathani = 6;
+            break;
+        case 6:
+            drawdig(15, dig_x, dig_y, 0);
+            musicoff();
+            incpenalty();
+            dig_deathtime = 5;
+            dig_deathani = 0;
+            dig_deathstage = 2;
+            break;
+        }
+        break;
     }
 }

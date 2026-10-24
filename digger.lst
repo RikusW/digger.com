@@ -5977,6 +5977,7 @@ Disassembly of section .data:
     395d:	83 c4 06             	add    sp,0x6
     3960:	5d                   	pop    bp
     3961:	c3                   	ret    
+; --- checkmonscared (verified) ---
     3962:	55                   	push   bp
     3963:	83 ec 06             	sub    sp,0x6
     3966:	8b ec                	mov    bp,sp
@@ -6028,6 +6029,7 @@ Disassembly of section .data:
     39e2:	83 c4 04             	add    sp,0x4
     39e5:	5d                   	pop    bp
     39e6:	c3                   	ret    
+; --- squashmonsters (verified) ---
     39e7:	55                   	push   bp
     39e8:	83 ec 08             	sub    sp,0x8
     39eb:	8b ec                	mov    bp,sp
@@ -6062,6 +6064,7 @@ Disassembly of section .data:
     3a3b:	83 c4 08             	add    sp,0x8
     3a3e:	5d                   	pop    bp
     3a3f:	c3                   	ret    
+; --- killmonsters (killmon over mask, returns count) ---
     3a40:	55                   	push   bp
     3a41:	83 ec 08             	sub    sp,0x8
     3a44:	8b ec                	mov    bp,sp
@@ -6085,6 +6088,7 @@ Disassembly of section .data:
     3a77:	83 c4 08             	add    sp,0x8
     3a7a:	5d                   	pop    bp
     3a7b:	c3                   	ret    
+; --- squashmonster (verified) ---
     3a7c:	55                   	push   bp
     3a7d:	83 ec 04             	sub    sp,0x4
     3a80:	8b ec                	mov    bp,sp
@@ -6100,6 +6104,7 @@ Disassembly of section .data:
     3aa0:	83 c4 04             	add    sp,0x4
     3aa3:	5d                   	pop    bp
     3aa4:	c3                   	ret    
+; --- monleft (verified) ---
     3aa5:	55                   	push   bp
     3aa6:	83 ec 02             	sub    sp,0x2
     3aa9:	8b ec                	mov    bp,sp
@@ -6830,6 +6835,7 @@ Disassembly of section .data:
     4291:	83 c4 12             	add    sp,0x12
     4294:	5d                   	pop    bp
     4295:	c3                   	ret    
+; --- baghitground (verified) ---
     4296:	55                   	push   bp
     4297:	83 ec 0e             	sub    sp,0xe
     429a:	8b ec                	mov    bp,sp
@@ -6885,6 +6891,7 @@ Disassembly of section .data:
     4336:	83 c4 0e             	add    sp,0xe
     4339:	5d                   	pop    bp
     433a:	c3                   	ret    
+; --- pushbag (verified) ---
     433b:	55                   	push   bp
     433c:	83 ec 22             	sub    sp,0x22
     433f:	8b ec                	mov    bp,sp
@@ -7338,7 +7345,7 @@ Disassembly of section .data:
     47f3:	83 c4 06             	add    sp,0x6
     47f6:	5d                   	pop    bp
     47f7:	c3                   	ret    
-; --- getnmovingbags? ---
+; --- getnmovingbags (verified) ---
     47f8:	55                   	push   bp
     47f9:	83 ec 0a             	sub    sp,0xa
     47fc:	8b ec                	mov    bp,sp
@@ -7371,6 +7378,7 @@ Disassembly of section .data:
     484e:	83 c4 0a             	add    sp,0xa
     4851:	5d                   	pop    bp
     4852:	c3                   	ret    
+; --- getgold (verified) ---
     4853:	55                   	push   bp
     4854:	83 ec 0a             	sub    sp,0xa
     4857:	8b ec                	mov    bp,sp
@@ -8649,6 +8657,7 @@ Disassembly of section .data:
     55fd:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
     5600:	5d                   	pop    bp
     5601:	c3                   	ret    
+; --- checkdiggerunderbag (verified) ---
     5602:	55                   	push   bp
     5603:	83 ec 04             	sub    sp,0x4
     5606:	8b ec                	mov    bp,sp
@@ -8849,7 +8858,7 @@ Disassembly of section .data:
     57ec:	83 c4 08             	add    sp,0x8
     57ef:	5d                   	pop    bp
     57f0:	c3                   	ret    
-; --- hitemerald ---
+; --- hitemerald (verified) ---
     57f1:	55                   	push   bp
     57f2:	83 ec 08             	sub    sp,0x8
     57f5:	8b ec                	mov    bp,sp
@@ -9096,7 +9105,7 @@ Disassembly of section .data:
     5a8f:	83 c4 08             	add    sp,0x8
     5a92:	5d                   	pop    bp
     5a93:	c3                   	ret    
-; --- countem? ---
+; --- countem (verified) ---
     5a94:	55                   	push   bp
     5a95:	83 ec 08             	sub    sp,0x8
     5a98:	8b ec                	mov    bp,sp
@@ -9126,6 +9135,7 @@ Disassembly of section .data:
     5adb:	83 c4 08             	add    sp,0x8
     5ade:	5d                   	pop    bp
     5adf:	c3                   	ret    
+; --- killemerald (verified) ---
     5ae0:	55                   	push   bp
     5ae1:	83 ec 06             	sub    sp,0x6
     5ae4:	8b ec                	mov    bp,sp
@@ -9350,6 +9360,7 @@ Disassembly of section .data:
     5d6c:	83 c4 08             	add    sp,0x8
     5d6f:	5d                   	pop    bp
     5d70:	c3                   	ret    
+; --- getdir (returns DS:0x40B0 or -1) ---
     5d71:	55                   	push   bp
     5d72:	83 ec 04             	sub    sp,0x4
     5d75:	8b ec                	mov    bp,sp
@@ -10522,36 +10533,36 @@ Disassembly of section .data:
     68a9:	8b e5                	mov    sp,bp
     68ab:	5d                   	pop    bp
     68ac:	c3                   	ret    
+; --- scoreemerald (verified: addscore(25)) ---
     68ad:	55                   	push   bp
     68ae:	8b ec                	mov    bp,sp
-; --- scoreemerald wrapper  (25) ---
     68b0:	b8 19 00             	mov    ax,0x19
     68b3:	50                   	push   ax
     68b4:	e8 ea f6             	call   0x5fa1
     68b7:	8b e5                	mov    sp,bp
     68b9:	5d                   	pop    bp
     68ba:	c3                   	ret    
+; --- scoreoctave (verified: addscore(250)) ---
     68bb:	55                   	push   bp
     68bc:	8b ec                	mov    bp,sp
-; --- scoreoctave/scorekill wrapper  (250) ---
     68be:	b8 fa 00             	mov    ax,0xfa
     68c1:	50                   	push   ax
     68c2:	e8 dc f6             	call   0x5fa1
     68c5:	8b e5                	mov    sp,bp
     68c7:	5d                   	pop    bp
     68c8:	c3                   	ret    
+; --- scoregold (verified: addscore(500)) ---
     68c9:	55                   	push   bp
     68ca:	8b ec                	mov    bp,sp
-; --- scoregold wrapper  (500) ---
     68cc:	b8 f4 01             	mov    ax,0x1f4
     68cf:	50                   	push   ax
     68d0:	e8 ce f6             	call   0x5fa1
     68d3:	8b e5                	mov    sp,bp
     68d5:	5d                   	pop    bp
     68d6:	c3                   	ret    
+; --- scorebonus (verified: addscore(1000)) ---
     68d7:	55                   	push   bp
     68d8:	8b ec                	mov    bp,sp
-; --- scorebonus wrapper  (1000) ---
     68da:	b8 e8 03             	mov    ax,0x3e8
     68dd:	50                   	push   ax
     68de:	e8 c0 f6             	call   0x5fa1
@@ -11890,6 +11901,7 @@ Disassembly of section .data:
     76c4:	c7 06 9c 45 00 00    	mov    WORD PTR ds:0x459c,0x0
     76ca:	5d                   	pop    bp
     76cb:	c3                   	ret    
+; --- soundem (sets DS:0x459C) ---
     76cc:	55                   	push   bp
     76cd:	8b ec                	mov    bp,sp
     76cf:	c7 06 9c 45 01 00    	mov    WORD PTR ds:0x459c,0x1

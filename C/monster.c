@@ -103,8 +103,13 @@ void createmonster(void);
 void monai(int mon);
 void mondie(int mon);
 int nmononscr(void);
+int monleft(void);
 void incmont(int n);
 void mongold(void);
+int killmonsters(int mask);
+void squashmonster(int mon, int death, int bag);
+void squashmonsters(int bag, int mask);
+void checkmonscared(int h);
 
 static void monster_collisions(int mon, int mask);
 static void collision_penalties(int mask);
@@ -173,6 +178,54 @@ void incmont(int n)
 void mongold(void)
 {
     mongotgold = 1;
+}
+
+/* CS:0x3AA5 (file 0x39A5) */
+int monleft(void)
+{
+    return nmononscr() + totalmonsters - nextmonster;
+}
+
+/* CS:0x3A40 (file 0x3940) */
+int killmonsters(int mask)
+{
+    int m, bit, n = 0;
+
+    for (m = 0, bit = 0x0100; m < MONSTERS; m++, bit <<= 1)
+        if (mask & bit) {
+            killmon(m);
+            n++;
+        }
+    return n;
+}
+
+/* CS:0x3A7C (file 0x397C) */
+void squashmonster(int mon, int death, int bag)
+{
+    mondat[mon].alive = 0;
+    mondat[mon].death = death;
+    mondat[mon].bag = bag;
+}
+
+/* CS:0x39E7 (file 0x38E7) */
+void squashmonsters(int bag, int mask)
+{
+    int m, bit;
+
+    for (m = 0, bit = 0x0100; m < MONSTERS; m++, bit <<= 1)
+        if (mask & bit)
+            if (mondat[m].y >= bagy(bag))
+                squashmonster(m, 1, bag);
+}
+
+/* CS:0x3962 (file 0x3862) */
+void checkmonscared(int h)
+{
+    int m;
+
+    for (m = 0; m < MONSTERS; m++)
+        if (mondat[m].h == h && mondat[m].dir == DIR_UP)
+            mondat[m].dir = DIR_DOWN;
 }
 
 /* CS:0x2C90 (file 0x2B90) */

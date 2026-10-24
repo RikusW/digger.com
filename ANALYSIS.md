@@ -247,6 +247,22 @@ erasemonsters/countem sequence.
   (`bonusmode`/`bonustimeleft`/`startbonustimeleft`).
   The port's `digdat[]` loop and simultaneous two-player mode are extensions.
   Reconstructed in `C/digger.c`.
+- **`updatedigger` `CS:0x4F07`** — `readdir`/`getdir`, input gating by `rx`/`ry`,
+  the edge stop, `eatfield`, the blob move, `hitemerald` (score/`soundem`/
+  `soundemerald`, cooldown `emocttime=9`), `drawdig`, the bag push (with
+  `bagtime++` and the rollback on failure), bonus-mode monster kills
+  (`killmonsters` + `soundeatm`/`sceatm` loop), the bonus pickup
+  (`scorebonus` + `initbonusmode`), and the coordinate update. The original
+  leaves the local push flag uninitialised on the vertical-bag path; the port
+  initialises it to TRUE. Reconstructed in `C/digger.c`.
+- **Collision mask** — bit 0 digger, bits 1..7 bags, bits 8..13 monsters,
+  bit 14 bonus, bit 15 fireball. This differs from the port's
+  `clfirst[]`/`clcoll[]` type ordering.
+- **`soundemerald` `CS:0x76F7`** — the argument is only a start flag, not an
+  index: `0` resets the scale to `0x8E8`; nonzero steps `DS:0x45A2` through
+  `0474/04B8/054C/05F2/06AC/0712/07F0/08E8` and calls `scoreoctave` on wrap.
+  The port's `emn` counter plus `emocttime` reproduces this, but moves the
+  octave score into `updatedigger`.
 - **`updatefire` `CS:0x4A3E`** — fire launch (`levof10()*3+60` recharge,
   `fx`/`fy` from `dir`, sprite 15), the 7-pixel pixel probes (`ggetpix`
   `0x56A6`), `drawfire` `0x24C6`, monster hits (`killmon`/`scorekill`),
@@ -273,10 +289,32 @@ erasemonsters/countem sequence.
   (`nextmontime`, `createmonster`) and the `unbonusflag`/`createbonus`
   step, matching the port. See `C/monster.c`.
 - **Monster helpers** — `initmonsters` `0x2BC1`, `erasemonsters` `0x2C58`,
-  `mondie` `0x3682`, `nmononscr` `0x3ABB`, `incmont` `0x3AEF`, `mongold`
-  `0x3B26`, `fieldclear` `0x3815`, collision routines `0x3795`/`0x3767`,
-  blob draws `0x21CC`/`0x2214`/`0x225C`/`0x22A2`, `killmon` `0x39A9`,
-  `killdigger` `0x5668`, `bagmask` `0x4774`, `removebags` `0x47B5`.
+  `mondie` `0x3682`, `nmononscr` `0x3ABB`, `monleft` `0x3AA5`, `incmont`
+  `0x3AEF`, `mongold` `0x3B26`, `fieldclear` `0x3815`, collision routines
+  `0x3795`/`0x3767`, blob draws `0x21CC`/`0x2214`/`0x225C`/`0x22A2`,
+  `killmon` `0x39A9`, `killmonsters` `0x3A40`, `squashmonster(s)`
+  `0x3A7C`/`0x39E7`, `checkmonscared` `0x3962`, `killdigger` `0x5668`,
+  `bagmask` `0x4774`, `removebags` `0x47B5`.
+- **`diggerdie` `CS:0x5218`** — states 1..5: settle on the bag, frames
+  14..10 with `music(2)`, the 3/5/6/6/5/3/0 fall arc, then state 4 only
+  decrements `deathtime` and calls `setdead(1)`. Unlike the port, the
+  original does **not** deduct lives or respawn here: the main loop does
+  that (`0x8936`: `dec lives`, `drawlives`, game over when it reaches 0),
+  and the per-player dead flag lives at `0x4FDE + 8*curplayer`.
+- **Bag physics** — `updatebag` `0x3FED` (wobble/fall), `baghitground`
+  `0x4296`, `pushbag` `0x433B`, `pushbags` `0x466C`, `pushudbags` `0x46B2`,
+  `removebag(s)` `0x4703`/`0x47B5`, `getgold` `0x4853`, `bagy` `0x4730`,
+  `getbagdir` `0x4749`, `bagmask` `0x4774`, `getnmovingbags` `0x47F8`.
+  Records are 0x28 bytes with `x,y,h,v,xr,yr,dir,wobbling,wt,unfallen,exist,
+  gt,fallh`; `initbags` `0x3B31` scans `getlevch(x,y,levplan())=='B'` and
+  saves two copies at `0x3C1A`/`0x3D5A` for the players.
+- **Field and emeralds** — the field is 15x10 16-bit cells at `DS:0x4438`
+  (row stride `0x1E`): bits 0..4 horizontal sub-cells, 6..11 vertical,
+  `0x2000` solid. `eatfield` `0x6DFE` clears the covered sub-cells and
+  `0x2000` when the cell empties. Emeralds live in a 15x10 byte map at
+  `DS:0x4018` with mask `DS:0x40AE`; `hitemerald` `0x57F1` uses
+  `embox[8]={8,12,12,9,16,12,6,9}`, `killemerald` `0x5AE0` clears the cell
+  below, and `countem` `0x5A94` counts the remaining ones.
 - **Drawing calls** — `initlevel` `CS:0x89A4` calls `makefield` `0x6A48`,
   `makeemfield` `0x56E8`, `initbags` `0x3B31`; `drawscreen` `CS:0x89CD` calls
   `creatembspr` `0x1826`, `drawstatics` `0x6B31`, `drawbags` `0x3C93`,
@@ -352,9 +390,9 @@ reference; it is a default/legacy score image. The sector-2 read/check
 
 ## Open items / next work
 
-- Reconstruct the remaining movement/collision bodies: `updatedigger`,
-  `diggerdie`, `updatebag`/`pushbags`/`pushudbags`, `eatfield`/`hitemerald`,
-  and the sprite/drawing routines.
+- Reconstruct the sprite/drawing routines (`drawmon`, `drawmondie`,
+  `drawdig`, `drawgold`, `makefield`, `makeemfield`, `drawstatics`,
+  `drawemeralds`, the blob draws and `initmbspr`).
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.

@@ -43,11 +43,11 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x17EB` | `0x16EB` | `cga_blit_rle` | verified | `DS:0x0DAC` to `B800`, 0x4000 bytes, `0xFE` escape. |
 | `0x5EEA` | `0x5DEA` | `score_init`? | probable | Initializes 32-bit score fields to 0 and next-bonus fields to `0x4E20` (20000). |
 | `0x5FA1` | `0x5EA1` | `score_add`? | probable | Adds to score; the `0x4E20` step at `CS:0x6034` is the extra-life bonus. |
-| `0x68A2` | `0x67A2` | scorekill/scoreoctave wrapper | probable | Calls `score_add(250)`. |
-| `0x68B0` | `0x67B0` | scoreemerald wrapper | probable | Calls `score_add(25)`. |
-| `0x68BE` | `0x67BE` | scoreoctave/scorekill wrapper | probable | Calls `score_add(250)`. |
-| `0x68CC` | `0x67CC` | scoregold wrapper | probable | Calls `score_add(500)`. |
-| `0x68DA` | `0x67DA` | scorebonus wrapper | probable | Calls `score_add(1000)`. |
+| `0x689F` | `0x679F` | `scorekill` | verified | Calls `score_add(250)`. |
+| `0x68AD` | `0x67AD` | `scoreemerald` | verified | Calls `score_add(25)`. |
+| `0x68BB` | `0x67BB` | `scoreoctave` | verified | Calls `score_add(250)`; called from `soundemerald` on wrap-around. |
+| `0x68C9` | `0x67C9` | `scoregold` | verified | Calls `score_add(500)`. |
+| `0x68D7` | `0x67D7` | `scorebonus` | verified | Calls `score_add(1000)`. |
 | `0x7CB3` | `0x7BB3` | `soundpause` | verified | Sets `DS:0x45D2=1`. |
 | `0x7CBE` | `0x7BBE` | `soundpauseoff` | verified | Sets `DS:0x45D2=0`. |
 | `0x8A32` | `0x8932` | `incpenalty` | verified | `DS:0x5014++`; 52 callers. |
@@ -66,7 +66,8 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x760B` | `0x750B` | `soundexplodeupdate` | mapped | 7th call in `soundint`. |
 | `0x765E` | `0x755E` | `soundbonusupdate` | mapped | 13th call in `soundint`. |
 | `0x76D7` | `0x75D7` | `soundemupdate` | mapped | 6th call in `soundint`. |
-| `0x76F7` | `0x75F7` | `soundemerald` | verified | Sets the same 8 frequencies and `duration=7`, `n=0`, `flag=1`. |
+| `0x76F7` | `0x75F7` | `soundemerald` | verified | The argument is only a start flag: `0` resets the scale to `0x8E8`; nonzero steps `DS:0x45A2` up the table `0474/04B8/054C/05F2/06AC/0712/07F0/08E8` and calls `scoreoctave` on wrap. Sets `duration=7`, `n=0`, `flag=1`. |
+| `0x76CC` | `0x75CC` | `soundem` | verified | Sets `DS:0x459C=1`. |
 | `0x779B` | `0x769B` | `soundemeraldupdate` | mapped | 1st call in `soundint`. |
 | `0x782A` | `0x772A` | `soundgoldupdate` | mapped | 5th call in `soundint`. |
 | `0x7933` | `0x7833` | `soundddie` | verified | Sets `n=0`, `value=20000`, `flag=1`. |
@@ -125,25 +126,36 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x225C` | `0x215C` | `drawtopblob` | verified | `x-4, y-6`, 6x6. |
 | `0x22A2` | `0x21A2` | `drawbottomblob` | verified | `x-4, y+15`, 6x6. |
 | `0x39A9` | `0x38A9` | `killmon` | verified | Clears flag/alive, `erasespr(mon+8)`. |
-| `0x466C` | `0x456C` | `pushbags` | probable | Horizontal bag push over the collision mask. |
-| `0x46B2` | `0x45B2` | `pushudbags` | probable | Vertical bag push. |
-| `0x4730` | `0x4630` | `bagy` | verified | Returns bag `y` (`DS:0x3E9C`). |
-| `0x4749` | `0x4649` | `getbagdir` | verified | Bag `dir`, or `-1` if the bag does not exist. |
-| `0x4774` | `0x4674` | `bagmask` | verified | OR of `1<<bag` for existing bags 1..7. |
-| `0x47B5` | `0x46B5` | `removebags` | verified | `removebag(bag)` for each existing bag in the mask. |
 | `0x5598` | `0x5498` | `sceatm` | verified | `addscore(msc*200)`, then `msc <<= 1` (`DS:0x4014`). |
 | `0x5668` | `0x5568` | `killdigger` | verified | Single-digger kill: stores death `DS:0x4002`, bag `DS:0x4004`, clears alive, `musicoff`. |
-| `0x57F1` | `0x56F1` | `hitemerald` | probable | Emerald hit from the field position + remainder. |
+| `0x57F1` | `0x56F1` | `hitemerald` | verified | Uses `embox[8]={8,12,12,9,16,12,6,9}`; draws at `embox[dir]`, erases + returns hit at `embox[dir+1]`; emerald map bytes at `DS:0x4018`. |
+| `0x5AE0` | `0x59E0` | `killemerald` | verified | Clears the emerald at `(h, v+1)` and erases its sprite. |
+| `0x5A94` | `0x5994` | `countem` | verified | Counts emeralds selected by `emmask`. |
+| `0x3A40` | `0x3940` | `killmonsters` | verified | `killmon()` over the monster bits of the mask; returns the count. |
+| `0x3A7C` | `0x397C` | `squashmonster` | verified | `alive=0`, `death`, `bag`. |
+| `0x39E7` | `0x38E7` | `squashmonsters` | verified | Squashes colliding monsters whose `y >= bagy(bag)`. |
+| `0x3962` | `0x3862` | `checkmonscared` | verified | Monsters on row `h` facing UP turn DOWN. |
+| `0x3AA5` | `0x39A5` | `monleft` | verified | `nmononscr() + totalmonsters - nextmonster`. |
+| `0x5602` | `0x5502` | `checkdiggerunderbag` | verified | True when the vertical-moving digger is on the bag's column and row `v` or `v-1`. |
 | `0x689F` | `0x679F` | `scorekill` | verified | `addscore(250)`. |
-| `0x6DFE` | `0x6CFE` | `eatfield` | probable | Clears the field bits for a hobbin's direction. |
+| `0x6DFE` | `0x6CFE` | `eatfield` | verified | Clears the sub-cell bits for the direction (horizontal 0x1F, vertical 0xFC0) and 0x2000 when the cell empties. Field words at `DS:0x4438`, row stride 0x1E. |
 | `0x7891` | `0x7791` | `soundeatm` | verified | flag 1, duration 20, value 0x7D0, n 3. |
 | `0x3AEF` | `0x39EF` | `incmont` | probable | Called with `penalty-8`. |
-| `0x3B31` | `0x3A31` | `initbags` | probable | Called by `initlevel`. |
-| `0x3C93` | `0x3B93` | `drawbags` | probable | Called by `drawscreen`. |
-| `0x3E2D` | `0x3D2D` | `dobags` | verified | Seven bags, stride 0x28; calls `updatebag`/`removebag`/`getfield`/`drawgold`/`soundbreak`. |
-| `0x3FED` | `0x3EED` | `updatebag` | probable | Bag fall/wobble update. |
-| `0x4703` | `0x4603` | `removebag` | probable | Called by `dobags`. |
-| `0x47F8` | `0x46F8` | `getnmovingbags` | probable | Post-level loop condition. |
+| `0x3B31` | `0x3A31` | `initbags` | verified | `pushcount=0`, `goldtime=150-10*levof10()`, clears `exist`, scans `getlevch(x,y,levplan())=='B'` (x 0..14, y 0..9) and fills the records, then copies to the saved array. |
+| `0x3C93` | `0x3B93` | `drawbags` | verified | Restores the saved bag array and `movedrawspr(bag,...)`. |
+| `0x3E2D` | `0x3D2D` | `dobags` | verified | Seven bags, stride 0x28; gold frames 4/5/6, `removebag`, field check, fall/wobble sound flags. |
+| `0x3FED` | `0x3EED` | `updatebag` | verified | dir NONE/LEFT/RIGHT/DOWN wobble-fall state machine, `getfield`/`checkdiggerunderbag`, `baghitground`, `pushcount`/`pushbag` tail. |
+| `0x4296` | `0x4196` | `baghitground` | verified | `fallh>1` → `gt=1`; resets dir/wt/wobbling; draws frame 0; removes collided bags. |
+| `0x433B` | `0x423B` | `pushbag` | verified | Gold early-out, falling-bag kill, edge stop, ±4/+6 move, unfallen blobs, `eatfield`/`killemerald`, horizontal push chain, digger/monster undo, coordinate update. |
+| `0x466C` | `0x456C` | `pushbags` | verified | `pushbag(bag,dir)` over the bag bits; all must succeed. |
+| `0x46B2` | `0x45B2` | `pushudbags` | verified | Vertical push: only gold bags succeed (`getgold`); otherwise false. |
+| `0x4703` | `0x4603` | `removebag` | verified | Clears `exist` and erases the sprite. |
+| `0x4730` | `0x4630` | `bagy` | verified | Bag `y`. |
+| `0x4749` | `0x4649` | `getbagdir` | verified | Bag `dir`, or `-1` when absent. |
+| `0x4774` | `0x4674` | `bagmask` | verified | OR of `1<<bag` for existing bags. |
+| `0x47B5` | `0x46B5` | `removebags` | verified | `removebag()` for the bags in the mask. |
+| `0x47F8` | `0x46F8` | `getnmovingbags` | verified | Counts `exist`, `gt<10`, and (`gt!=0` or `wobbling`). |
+| `0x4853` | `0x4753` | `getgold` | verified | Draws frame 6; on a digger hit scores/sounds/resets bagtime, else `mongold()`; removes the bag. |
 | `0x48A0` | `0x47A0` | `initdigger` | probable | Called by `drawscreen`/`initchars`. |
 | `0x4939` | `0x4839` | `dodigger` | verified | Per-frame digger update; calls `drawdig`/`updatefire`/`drawexplosion`/`updatedigger`/`diggerdie`; contains the bonus-mode block at `CS:0x4912..0x4A11`. |
 | `0x4A3E` | `0x493E` | `updatefire` | verified | Launch (`levof10()*3+60` recharge, `fx/fy` per dir, sprite 15), pixel probes in 7-pixel steps, `drawfire`, monster hits (`killmon`/`scorekill`/`expsn=1`), `0x40FE` impact test, edge/impact explosion. |
@@ -157,8 +169,8 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x7571` | `0x7471` | `soundfire` | verified | Value 500, flag 1. |
 | `0x7582` | `0x7482` | `soundfireoff` | verified | Clears the fire sound flag/value. |
 | `0x75E6` | `0x74E6` | `soundexplode` | verified | Value 1500, duration 10, flag 1; calls `soundfireoff`. |
-| `0x4F07` | `0x4E07` | `updatedigger` | probable | Called by `dodigger`. |
-| `0x5218` | `0x5118` | `diggerdie` | probable | Called by `dodigger`. |
+| `0x4F07` | `0x4E07` | `updatedigger` | verified | `readdir`/`getdir`, input gating by `rx`/`ry`, edge stop, `eatfield`, blob move, `hitemerald` (score/sound/cooldown), `drawdig`, bag push, bonus-mode monster kills, bonus pickup, coordinate update. |
+| `0x5218` | `0x5118` | `diggerdie` | verified | Death states 1..5: bag settle, animation frames 10..14, fall arc 3/5/6/6/5/3/0, `setdead(1)`. Life loss/respawn are handled by the main loop, not here. |
 | `0x55B5` | `0x54B5` | `bonusmode_get` | probable | Getter used by `monai`. |
 | `0x55BD` | `0x54BD` | `reversedir` | probable | Direction reversal used by `monai`. |
 | `0x5650` | `0x5550` | `diggerx` | probable | Digger x accessor. |
@@ -179,6 +191,7 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x5575` | `0x5475` | `erasebonus` | verified | If visible, erase sprite 0x0E; ginten(0). |
 | `0x5A94` | `0x5994` | `countem` | probable | Level-completion check. |
 | `0x5BB9` | `0x5AB9` | `readdir`/input | probable | Called once per game frame. |
+| `0x5D71` | `0x5C71` | `getdir` | verified | Returns `DS:0x40B0`, or `-1` for pause. |
 | `0x5DE0` | `0x5CE0` | `initscores` | verified | Calls `addscore(0)`. |
 | `0x5DED` | `0x5CED` | `loadscores` | verified | Reads sector 7, parses `s` + ten entries. |
 | `0x6521` | `0x6421` | `savescores` | verified | Builds the sector buffer and writes sector 7. |
@@ -214,6 +227,11 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x4F28` | `0xDC98` | 150 B | level 8 | verified |
 | `0x4FBE` | `0xDD2E` | text | NUL-separated UI strings | verified |
 | `0x509A` | `0xDE0A` | 257 B | C `ctype` / character-class table | verified |
+| `0x4438` | `0xD1A8` | 300 B | play field, 15x10 16-bit cells (row stride 0x1E) | verified |
+| `0x4018` | `0xCD88` | 150 B | emerald map, 15x10 bytes (row stride 0x0F) | verified |
+| `0x40AE` | `0xCE1E` | 2 B | `emmask`, per-player emerald mask | verified |
+| `0x3C1A` | `0xC98A` | 7x0x28 | saved bag array, player 0 | verified |
+| `0x3D5A` | `0xCACA` | 7x0x28 | saved bag array, player 1 | verified |
 
 ## Sound/timer state (BSS, inferred)
 
@@ -309,14 +327,23 @@ Bag array (stride `0x28`, 7 entries):
 
 | DS | Port name | Evidence |
 |---:|---|---|
-| `0x3E9A` | `bagx` | Read by `dobags`/`drawgold`. |
-| `0x3E9C` | `bagy` | Same. |
-| `0x3E9E` | `bagh` | Field coordinates. |
-| `0x3EA0` | `bagv` | Field coordinates. |
-| `0x3EA6` | `bagdir` | Direction. |
+| `0x3E9A` | `x` | Position. |
+| `0x3E9C` | `y` | Position. |
+| `0x3E9E` | `h` | Field coordinates. |
+| `0x3EA0` | `v` | Field coordinates. |
+| `0x3EA2` | `xr` | Sub-cell remainder. |
+| `0x3EA4` | `yr` | Sub-cell remainder. |
+| `0x3EA6` | `dir` | Direction. |
 | `0x3EA8` | `wobbling` | Wobble flag. |
-| `0x3EAE` | `bagexist` | Live flag; `removebag` clears it. |
-| `0x3EB0` | `baggt` | Gold time (4/5/6) compared by `dobags`. |
+| `0x3EAA` | `wt` | Wobble timer (15 initially, countdown; `%8` selects the frame). |
+| `0x3EAC` | `unfallen` | Cleared the first time a bag is pushed down. |
+| `0x3EAE` | `exist` | Live flag; `removebag` clears it. |
+| `0x3EB0` | `gt` | Gold time (4/5/6) compared by `dobags`. |
+| `0x3EB2` | `fallh` | Fall height; `>1` on landing makes the bag gold. |
+
+Saved copies of the whole array live at `0x3C1A` (player 0) and `0x3D5A`
+(player 1); `initbags` writes the active array plus one copy, and `drawbags`
+copies it back.
 
 Monster array (stride `0x28`, 6 entries):
 
@@ -339,6 +366,10 @@ Monster array (stride `0x28`, 6 entries):
 | `0x3B38` | `bag` | Bag index used by the death path. |
 | `0x3B3A` | `dtime` | Death timer: set to 1, then decremented. |
 | `0x3B3C` | `stime` | Set to 5 by the monster-creation routine, then decremented. |
+
+Collision mask returned by `drawmon`/`drawdig`/`drawfire`: bit 0 = digger,
+bits 1..7 = bags, bits 8..13 = monsters, bit 14 = bonus, bit 15 = fireball.
+The port's `clfirst[]`/`clcoll[]` type indices use a different order.
 
 Other:
 

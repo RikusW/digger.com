@@ -39,12 +39,12 @@
 
 ## High priority
 
-- **Remaining game bodies**: `updatedigger`, `diggerdie`; bag
-  `updatebag`/`pushbags`/`pushudbags`; `eatfield`/`hitemerald`; and the
-  sprite/drawing routines (`drawmon`, `drawmondie`, `drawdig`).  The main
-  loop, monster loop (`domonsters`/`monai`/`mondie`/`createmonster`), the
-  fireball (`updatefire`/`drawexplosion`/`killfire`), RNG, bonus mode, and
-  score I/O are done.
+- **Remaining game bodies**: only the sprite/drawing routines are left:
+  `drawmon`/`drawmondie`/`drawdig`/`drawgold`, `makefield`/`makeemfield`,
+  `drawstatics`/`drawemeralds`, the blob draws, and `initmbspr`/`creatembspr`.
+  Every game-state body is reconstructed: main loop, digger
+  (`dodigger`/`updatedigger`/`diggerdie`), fireball, monsters, bags, field
+  and emerald helpers, RNG, bonus mode, and score I/O.
 
 ## CGA / DOSBox
 

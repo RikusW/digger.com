@@ -41,14 +41,20 @@ reconstructed from the 8086 disassembly.
 | Score I/O (INT 13h sector 7) | reconstructed/mapped | `game.c` |
 | `dodigger` + per-digger state + bonus block | reconstructed | `digger.c` |
 | `updatefire`, `drawexplosion`, `killfire` | reconstructed | `digger.c` |
+| `updatedigger` | reconstructed | `digger.c` |
+| `readdir`, `getdir`, `killmonsters`, score/sound wrappers | mapped (externs) | `digger.c` |
 | `movedrawspr`, `erasespr`, `drawfire`, `ggetpix`, `getfirepflag` | mapped (externs) | `digger.c` |
-| `dobags` bag physics loop | reconstructed | `bags.c` |
+| `initbags`, `drawbags`, `dobags` | reconstructed | `bags.c` |
+| `updatebag`, `baghitground`, `pushbag`, `pushbags`, `pushudbags`, `getgold` | reconstructed | `bags.c` |
+| `removebag(s)`, `bagy`, `getbagdir`, `bagmask`, `getnmovingbags` | reconstructed | `bags.c` |
+| `eatfield`, `hitemerald`, `killemerald`, `countem` | reconstructed | `field.c` |
+| `diggerdie`, `checkdiggerunderbag` | reconstructed | `digger.c` |
 | `domonsters`, `monai` (full update), `createmonster`, `mondie` | reconstructed | `monster.c` |
 | `initmonsters`, `erasemonsters`, `nmononscr`, `incmont`, `mongold` | reconstructed | `monster.c` |
 | `fieldclear`, monster collision/penalty, blob draws | reconstructed | `monster.c` |
 | `pushbags`, `pushudbags`, `removebags`, `bagmask`, `eatfield`, `hitemerald` | mapped (externs) | `monster.c` |
 | `initlevel`/`drawscreen`/`initchars` | reconstructed | `drawing.c` |
-| `updatedigger`/`diggerdie`, bag physics, sprite draw routines | remaining | `TODO.md` |
+| Sprite/drawing routines (`drawmon`, `drawdig`, `drawgold`, `makefield`, ...) | remaining | `TODO.md` |
 
 See `ANALYSIS.md` for the comparison and exact-match findings.
 See `CGA.md` for the CGA mode/register analysis and the DOSBox failure

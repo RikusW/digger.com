@@ -704,3 +704,48 @@ Committed the fireball reconstruction and continued with `updatedigger`.
 - **Field map**: `ddir` `0x3FEC` (key direction, a port local), `dir` `0x3FEE`, `fx` `0x3FFA`, `fy` `0x3FFC`, `fdir` `0x3FFE`, `deathstage` `0x4002`, `deathbag` `0x4004`, `emn` `0x400A`; `firepressed` `0x0663` is the input latch, while `getfirepflag` reads the separate byte at `DS:0x40BC`.
 
 Artifacts: `C/digger.c`, `C/symbols.h`, `SYMBOLS.md`, `ANALYSIS.md`, `C/README.md`, `C/TODO.md`, `digger.lst`, `digger.dat`, `Worklog.md`.
+
+### User
+
+Finish game bodies
+
+### Assistant
+
+Game-state bodies are finished. Everything compiles cleanly with `-Wall -Wextra`; the batch is uncommitted.
+
+**`diggerdie` (`CS:0x5218`)** — full state machine: bag settle, frames 14→10, the 3/5/6/6/5/3/0 sinking arc, `setdead(1)`. Key difference from the port: the original does **not** deduct lives or respawn here. State 4 only sets the per-player dead flag (`0x4FDE + 8*curplayer`); the main loop (`CS:0x8936`) does `lives--`, `drawlives`, and the game-over check.
+
+**Bag module (`C/bags.c`, rewritten)** — `initbags`, `drawbags`, `updatebag`, `baghitground`, `pushbag`, `pushbags`, `pushudbags`, `removebag(s)`, `getgold`, `bagy`, `getbagdir`, `bagmask`, `getnmovingbags`. Verified full record layout: `x,y,h,v,xr,yr,dir,wobbling,wt,unfallen,exist,gt,fallh`; saved arrays at `0x3C1A`/`0x3D5A`. Notes: vertical pushes only succeed on gold bags, and `pushbag` tests the raw digger/monster collision bits rather than the port's `digalive()` loop.
+
+**Field/emerald (`C/field.c`, new)** — `eatfield` (field words at `DS:0x4438`, stride `0x1E`; horizontal bits `0x1F`, vertical `0xFC0`, solid `0x2000`), `hitemerald` (`embox[8]={8,12,12,9,16,12,6,9}`, byte map at `DS:0x4018`), `killemerald`, `countem`.
+
+**Monster helpers (`C/monster.c`)** — `killmonsters`, `squashmonster(s)`, `checkmonscared`, `monleft`; plus `checkdiggerunderbag` in `digger.c`.
+
+Artifacts updated: `SYMBOLS.md` (function/data tables, bag/field layouts), `ANALYSIS.md`, `C/README.md`, `TODO.md`, `symbols.h`, 10 new `.lst` labels, `digger.dat` field annotations.
+
+Remaining is now only rendering: `drawmon`/`drawmondie`/`drawdig`/`drawgold`, `makefield`/`makeemfield`, `drawstatics`/`drawemeralds`, the blob draws, and `initmbspr`/`creatembspr`. Both `.swp` files are untouched. Say the word and I'll commit this batch with the worklog entry.
+
+## Digger death, bag physics, and field helpers
+
+Previous commit: 59dac52
+
+### User
+
+Commit and finish rendering task
+
+### User
+
+Commit it
+
+### Assistant
+
+Committed the game-state bodies (11 files): `diggerdie`, the full bag module, the field/emerald helpers, and the remaining monster helpers. All `C/*.c` compile cleanly with `-Wall -Wextra`. The rendering routines are next.
+
+## What was added
+
+- **`diggerdie`**: states 1..5, frames 14..10, fall arc, `setdead(1)`. Life loss and respawn are in the main loop, not here.
+- **Bags**: `initbags`, `drawbags`, `updatebag`, `baghitground`, `pushbag`, `pushbags`, `pushudbags`, `removebag(s)`, `getgold`, `bagy`, `getbagdir`, `bagmask`, `getnmovingbags`; full 0x28-byte record layout and the two saved arrays.
+- **Field**: `eatfield` (bit layout), `hitemerald` (`embox`), `killemerald`, `countem`.
+- **Monsters**: `killmonsters`, `squashmonster(s)`, `checkmonscared`, `monleft`; `checkdiggerunderbag`.
+
+Artifacts: `C/bags.c`, `C/digger.c`, `C/monster.c`, `C/field.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.

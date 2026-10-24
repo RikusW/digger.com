@@ -40,7 +40,7 @@ typedef int32_t  s32;
 #define CS_SCORE_INIT           0x5EEAu  /* probable: scores/next-bonus initialisation */
 #define CS_SCORE_ADD            0x5FA1u  /* probable: score/extra-life update */
 #define CS_SOUNDINT             0x7227u
-#define CS_SOUNDEMERALD         0x76F7u
+#define CS_SOUNDEMERALD         0x76F7u  /* arg is a start flag; steps DS:0x45A2 through a frequency table */
 #define CS_SOUNDEMERALD_UPDATE  0x779Bu  /* mapped from soundint call order */
 #define CS_SOUNDWOBBLE_UPDATE   0x74ECu
 #define CS_SOUNDDDIE_UPDATE     0x794Au
@@ -118,15 +118,11 @@ typedef int32_t  s32;
 #define CS_GAME_LOOP            0x86F1u
 #define CS_DODIGGER             0x4939u  /* verified by bonus block at CS:0x4912..0x4A11 */
 #define CS_DOMONSTERS           0x2C90u  /* verified structure */
-#define CS_MONAI                0x2E75u  /* verified via randno(levof10()+5) */
-#define CS_DOBAGS               0x3E2Du  /* probable */
+#define CS_DOBAGS               0x3E2Du  /* verified */
 #define CS_CHECKLEVDONE         0x89F2u  /* probable */
 #define CS_INITLEVEL            0x89A4u  /* probable */
 #define CS_DRAWSCREEN           0x89CDu  /* probable */
 #define CS_INITCHARS            0x89E4u  /* probable */
-#define CS_INCMONT              0x3AEFu  /* probable */
-#define CS_GETNMOVINGBAGS       0x47F8u  /* probable */
-#define CS_COUNTEM              0x5A94u  /* probable */
 #define CS_READDIR              0x5BB9u  /* probable */
 #define CS_INITSCORES           0x5DE0u  /* verified: calls addscore(0) */
 #define CS_CREATEBONUS          0x5510u  /* verified */
@@ -200,6 +196,26 @@ typedef int32_t  s32;
 #define CS_SCEATM               0x5598u  /* verified: addscore(msc*200), msc <<= 1 */
 #define CS_SOUNDEATM            0x7891u  /* verified */
 #define CS_SCOREKILL            0x689Fu  /* verified: addscore(250) */
+#define CS_KILLEMERALD          0x5AE0u  /* clears the emerald below (h, v+1) */
+#define CS_COUNTEM              0x5A94u  /* counts emeralds for emmask */
+#define CS_DRAWEMERALD          0x208Au
+#define CS_ERASEEMERALD         0x20C0u
+#define CS_CHECKMONSCARED       0x3962u  /* monsters on row h facing UP turn DOWN */
+#define CS_SQUASHMONSTER        0x3A7Cu  /* alive=0; death/bag fields */
+#define CS_SQUASHMONSTERS       0x39E7u  /* squash monsters hit by a bag */
+#define CS_MONLEFT              0x3AA5u  /* nmononscr + totalmonsters - nextmonster */
+#define CS_CHECKUNDERBAG        0x5602u
+#define CS_BAGHITGROUND         0x4296u
+#define CS_PUSHBAG              0x433Bu
+#define CS_GETGOLD              0x4853u
+#define CS_GETNMOVINGBAGS       0x47F8u
+#define CS_SCOREEMERALD         0x68ADu  /* verified: addscore(25) */
+#define CS_SCOREOCTAVE          0x68BBu  /* verified: addscore(250) */
+#define CS_SCOREGOLD            0x68C9u  /* verified: addscore(500) */
+#define CS_SCOREBONUS           0x68D7u  /* verified: addscore(1000) */
+#define CS_GETDIR               0x5D71u  /* returns DS:0x40B0 or -1 */
+#define CS_KILLMONSTERS         0x3A40u  /* killmon() over the mask, returns count */
+#define CS_SOUNDEM              0x76CCu  /* sets DS:0x459C */
 
 /* Score storage: INT 13h sector 7 (cylinder 39, head 0). */
 #define CS_READ_SECTOR7         0x028Fu
@@ -271,6 +287,10 @@ typedef int32_t  s32;
 #define DS_SCOREHIGH            0x4108u  /* 12 x 32-bit */
 #define DS_SCOREINIT            0x4134u  /* 11 x 4 chars */
 #define DS_LEVNOTDRAWN          0x5010u
+#define DS_PLAYER_DEAD          0x4FDEu  /* per-player: +8*curplayer; setdead() */
+#define DS_FIELD                0x4438u  /* 15x10 words, row stride 0x1E */
+#define DS_EMFIELD              0x4018u  /* 15x10 bytes, row stride 0x0F */
+#define DS_EMMASK               0x40AEu  /* per-player emerald mask */
 
 /* Current digger state (single-digger globals in the original). */
 #define DS_DIG_X                0x3FDEu
@@ -293,6 +313,8 @@ typedef int32_t  s32;
 #define DS_DIG_EXPSN            0x4000u
 #define DS_DIG_DEATH            0x4002u  /* killdigger() writes the death state */
 #define DS_DIG_BAG              0x4004u  /* ... and the bag index */
+#define DS_DIG_DEATHANI         0x4006u
+#define DS_DIG_DEATHTIME        0x4008u
 #define DS_DIG_EMN              0x400Au
 #define DS_DIG_EMOCTTIME        0x4016u
 #define DS_FIREPRESSED          0x0663u  /* digger fire latch: set by input, consumed at CS:0x5BDF */
@@ -311,10 +333,17 @@ typedef int32_t  s32;
 #define DS_BAG_Y                0x3E9Cu
 #define DS_BAG_H                0x3E9Eu
 #define DS_BAG_V                0x3EA0u
+#define DS_BAG_XR               0x3EA2u
+#define DS_BAG_YR               0x3EA4u
 #define DS_BAG_DIR              0x3EA6u
 #define DS_BAG_WOBBLING         0x3EA8u
+#define DS_BAG_WT               0x3EAAu
+#define DS_BAG_UNFALLEN         0x3EACu
 #define DS_BAG_EXIST            0x3EAEu
 #define DS_BAG_GT               0x3EB0u
+#define DS_BAG_FALLH            0x3EB2u
+#define DS_BAGSAVE0             0x3C1Au  /* player 0 saved bag array */
+#define DS_BAGSAVE1             0x3D5Au  /* player 1 saved bag array */
 #define DS_PUSHCOUNT            0x3FDAu  /* set by the push routine, per-frame decay */
 #define DS_GOLDTIME             0x3FDCu  /* 150 - levof10()*10 (initbags) */
 
