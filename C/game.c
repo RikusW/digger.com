@@ -1,62 +1,163 @@
 /*
- * Game-state fragments reconstructed from digger.com.
+ * Game loop, score storage, and bonus-mode fragments reconstructed from
+ * digger.com.
  *
- * Only the score/bonus initialisation is far enough along to record here.
- * The rest of the game logic (digger, monster, bags, drawing, input) is still
- * to be mapped; see TODO.md.
+ * Addresses are CS:IP; the original code was compiled with a 16-bit small
+ * model where the local frame is below BP, so arguments start at BP+N+4.
  */
 
 #include "symbols.h"
 
-/*
- * CS:0x5EEA (file 0x5DEA) - probable score/lives initialisation.
- *
- * Observed stores (all 32-bit fields are little-endian pairs):
- *
- *   0x40C2/0x40C4 = 0
- *   0x40C6/0x40C8 = 0
- *   0x40CA/0x40CC = 0
- *   0x40CE/0x40D0 = 20000 (0x4E20)
- *   0x40D2/0x40D4 = 20000 (0x4E20)
- *
- * The port uses scdat[2] = { score, nextbs } plus bonusscore = 20000
- * (scores.c).  The two 20000 fields are almost certainly the two players'
- * next-bonus thresholds; the exact field order is not yet proved.
- *
- * Not written as a C function because the field layout is still uncertain.
- */
+extern void drawlives(void);
+
+/* ---- score event wrappers -------------------------------------------- */
 
 /*
- * CS:0x5FA1 (file 0x5EA1) - score_add, probable reconstruction.
- *
- * Structure observed in the disassembly:
- *   - choose the player's fields (0x40C6/0x40C8 for one path,
- *     0x40CA/0x40CC for the other);
- *   - add the 16-bit argument as a 32-bit value;
- *   - if the result exceeds 999999 (0x000F423F), reset it to 0;
- *   - compare against the next-bonus threshold (0x40CE/0x40D0 or
- *     0x40D2/0x40D4), and on crossing add 0x4E20 (20000) to that threshold;
- *   - update the on-screen number;
- *   - call the penalty function three times.
- *
- * This matches the port's scores.c:addscore(), including the three
- * incpenalty() calls and the 999999 wrap.  The exact field names for the
- * 0x40C2/0x40C4 pair are not yet proved.
+ * CS:0x68A2..0x68DA add 250 / 25 / 250 / 500 / 1000.  These match the port's
+ * scorekill, scoreemerald, scoreoctave, scoregold, and scorebonus wrappers.
+ * The port's scorekill2 (125+125) is a simultaneous-mode addition.
  */
 
-/*
- * Fixed-score wrappers (CS:0x68A2..0x68DA):
- *
- *   0x68A2 -> score_add(250)   scorekill / scoreoctave
- *   0x68B0 -> score_add(25)    scoreemerald
- *   0x68BE -> score_add(250)   scoreoctave / scorekill
- *   0x68CC -> score_add(500)   scoregold
- *   0x68DA -> score_add(1000)  scorebonus
- *
- * The port's scores.c has exactly these five values.  Its extra
- * scorekill2() (125+125) is a simultaneous-mode addition.
- */
+/* ---- score storage: INT 13h, sector 7 -------------------------------- */
 
 /*
- * CS:0x7933 (file 0x7833) - soundddie is reconstructed in sound.c.
+ * There is no INT 21h (DOS file I/O) anywhere in the binary.  High scores are
+ * stored in a raw 512-byte disk sector:
+ *
+ *   drive 0, head 0, cylinder 0x27 (39), sector 7, 1 sector
+ *   buffer ES:BX = DS:0x0046
+ *
+ * read_sector7  CS:0x028F (file 0x018F): INT 13h AH=2
+ * write_sector7 CS:0x02B8 (file 0x01B8): INT 13h AH=4 (verify), then AH=3
+ * (write), retrying up to 3 times via DS:0x0247.
+ *
+ * The sector buffer layout is the port's .sco format:
+ *
+ *   byte 0: 's'
+ *   ten entries: [3 initials][2 bytes][6 score digits]
+ *
+ * loadscores  CS:0x5DED (file 0x05CED):
+ *   read_sector7();
+ *   for entry i=1..10:
+ *     copy 3 bytes from buffer[p]      -> DS:0x4134 + i*4
+ *     p += 2
+ *     copy 6 bytes from buffer[p]      -> DS:0x40D6 (highbuf)
+ *     scorehigh[i] = atoi(highbuf)     -> DS:0x4108 + i*4
+ *
+ * savescores  CS:0x6521 (file 0x06421):
+ *   buffer[0..] = 's' header / entries from DS:0x4134 and DS:0x4108;
+ *   write_sector7();
+ *
+ * The embedded block at DS:0x4690 (112 bytes, first entry score 1200) has no
+ * direct code reference.  It looks like a default sector image / legacy
+ * high-score table; the port uses a file and starts from zeros if absent.
+ * The sector-2 read at CS:0x0321 plus the check at CS:0x02F3 is the disk
+ * signature/copy-protection check, not score I/O.
+ */
+
+/* ---- bonus mode ------------------------------------------------------- */
+
+/*
+ * createbonus CS:0x5510 (file 0x05410):
+ *   bonusvisible = 1;              (DS:0x4010)
+ *   draw the bonus sprite (call 0x250E with 0x124/0x12)
+ *
+ * initbonusmode CS:0x5528 (file 0x05428):
+ *   bonusmode = 1;                 (DS:0x4012)
+ *   erasebonus();
+ *   ginten(1);
+ *   bonustimeleft = 250 - levof10()*20;   (DS:0x400E)
+ *   startbonustimeleft = 20;              (DS:0x400C)
+ *   DS:0x4014 = 1;                 (port: digdat[i].msc=1)
+ *
+ * endbonusmode CS:0x5562 (file 0x05462):
+ *   bonusmode = 0; ginten(0);
+ *
+ * erasebonus CS:0x5575 (file 0x05475):
+ *   if (bonusvisible) { bonusvisible=0; erase sprite 0x0E; }
+ *   ginten(0);
+ *
+ * The 250-20*level formula is original; the port matches it exactly.  The
+ * flash loop lives in dodigger (port digger.c); the T1 jingle is 5.4 s at the
+ * 72.8 Hz soundint rate, so a long bonus mode can outlast it.
+ */
+static u16 bonusvisible;        /* DS:0x4010 */
+static u16 bonusmode;           /* DS:0x4012 */
+static u16 startbonustimeleft;  /* DS:0x400C */
+static u16 bonustimeleft;       /* DS:0x400E */
+static u16 bonus_msc;           /* DS:0x4014; probable */
+
+extern void cga_set_intensity(int on);   /* ginten(), CGA path */
+extern int levof10(void);
+extern void draw_bonus_sprite(int x, int y);
+extern void erase_sprite(int n);
+
+void createbonus(void)
+{
+    bonusvisible = 1;
+    draw_bonus_sprite(0x124, 0x12);
+}
+
+void erasebonus(void)
+{
+    if (bonusvisible) {
+        bonusvisible = 0;
+        erase_sprite(0x0E);
+    }
+    cga_set_intensity(0);
+}
+
+void initbonusmode(void)
+{
+    bonusmode = 1;
+    erasebonus();
+    cga_set_intensity(1);
+    bonustimeleft = (u16)(250 - levof10() * 20);
+    startbonustimeleft = 20;
+    bonus_msc = 1;
+}
+
+void endbonusmode(void)
+{
+    bonusmode = 0;
+    cga_set_intensity(0);
+}
+
+/* ---- main game loop --------------------------------------------------- */
+
+/*
+ * The port's game() maps directly onto the original at CS:0x86F1
+ * (file 0x085F1); the per-frame update order is:
+ *
+ *   penalty = 0;                  (DS:PI 0x5014; incpenalty at CS:0x8A32)
+ *   dodigger();                   (CS:0x4939, verified: bonus block at 0x4912)
+ *   domonsters();                 (CS:0x2C90, verified structure)
+ *   dobags();                     (CS:0x3E2D, probable)
+ *   if (penalty < 8) delay((8-penalty)*5); else incmont(penalty-8);
+ *   testpause();                  (CS:0x8B55)
+ *   checklevdone();               (CS:0x89F2)
+ *
+ * domonsters (CS:0x2C90) matches the port's domonsters loop exactly:
+ * six monsters, stride 0x28 at DS:0x3B1C, hnt > 10-levof10(), the
+ * randno(15-levof10()) double-move, and monai() at CS:0x2E75.
+ * monai contains the port's randno(levof10()+5)==1 direction swap.
+ *
+ * Post-level path:
+ *   getnmovingbags() loop with dobags/dodigger/domonsters;
+ *   soundstop (CS:0x71D7), erasebonus (CS:0x5575), cleanupbags, savefield,
+ *   erasemonsters; if levdone soundlevdone (CS:0x7310);
+ *   countem (CS:0x5A94); increment level; initlevel (CS:0x89A4).
+ *
+ * Other mapped game-state functions: checklevdone CS:0x89F2, initlevel
+ * CS:0x89A4, drawscreen CS:0x89CD, initchars CS:0x89E4, initscores
+ * CS:0x5DE0, readdir/input CS:0x5BB9.
+ */
+
+/* ---- RNG ------------------------------------------------------------- */
+
+/*
+ * The original has one random routine, CS:0x177F, used by both the game and
+ * the sound engine.  It is reconstructed in rng.c: a 256-byte permutation
+ * table at DS:0x0CA7, a counter at DS:0x0DA7, and the BIOS tick byte at
+ * 0x40:0x006C.  The port's randno/randnos 32-bit LCG is a replacement.
  */

@@ -35,8 +35,11 @@ reconstructed from the 8086 disassembly.
 | `sett0`, `setsoundt2`, `setsoundmode`, `sett2val`, `timer2` | reconstructed | `sound.c` |
 | `startint8`, `stopint8`, `soundoff`, `initsound` | reconstructed (some probable) | `sound.c` |
 | `addscore`, fixed-score wrappers, score init | structure + fragments | `game.c` |
-| Game logic (digger/monster/bags/drawing/input) | not yet started | `TODO.md` |
-| RNG | not yet identified | `TODO.md` |
+| RNG (table + BIOS tick, shared by game/sound) | reconstructed | `rng.c` |
+| Game loop + dodigger/domonsters/dobags/monai mapping | mapped | `game.c` |
+| Bonus mode (`createbonus`/`initbonusmode`/`endbonusmode`) | reconstructed | `game.c` |
+| Score I/O (INT 13h sector 7) | reconstructed/mapped | `game.c` |
+| Line-level movement/collision/drawing routines | remaining | `TODO.md` |
 
 See `ANALYSIS.md` for the comparison and exact-match findings.
 See `CGA.md` for the CGA mode/register analysis and the DOSBox failure

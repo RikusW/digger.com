@@ -93,6 +93,41 @@ typedef int32_t  s32;
 #define CS_CGA_SHIFT_INC        0x1128u
 #define CS_CGA_SHIFT_DEC        0x1155u
 
+/* Random number generator: table DS:0x0CA7 + counter DS:0x0DA7 + BIOS tick. */
+#define CS_RAND                 0x177Fu
+#define CS_BIOS_TICK_BYTE       0x17C1u
+
+/* Game loop and core updates (mapped from the port's game()/domonsters()). */
+#define CS_GAME_LOOP            0x86F1u
+#define CS_DODIGGER             0x4939u  /* verified by bonus block at CS:0x4912..0x4A11 */
+#define CS_DOMONSTERS           0x2C90u  /* verified structure */
+#define CS_MONAI                0x2E75u  /* verified via randno(levof10()+5) */
+#define CS_DOBAGS               0x3E2Du  /* probable */
+#define CS_CHECKLEVDONE         0x89F2u  /* probable */
+#define CS_INITLEVEL            0x89A4u  /* probable */
+#define CS_DRAWSCREEN           0x89CDu  /* probable */
+#define CS_INITCHARS            0x89E4u  /* probable */
+#define CS_INCMONT              0x3AEFu  /* probable */
+#define CS_GETNMOVINGBAGS       0x47F8u  /* probable */
+#define CS_COUNTEM              0x5A94u  /* probable */
+#define CS_READDIR              0x5BB9u  /* probable */
+#define CS_INITSCORES           0x5DE0u  /* verified: calls addscore(0) */
+#define CS_CREATEBONUS          0x5510u  /* verified */
+#define CS_INITBONUSMODE        0x5528u  /* verified */
+#define CS_ENDBONUSMODE         0x5562u  /* verified */
+#define CS_ERASEBONUS           0x5575u  /* verified */
+#define CS_SOUNDLEVDONE         0x7310u  /* probable */
+#define CS_MUSICOFF             0x7A63u  /* probable */
+#define CS_SOUNDSTOP            0x71D7u  /* probable */
+
+/* Score storage: INT 13h sector 7 (cylinder 39, head 0). */
+#define CS_READ_SECTOR7         0x028Fu
+#define CS_WRITE_SECTOR7        0x02B8u
+#define CS_READ_SECTOR2         0x0321u
+#define CS_DISK_CHECK           0x02F3u
+#define CS_LOADSCORES           0x5DEDu
+#define CS_SAVESCORES           0x6521u
+
 /* Sound/timer state (DS offsets). */
 #define DS_SPKRMODE             0x0248u
 #define DS_TIMERRATE            0x024Au  /* ISR accumulator: sett0 stores 4*t0val (or 0xFFFF) */
@@ -142,6 +177,18 @@ typedef int32_t  s32;
 #define DS_LIVES_A              0x4FE0u
 #define DS_LIVES_B              0x4FE8u
 #define DS_KEYPRESSED           0x0658u
+#define DS_SCOREBUF             0x0046u  /* 512-byte disk sector / score buffer */
+#define DS_DISK_RETRY           0x0247u
+#define DS_RNG_TABLE            0x0CA7u  /* 256-byte permutation */
+#define DS_RNG_COUNTER          0x0DA7u
+#define DS_BONUSVISIBLE         0x4010u
+#define DS_BONUSMODE            0x4012u
+#define DS_STARTBONUSTIMELEFT   0x400Cu
+#define DS_BONUSTIMELEFT        0x400Eu
+#define DS_BONUSMSC             0x4014u  /* probable */
+#define DS_HIGHBUF              0x40D6u
+#define DS_SCOREHIGH            0x4108u  /* 12 x 32-bit */
+#define DS_SCOREINIT            0x4134u  /* 11 x 4 chars */
 
 /* Data tables (DS offsets). */
 #define DS_CGA_CRTC_TABLE       0x0255u  /* 14 bytes, R0..R13 */

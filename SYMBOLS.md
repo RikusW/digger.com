@@ -91,6 +91,40 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x8E23` | `0x8D23` | `long_compare`? | probable | C runtime 32-bit compare helper. |
 | `0x17EB` | `0x16EB` | video RLE blit? | probable | Copies `DS:0x0DAC` to `B800`; `0xFE` starts a run. |
 
+### Game loop, RNG, score storage
+
+| CS | file | Name | Confidence | Notes |
+|---|---:|---|---|---|
+| `0x028F` | `0x018F` | `read_sector7` | verified | INT 13h AH=2: drive 0, head 0, cylinder 0x27, sector 7, 1 sector, buffer `DS:0x0046`. |
+| `0x02B8` | `0x01B8` | `write_sector7` | verified | INT 13h AH=4 verify then AH=3 write; same sector; 3 retries. |
+| `0x0321` | `0x0221` | `read_sector2` | verified | Disk signature / copy-protection check. |
+| `0x02F3` | `0x01F3` | `disk_check` | verified | Reads sector 2 and checks the BIOS/disk signature. |
+| `0x177F` | `0x167F` | `rand` | verified | Shared game/sound RNG: table `DS:0x0CA7`, counter `DS:0x0DA7`, BIOS tick `0x40:0x006C`. |
+| `0x17C1` | `0x16C1` | `bios_tick_byte` | verified | Reads the byte at `0x40:0x006C`. |
+| `0x2C90` | `0x2B90` | `domonsters` | verified | Six monsters, stride 0x28, `hnt > 10-levof10()`, `randno(15-levof10())`, calls `monai`. |
+| `0x2E75` | `0x2D75` | `monai` | verified | Contains `randno(levof10()+5)==1` direction swap. |
+| `0x3AEF` | `0x39EF` | `incmont` | probable | Called with `penalty-8`. |
+| `0x3E2D` | `0x3D2D` | `dobags` | probable | Per-frame bag update. |
+| `0x47F8` | `0x46F8` | `getnmovingbags` | probable | Post-level loop condition. |
+| `0x4939` | `0x4839` | `dodigger` | verified | Per-frame digger update; contains the bonus-mode block at `CS:0x4912..0x4A11`. |
+| `0x5510` | `0x5410` | `createbonus` | verified | `bonusvisible=1`, draw bonus sprite. |
+| `0x5528` | `0x5428` | `initbonusmode` | verified | `250 - levof10()*20`, `startbonustimeleft=20`, `bonusmode=1`. |
+| `0x5562` | `0x5462` | `endbonusmode` | verified | `bonusmode=0`, ginten(0). |
+| `0x5575` | `0x5475` | `erasebonus` | verified | If visible, erase sprite 0x0E; ginten(0). |
+| `0x5A94` | `0x5994` | `countem` | probable | Level-completion check. |
+| `0x5BB9` | `0x5AB9` | `readdir`/input | probable | Called once per game frame. |
+| `0x5DE0` | `0x5CE0` | `initscores` | verified | Calls `addscore(0)`. |
+| `0x5DED` | `0x5CED` | `loadscores` | verified | Reads sector 7, parses `s` + ten entries. |
+| `0x6521` | `0x6421` | `savescores` | verified | Builds the sector buffer and writes sector 7. |
+| `0x71D7` | `0x71D7` | `soundstop` | probable | Post-level sound stop. |
+| `0x7310` | `0x7210` | `soundlevdone` | probable | Level-done tune. |
+| `0x7A63` | `0x7963` | `musicoff` | probable | Music off. |
+| `0x86F1` | `0x85F1` | `game` loop | verified | Per-frame order: dodigger, domonsters, dobags, penalty, testpause, checklevdone. |
+| `0x89A4` | `0x88A4` | `initlevel`? | probable | Resets per-player level state; calls makefield/initbags. |
+| `0x89CD` | `0x88CD` | `drawscreen`? | probable | Calls drawstatics/bags/emeralds/initdigger/initmonsters. |
+| `0x89E4` | `0x88E4` | `initchars`? | probable | Init diggers/monsters for a new level. |
+| `0x89F2` | `0x88F2` | `checklevdone`? | probable | Sets the per-player levdone flag. |
+
 ## Data
 
 | DS | file | Size | Name | Confidence |
@@ -171,3 +205,21 @@ These are data-segment variables, not tables. Names are from the port; offsets c
 | `0x500C` | `curplayer` | Getter at `CS:0x8B45`. |
 | `0x500E` | `nplayers`/`diggers`? | Getter at `CS:0x8B4D`. |
 | `0x5014` | `penalty` | `incpenalty` (`CS:0x8A32`). |
+
+## Score / RNG / bonus state (BSS, inferred)
+
+| DS | Port name | Evidence |
+|---:|---|---|
+| `0x0046` | `scorebuf` / disk sector buffer | 512 bytes; INT 13h buffer; parsed by `loadscores`. |
+| `0x0247` | disk retry counter | `read/write_sector7` retries 3 times. |
+| `0x0CA7` | `rng_table` | 256-byte permutation used by `rand`. |
+| `0x0DA7` | `rng_counter` | Incremented by `rand`; starts at 0. |
+| `0x400C` | `startbonustimeleft` | 20 in `initbonusmode`. |
+| `0x400E` | `bonustimeleft` | `250 - levof10()*20`. |
+| `0x4010` | `bonusvisible` | `createbonus` / `erasebonus`. |
+| `0x4012` | `bonusmode` | `initbonusmode` / `endbonusmode`. |
+| `0x4014` | `bonus_msc`? | Set to 1 by `initbonusmode`; port sets `digdat[i].msc=1`. |
+| `0x40D6` | `highbuf` | 6-byte score text used by `loadscores`. |
+| `0x4108` | `scorehigh` | 12 x 32-bit scores. |
+| `0x4134` | `scoreinit` | 11 x 4-byte initials. |
+| `0x4690` | default score block | 112-byte default/legacy image; no direct code reference. |

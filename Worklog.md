@@ -486,3 +486,134 @@ Sources:
 ### User
 
 commit it
+
+## Finish high-priority tasks: RNG, game-loop map, bonus timer, score I/O
+
+Previous commit: fc9f41d
+
+### User
+
+Finish the high priority tasks
+
+### Assistant
+
+I'll finish the high-priority items: RNG, game-logic mapping, bonus timer, and score I/O. Starting with the score path and the disk routines near the start of the binary.
+
+### Assistant
+
+No INT 21h at all — the original stores scores in a raw disk sector via INT 13h. Let me trace the sector-read/write callers and the score buffer.
+
+### Assistant
+
+Score I/O is now solved: the original uses INT 13h sector 7, not a DOS file. Let me read the port's bonus-mode code and locate the matching original routine.
+
+### Assistant
+
+The port's `initbonusmode` calls `levof10()`; I can find the original by its callers. Let me trace `levof10` and the CGA intensity calls.
+
+### Assistant
+
+The RNG is now solved: a 256-byte permutation table plus the BIOS tick counter, shared by game and sound. Let me decode the two game call sites and the title/game loop.
+
+### Assistant
+
+The RNG is confirmed as a table+BIOS-tick generator. Let me finish the game-logic mapping by locating the update function callers and the main game loop.
+
+### Assistant
+
+The RNG and monster functions are mapped. Let me locate the main game loop via the `domonsters` callers and the post-title setup.
+
+### Assistant
+
+The high-priority paths are all identified. Let me record them: RNG, game-loop map, bonus timer, and sector-based score I/O.
+
+### Assistant
+
+One final check: confirm `dodigger` contains the bonus-mode block by tracing the bonus variables.
+
+### Assistant
+
+All four high-priority items are now resolved. Let me run the final consistency checks.
+
+### Assistant
+
+The four high-priority items are finished. Everything is recorded in the reverse-engineering files; the only remaining high-priority work is now the line-level movement/collision/drawing bodies.
+
+## 1. RNG — solved
+
+The original has **one shared generator** at `CS:0x177F`, used by both the game and the sound engine:
+
+```
+seed = ++DS:0x0DA7;
+tick = byte at 0x40:0x006C;              (BIOS timer low byte)
+r    = DS:0x0CA7[(seed + tick) & 0xFF];  (256-byte permutation table)
+return (r * (n + 1)) >> 8;
+```
+
+- The table at `DS:0x0CA7` is a permutation of all 256 byte values (verified against the binary).
+- Call sites: `domonsters` (`randno(15-levof10())`), `monai` (`randno(levof10()+5)`), and `soundfireupdate`.
+- The port’s `randno`/`randnos` 32-bit LCG (`0x15A4E35`) is a replacement; its sequence differs. On SDL, `getlrt()` returns 0, so the port is deterministic.
+
+Reconstructed in `C/rng.c` (table + function).
+
+## 2. Game logic — mapped
+
+The main loop `CS:0x86F1` matches the port’s `game()`:
+
+| Function | Address | Confidence |
+|---|---|---|
+| `game` loop | `CS:0x86F1` | verified structure |
+| `dodigger` | `CS:0x4939` | verified (contains the bonus block) |
+| `domonsters` | `CS:0x2C90` | verified (six monsters, stride 0x28, `hnt > 10-levof10()`, `randno(15-levof10())`) |
+| `monai` | `CS:0x2E75` | verified (`randno(levof10()+5)==1` direction swap) |
+| `dobags` | `CS:0x3E2D` | probable |
+| `initlevel` / `drawscreen` / `initchars` / `checklevdone` | `0x89A4` / `0x89CD` / `0x89E4` / `0x89F2` | probable |
+| `incmont`, `testpause`, `getnmovingbags`, `countem`, `readdir` | `0x3AEF`, `0x8B55`, `0x47F8`, `0x5A94`, `0x5BB9` | mapped |
+
+The per-frame order and the post-level path (`getnmovingbags` loop, soundstop, erasebonus, cleanupbags, savefield, erasemonsters, countem, next level) match the port. The detailed movement/collision/drawing bodies remain to be reconstructed line-by-line.
+
+## 3. Bonus timer — solved
+
+`initbonusmode` at `CS:0x552A` is:
+
+```
+bonusmode = 1;
+erasebonus();
+ginten(1);
+bonustimeleft = 250 - levof10()*20;   (DS:0x400E)
+startbonustimeleft = 20;              (DS:0x400C)
+DS:0x4014 = 1;
+```
+
+The port’s `250 - levof10()*20` is **original**, not a port addition. `createbonus` (`CS:0x5510`), `endbonusmode` (`CS:0x5562`), and `erasebonus` (`CS:0x5575`) match the port. Reconstructed in `C/game.c`.
+
+## 4. Score I/O — solved
+
+There is **no INT 21h anywhere**. High scores live in raw disk sector 7:
+
+```
+drive 0, head 0, cylinder 0x27 (39), sector 7, 1 sector
+buffer ES:BX = DS:0x0046  (512 bytes)
+```
+
+- `read_sector7` `CS:0x028F`: INT 13h AH=2.
+- `write_sector7` `CS:0x02B8`: INT 13h AH=4 verify, then AH=3 write, 3 retries.
+- `loadscores` `CS:0x5DED`: reads sector 7 and parses `'s'` + ten `[3 initials][2 bytes][6 digits]` entries into `DS:0x4134`/`DS:0x4108`.
+- `savescores` `CS:0x6521`: builds the same 512-byte buffer and writes sector 7.
+- The format is identical to the port’s `.sco`.
+- The 112-byte block at `DS:0x4690` (score 1200) has no direct code reference; it is a default/legacy image. The sector-2 read/check at `CS:0x0321`/`0x02F3` is disk signature/copy protection.
+
+## Artifacts updated
+
+- `C/rng.c` — **new**: 256-byte table + RNG reconstruction.
+- `C/game.c` — expanded: game-loop map, bonus functions, score I/O, RNG notes.
+- `ANALYSIS.md` — new RNG, main-loop, bonus, and score-storage sections; RNG difference updated.
+- `SYMBOLS.md` — new code/data symbols and confidence levels.
+- `digger.lst` / `digger.dat` — RNG/game/score/bonus labels.
+- `C/symbols.h`, `README.md`, `TODO.md` — status updated.
+
+All changes are uncommitted. `C/.TODO.md.swp` (a vim swap file) and `C/rng.c` are untracked. When you want it committed, I’ll add this exchange to `Worklog.md` with the previous commit hash (`fc9f41d`) and commit.
+
+### User
+
+Commit and continue with game logic

@@ -200,6 +200,69 @@ a horizontal shift. The framebuffer address formula is
 layout. `R9=1` is normal for mode 4. See `CGA.md` for the DOSBox failure
 analysis and fix directions.
 
+### Random numbers — `CS:0x177F`
+
+The original has one shared generator for the game and the sound engine:
+
+```
+seed = ++DS:0x0DA7;
+tick = byte at 0x40:0x006C;            (BIOS timer low byte)
+r    = DS:0x0CA7[(seed + tick) & 0xFF];  (256-byte permutation table)
+return (r * (n + 1)) >> 8;
+```
+
+Call sites: `domonsters` (`randno(15-levof10())`), `monai`
+(`randno(levof10()+5)`), and `soundfireupdate` (the t2 jitter). The port's
+`randno`/`randnos` 32-bit LCG (`0x15A4E35`) and separate seeds are a
+replacement; its sequence differs. See `C/rng.c`.
+
+### Main game loop — `CS:0x86F1`
+
+The per-frame order matches the port's `game()`:
+
+- `dodigger` (`CS:0x4939`, probable)
+- `domonsters` (`CS:0x2C90`, verified structure)
+- `dobags` (`CS:0x3E2D`, probable)
+- penalty delay if `<8`, otherwise `incmont(penalty-8)` (`CS:0x3AEF`)
+- `testpause` (`CS:0x8B55`), `checklevdone` (`CS:0x89F2`)
+
+`domonsters` loops six monsters (stride `0x28`, table `DS:0x3B1C`), applies
+`hnt > 10-levof10()`, and calls `monai` (`CS:0x2E75`), which contains the
+port's `randno(levof10()+5)==1` direction swap. `initlevel` (`CS:0x89A4`),
+`drawscreen` (`CS:0x89CD`), `initchars` (`CS:0x89E4`), and `initscores`
+(`CS:0x5DE0`) map to the port. The post-level path matches the port's
+`getnmovingbags` loop plus the soundstop/erasebonus/cleanupbags/savefield/
+erasemonsters/countem sequence. Line-level movement/collision/drawing bodies
+remain to be reconstructed.
+
+### Bonus mode — `CS:0x5510..0x5575`
+
+`initbonusmode` (`CS:0x5528`) sets `bonusmode=1`, `erasebonus`, `ginten(1)`,
+`bonustimeleft = 250 - levof10()*20` (`DS:0x400E`),
+`startbonustimeleft=20` (`DS:0x400C`), and `DS:0x4014=1`. This is exactly the
+port's formula. `createbonus` (`CS:0x5510`), `endbonusmode` (`CS:0x5562`), and
+`erasebonus` (`CS:0x5575`) match the port's structure.
+
+### Score storage — INT 13h sector 7
+
+There is **no INT 21h** in the binary. `loadscores` (`CS:0x5DED`, file
+`0x5CED`) calls `CS:0x028F`:
+
+```
+INT 13h AH=2, drive 0, head 0, cylinder 0x27 (39), sector 7, 1 sector
+ES:BX = DS:0x0046
+```
+
+and parses `'s'` + ten entries of `[3 initials][2 bytes][6 score digits]`
+into `DS:0x4134` (initials) and `DS:0x4108` (32-bit scores). `savescores`
+(`CS:0x6521`) builds the same 512-byte buffer and uses `CS:0x02B8` (INT 13h
+AH=4 verify, then AH=3 write). The port uses a `.sco` file with the same
+format.
+
+The 112-byte block at `DS:0x4690` (first entry score 1200) has no direct code
+reference; it is a default/legacy score image. The sector-2 read/check
+(`CS:0x0321` / `CS:0x02F3`) is the disk signature / copy-protection check.
+
 ## Differences
 
 ### Port additions
@@ -219,19 +282,20 @@ analysis and fix directions.
 
 ### Behavioral differences
 
-- **RNG**: the port's `randno`/`randnos` use a 32-bit LCG with multiplier
-  `0x15A4E35`. That constant appears nowhere in the binary. There is no
-  `idiv word [bp+disp]`, and the 32-bit divide helper is only called from
-  number formatting, so the original is likely a 16-bit or inlined generator,
-  or a table-driven one. Its exact algorithm has not been identified yet.
-  The port also seeds from `getlrt()`, which returns 0 on SDL, so its random
-  sequence is deterministic.
+- **RNG**: the original uses the shared table+BIOS-tick generator at
+  `CS:0x177F` (256-byte permutation at `DS:0x0CA7`, counter at `DS:0x0DA7`,
+  tick byte at `0x40:0x006C`). The port's `randno`/`randnos` use a 32-bit LCG
+  with multiplier `0x15A4E35` and separate seeds; that constant is not in the
+  binary, so the port's random sequence differs. On SDL `getlrt()` returns 0,
+  making the port's sequence deterministic.
 - **PWM emulation**: the original's mode-1 pulse is a CPU busy-loop whose
   length depends on CPU speed (hence `calibrate()`/`getkips()`); the port
   approximates it with `pwlut` and the sample-level `getsample` model, plus the
   speaker filter/oversampling added for SDL.
-- **Default scores**: the original embeds the 1200-score block; the port reads
-  a `.sco` file and otherwise starts at zero.
+- **Score storage**: the original saves high scores in raw disk sector 7
+  (INT 13h); the port uses a `.sco` file with the same 512-byte format and
+  starts at zeros if the file is absent. The embedded 1200-score block at
+  `DS:0x4690` is a default/legacy image with no direct code reference.
 - **CGA startup text**: the messages are at `DS:0x0263` / `DS:0x0322`
   (`file 0x8FD3` / `0x9092`; the printable text starts at file `0x9005` /
   `0x90C4`). They are printed via INT 10h after the custom CRTC is installed;
@@ -239,17 +303,16 @@ analysis and fix directions.
 
 ## Open items / next work
 
-- Identify the original RNG routine and its seed source.
-- Locate the original bonus-mode timer (the port uses `250 - 20*level` frames).
-- Map the main game-logic functions (`digger`, `monster`, `bags`, `drawing`,
-  input/joystick) to the port.
+- Reconstruct the line-level movement/collision/drawing bodies behind the
+  mapped game functions (`dodigger`, `dobags`, `monai`, the drawing routines).
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.
 - Reconstruct the CGA block put/XOR functions and the INT 10h teletype/scroll
   path.
 - Confirm the original two-player flow (alternating vs simultaneous).
-- Map the score file I/O and the remaining score display functions.
+- Map the remaining score display functions and the default-sector
+  initialization path.
 
 ## Method
 

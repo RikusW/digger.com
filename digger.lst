@@ -194,6 +194,7 @@ Disassembly of section .data:
      28c:	17                   	pop    ss
      28d:	5d                   	pop    bp
      28e:	c3                   	ret    
+; --- read_sector7 (INT 13h AH=2, cyl 0x27 sector 7) ---
      28f:	55                   	push   bp
      290:	16                   	push   ss
      291:	06                   	push   es
@@ -215,6 +216,7 @@ Disassembly of section .data:
      2b5:	17                   	pop    ss
      2b6:	5d                   	pop    bp
      2b7:	c3                   	ret    
+; --- write_sector7 (INT 13h AH=4 verify + AH=3 write) ---
      2b8:	55                   	push   bp
      2b9:	16                   	push   ss
      2ba:	06                   	push   es
@@ -245,6 +247,7 @@ Disassembly of section .data:
      2f0:	17                   	pop    ss
      2f1:	5d                   	pop    bp
      2f2:	c3                   	ret    
+; --- disk_check ---
      2f3:	e8 2b 00             	call   0x321
      2f6:	73 27                	jae    0x31f
      2f8:	80 3e 46 00 0e       	cmp    BYTE PTR ds:0x46,0xe
@@ -261,6 +264,7 @@ Disassembly of section .data:
      31e:	c3                   	ret    
      31f:	f9                   	stc    
      320:	c3                   	ret    
+; --- read_sector2 (disk signature/copy protection) ---
      321:	8c d8                	mov    ax,ds
      323:	8e c0                	mov    es,ax
      325:	b4 02                	mov    ah,0x2
@@ -2293,6 +2297,7 @@ Disassembly of section .data:
     177b:	eb 00                	jmp    0x177d
     177d:	5d                   	pop    bp
     177e:	c3                   	ret    
+; --- rand (table DS:0x0CA7 + counter DS:0x0DA7 + BIOS tick) ---
     177f:	55                   	push   bp
     1780:	83 ec 08             	sub    sp,0x8
     1783:	8b ec                	mov    bp,sp
@@ -2320,6 +2325,7 @@ Disassembly of section .data:
     17bc:	83 c4 08             	add    sp,0x8
     17bf:	5d                   	pop    bp
     17c0:	c3                   	ret    
+; --- bios_tick_byte (0x40:0x006C) ---
     17c1:	55                   	push   bp
     17c2:	83 ec 06             	sub    sp,0x6
     17c5:	8b ec                	mov    bp,sp
@@ -4794,6 +4800,7 @@ Disassembly of section .data:
     2c8b:	83 c4 04             	add    sp,0x4
     2c8e:	5d                   	pop    bp
     2c8f:	c3                   	ret    
+; --- domonsters (6 monsters, randno(15-levof10())) ---
     2c90:	55                   	push   bp
     2c91:	83 ec 06             	sub    sp,0x6
     2c94:	8b ec                	mov    bp,sp
@@ -4912,6 +4919,7 @@ Disassembly of section .data:
     2dce:	83 c4 06             	add    sp,0x6
     2dd1:	5d                   	pop    bp
     2dd2:	c3                   	ret    
+; --- createmonster? ---
     2dd3:	55                   	push   bp
     2dd4:	83 ec 0a             	sub    sp,0xa
     2dd7:	8b ec                	mov    bp,sp
@@ -4961,6 +4969,7 @@ Disassembly of section .data:
     2e70:	83 c4 0a             	add    sp,0xa
     2e73:	5d                   	pop    bp
     2e74:	c3                   	ret    
+; --- monai (randno(levof10()+5) direction swap) ---
     2e75:	55                   	push   bp
     2e76:	83 ec 20             	sub    sp,0x20
     2e79:	8b ec                	mov    bp,sp
@@ -6104,6 +6113,7 @@ Disassembly of section .data:
     3aea:	83 c4 06             	add    sp,0x6
     3aed:	5d                   	pop    bp
     3aee:	c3                   	ret    
+; --- incmont? ---
     3aef:	55                   	push   bp
     3af0:	83 ec 04             	sub    sp,0x4
     3af3:	8b ec                	mov    bp,sp
@@ -6394,6 +6404,7 @@ Disassembly of section .data:
     3e28:	83 c4 0e             	add    sp,0xe
     3e2b:	5d                   	pop    bp
     3e2c:	c3                   	ret    
+; --- dobags? ---
     3e2d:	55                   	push   bp
     3e2e:	83 ec 10             	sub    sp,0x10
     3e31:	8b ec                	mov    bp,sp
@@ -7298,6 +7309,7 @@ Disassembly of section .data:
     47f3:	83 c4 06             	add    sp,0x6
     47f6:	5d                   	pop    bp
     47f7:	c3                   	ret    
+; --- getnmovingbags? ---
     47f8:	55                   	push   bp
     47f9:	83 ec 0a             	sub    sp,0xa
     47fc:	8b ec                	mov    bp,sp
@@ -7415,6 +7427,7 @@ Disassembly of section .data:
     4931:	c7 06 f4 3f 00 00    	mov    WORD PTR ds:0x3ff4,0x0
     4937:	5d                   	pop    bp
     4938:	c3                   	ret    
+; --- dodigger? ---
     4939:	55                   	push   bp
     493a:	83 ec 02             	sub    sp,0x2
     493d:	8b ec                	mov    bp,sp
@@ -8493,6 +8506,7 @@ Disassembly of section .data:
     550b:	83 c4 04             	add    sp,0x4
     550e:	5d                   	pop    bp
     550f:	c3                   	ret    
+; --- createbonus ---
     5510:	55                   	push   bp
     5511:	8b ec                	mov    bp,sp
     5513:	c7 06 10 40 01 00    	mov    WORD PTR ds:0x4010,0x1
@@ -8504,6 +8518,7 @@ Disassembly of section .data:
     5524:	8b e5                	mov    sp,bp
     5526:	5d                   	pop    bp
     5527:	c3                   	ret    
+; --- initbonusmode (250-levof10()*20) ---
     5528:	55                   	push   bp
     5529:	83 ec 02             	sub    sp,0x2
     552c:	8b ec                	mov    bp,sp
@@ -8524,6 +8539,7 @@ Disassembly of section .data:
     555d:	83 c4 02             	add    sp,0x2
     5560:	5d                   	pop    bp
     5561:	c3                   	ret    
+; --- endbonusmode ---
     5562:	55                   	push   bp
     5563:	8b ec                	mov    bp,sp
     5565:	c7 06 12 40 00 00    	mov    WORD PTR ds:0x4012,0x0
@@ -8533,6 +8549,7 @@ Disassembly of section .data:
     5571:	8b e5                	mov    sp,bp
     5573:	5d                   	pop    bp
     5574:	c3                   	ret    
+; --- erasebonus ---
     5575:	55                   	push   bp
     5576:	8b ec                	mov    bp,sp
     5578:	83 3e 10 40 00       	cmp    WORD PTR ds:0x4010,0x0
@@ -9033,6 +9050,7 @@ Disassembly of section .data:
     5a8f:	83 c4 08             	add    sp,0x8
     5a92:	5d                   	pop    bp
     5a93:	c3                   	ret    
+; --- countem? ---
     5a94:	55                   	push   bp
     5a95:	83 ec 08             	sub    sp,0x8
     5a98:	8b ec                	mov    bp,sp
@@ -9145,6 +9163,7 @@ Disassembly of section .data:
     5bb4:	83 c4 06             	add    sp,0x6
     5bb7:	5d                   	pop    bp
     5bb8:	c3                   	ret    
+; --- readdir/input? ---
     5bb9:	55                   	push   bp
     5bba:	83 ec 04             	sub    sp,0x4
     5bbd:	8b ec                	mov    bp,sp
@@ -9323,6 +9342,7 @@ Disassembly of section .data:
     5ddb:	a1 bc 40             	mov    ax,ds:0x40bc
     5dde:	5d                   	pop    bp
     5ddf:	c3                   	ret    
+; --- initscores (addscore(0)) ---
     5de0:	55                   	push   bp
     5de1:	8b ec                	mov    bp,sp
     5de3:	33 c0                	xor    ax,ax
@@ -9331,6 +9351,7 @@ Disassembly of section .data:
     5de9:	8b e5                	mov    sp,bp
     5deb:	5d                   	pop    bp
     5dec:	c3                   	ret    
+; --- loadscores (sector 7) ---
     5ded:	55                   	push   bp
     5dee:	83 ec 0c             	sub    sp,0xc
     5df1:	8b ec                	mov    bp,sp
@@ -10086,6 +10107,7 @@ Disassembly of section .data:
     651c:	83 c4 06             	add    sp,0x6
     651f:	5d                   	pop    bp
     6520:	c3                   	ret    
+; --- savescores (sector 7) ---
     6521:	55                   	push   bp
     6522:	83 ec 06             	sub    sp,0x6
     6525:	8b ec                	mov    bp,sp
@@ -11459,6 +11481,7 @@ Disassembly of section .data:
     730b:	a3 b8 45             	mov    ds:0x45b8,ax
     730e:	5d                   	pop    bp
     730f:	c3                   	ret    
+; --- soundlevdone? ---
     7310:	55                   	push   bp
     7311:	83 ec 04             	sub    sp,0x4
     7314:	8b ec                	mov    bp,sp
@@ -12133,6 +12156,7 @@ Disassembly of section .data:
     7a5e:	83 c4 02             	add    sp,0x2
     7a61:	5d                   	pop    bp
     7a62:	c3                   	ret    
+; --- musicoff? ---
     7a63:	55                   	push   bp
     7a64:	8b ec                	mov    bp,sp
     7a66:	33 c0                	xor    ax,ax
@@ -13418,6 +13442,7 @@ Disassembly of section .data:
     86e9:	a3 10 50             	mov    ds:0x5010,ax
     86ec:	a3 12 50             	mov    ds:0x5012,ax
     86ef:	eb 8a                	jmp    0x867b
+; --- game loop ---
     86f1:	55                   	push   bp
     86f2:	83 ec 06             	sub    sp,0x6
     86f5:	8b ec                	mov    bp,sp
@@ -13680,6 +13705,7 @@ Disassembly of section .data:
     899f:	83 c4 02             	add    sp,0x2
     89a2:	5d                   	pop    bp
     89a3:	c3                   	ret    
+; --- initlevel? ---
     89a4:	55                   	push   bp
     89a5:	83 ec 02             	sub    sp,0x2
     89a8:	8b ec                	mov    bp,sp
@@ -13695,6 +13721,7 @@ Disassembly of section .data:
     89c8:	83 c4 02             	add    sp,0x2
     89cb:	5d                   	pop    bp
     89cc:	c3                   	ret    
+; --- drawscreen? ---
     89cd:	55                   	push   bp
     89ce:	8b ec                	mov    bp,sp
     89d0:	e8 53 8e             	call   0x1826
@@ -13705,6 +13732,7 @@ Disassembly of section .data:
     89df:	e8 df a1             	call   0x2bc1
     89e2:	5d                   	pop    bp
     89e3:	c3                   	ret    
+; --- initchars? ---
     89e4:	55                   	push   bp
     89e5:	8b ec                	mov    bp,sp
     89e7:	e8 19 90             	call   0x1a03
@@ -13712,6 +13740,7 @@ Disassembly of section .data:
     89ed:	e8 d1 a1             	call   0x2bc1
     89f0:	5d                   	pop    bp
     89f1:	c3                   	ret    
+; --- checklevdone? ---
     89f2:	55                   	push   bp
     89f3:	83 ec 02             	sub    sp,0x2
     89f6:	8b ec                	mov    bp,sp

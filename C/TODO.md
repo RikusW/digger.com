@@ -14,22 +14,29 @@
 - Game-state accessors in `state.c`: `incpenalty`, `levno`, `levplan`,
   `levof10`, `getlives`, `addlife`, and `curplayer` match the port.  The
   `nplayers` getter and `testpause` flow are identified (some fields probable).
+- **RNG solved**: one shared generator at `CS:0x177F` uses a 256-byte
+  permutation table (`DS:0x0CA7`), a counter (`DS:0x0DA7`) and the BIOS tick
+  byte (`0x40:0x006C`).  Reconstructed in `rng.c`; the port's 32-bit LCG is a
+  replacement and produces a different sequence.
+- **Game loop mapped**: `CS:0x86F1`; `dodigger` `CS:0x4939`, `domonsters`
+  `CS:0x2C90`, `dobags` `CS:0x3E2D`, `monai` `CS:0x2E75`.  `domonsters` and
+  `monai` match the port's `randno(15-levof10())` / `randno(levof10()+5)`
+  paths exactly.
+- **Bonus timer solved**: `initbonusmode` (`CS:0x5528`) is
+  `250 - levof10()*20`, `startbonustimeleft=20`, `bonusmode=1`; the port
+  matches.  `createbonus`/`endbonusmode`/`erasebonus` are in `game.c`.
+- **Score I/O solved**: there is no INT 21h file I/O.  `loadscores`
+  (`CS:0x5DED`) and `savescores` (`CS:0x6521`) use INT 13h to read/write
+  sector 7 of cylinder 39, head 0, into the 512-byte buffer at `DS:0x0046`.
+  The format matches the port's `.sco` file.  The `DS:0x4690` block is a
+  default image/legacy table with no direct code reference.
 
 ## High priority
 
-- **RNG**: identify the original random-number routine and its seed source.
-  The port's multiplier `0x15A4E35` is not present in the binary, there is no
-  `idiv word [bp+disp]`, and the long-divide helper is only called from number
-  formatting.  The original is likely a 16-bit or inlined generator, or a
-  table.  Continue by tracing calls from the monster/fire update functions.
-- **Game logic**: map the original functions for `digger.c`, `monster.c`,
-  `bags.c`, `drawing.c`, and input/joystick to the port, then reconstruct the
-  high-value routines (movement, collision, scoring).
-- **Bonus-mode timer**: locate the original's bonus duration.  The port uses
-  `250 - 20*level` frames; this decides whether the 5.4 s `T1` bonus jingle
-  reaches the embedded score block at `DS:0x4690`.
-- **Score file I/O**: locate the open/read/write path and confirm the embedded
-  default-score block at `DS:0x4690` is copied or written to disk.
+- **Line-level game logic**: reconstruct the movement, collision, and drawing
+  bodies behind the mapped functions (`dodigger`, `dobags`, `monai`, the
+  drawing routines) against the port.  The main loop, monster loop, RNG,
+  bonus mode, and score I/O are done.
 
 ## CGA / DOSBox
 
