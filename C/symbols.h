@@ -57,7 +57,15 @@ typedef int32_t  s32;
 #define CS_MUSIC                0x7A70u
 #define CS_MUSICUPDATE          0x7B02u
 #define CS_GETLEVCH             0x8001u
-#define CS_MAIN_TITLE           0x82A6u  /* probable */
+#define CS_MAIN_TITLE           0x82A6u  /* verified: title/menu + life loop */
+#define CS_DRAWGLYPH            0x08E5u  /* glyph draw: [w][h][2bpp rows] in DS */
+#define CS_DRAWCHAR             0x11E4u  /* character -> glyph pointer table at 0x1523 */
+#define CS_WRITESTRING          0x11A4u  /* (DS string, x, y, colour); 12 px cells */
+#define CS_DISKCHECK            0x026Cu  /* returns 0x45 on success, 0 on failure */
+#define CS_HANG                 0x08BE0u  /* infinite loop on a failed check */
+#define CS_INPUT_INIT           0x5B3Fu  /* keyboard-controller reset */
+#define CS_READKEY              0x5C5Eu  /* nonzero starts the game from the title */
+#define CS_INSTALL_KEYBOARD     0x0E06u  /* hooks the keyboard interrupt */
 #define CS_SOUND_OFF            0x7CC9u  /* probable: speaker off + timer 0 idle */
 #define CS_INITSOUND            0x7D10u  /* probable */
 #define CS_SETT0                0x7DD9u  /* verified */
@@ -316,6 +324,20 @@ typedef int32_t  s32;
 #define DS_SCOREHIGH            0x4108u  /* 12 x 32-bit */
 #define DS_SCOREINIT            0x4134u  /* 11 x 4 chars */
 #define DS_LEVNOTDRAWN          0x5010u
+#define DS_LEVNOTDRAWN1         0x5012u
+#define DS_CHECKBYTE            0x5016u  /* 0x45 when the disk signature check passed */
+#define DS_NPLAYERS             0x500Eu
+#define DS_MENUFLAG             0x0665u
+#define DS_KEYPRESSED           0x0658u
+#define DS_TITLE_ORDER          0x4FBEu  /* 16-word alternate sprite order */
+#define DS_STR_TITLE            0x5018u  /* "D I G G E R" */
+#define DS_STR_BLANK12          0x5024u
+#define DS_STR_NOBBIN           0x5031u
+#define DS_STR_HOBBIN           0x5038u
+#define DS_STR_DIGGER           0x503Fu
+#define DS_STR_GOLD             0x5046u
+#define DS_STR_EMERALD          0x504Bu
+#define DS_STR_BONUS            0x5053u
 #define DS_PLAYER_DEAD          0x4FDEu  /* per-player: +8*curplayer; setdead() */
 #define DS_FIELD                0x4438u  /* 15x10 words, row stride 0x1E */
 #define DS_FIELD0               0x41E0u  /* saved field, player 0 */

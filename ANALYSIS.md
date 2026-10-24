@@ -322,6 +322,18 @@ erasemonsters/countem sequence.
   `initchars` `CS:0x89E4` calls `initmbspr` `0x1A03`, `initdigger`,
   `initmonsters`. See `C/drawing.c`.
 
+- **Start-up and title screen** — `main` `CS:0x82A6`: video/sound init,
+  a 10-try disk signature check (`diskcheck` `0x026C`: sector-2 byte `0x0E`
+  plus BIOS `0x40:0x42..0x44` = `40 20 20`; failure hangs in `0x08BE0`),
+  `loadscores`, `initsound`, then the title. The title blits the RLE bitmap
+  (`0x17EB`), prints `"D I G G E R"`, and runs a scripted animation:
+  nobbin/hobbin/digger runs at frames `0x32/0x5A/0x82`, gold `0xB2`,
+  emerald `0xC6`, bonus `0xDA`, with labels `NOBBIN`/`HOBBIN`/`DIGGER`/
+  `GOLD`/`EMERALD`/`BONUS`. Frame 250 wraps. After a key (`readkey`
+  `0x5C5E`), the life loop starts each player with level 1 and 3 lives and
+  calls `initmbspr` + `game` per frame. The title text uses a 64-entry
+  font (`CS:0x1523`) of `[w][h][2bpp]` glyphs; `writestring` advances 12
+  pixels per character (`drawglyph` `0x08E5`, `drawchar` `0x11E4`).
 - **Sprite engine** — 16 sprites plus a misc slot; per-sprite property arrays
   at `DS:0x03CF..0x0603` (`sprrdrwf`, `sprrecf`, `sprenf`, sources, boxes,
   sizes) and the draw-order table at `0x0627` (0..15). `setrdrwflgs`
@@ -417,8 +429,8 @@ reference; it is a default/legacy score image. The sector-2 read/check
 
 - Decode the CGA sprite/tile data behind the source addresses
   (`CS:0x16E4..0x3B00`) and the title bitmap.
-- Reconstruct the title-screen/menu code (`CS:0x82A6`) and its glyph drawer
-  `0x08E5`, plus the remaining INT 10h teletype/scroll path.
+- Reconstruct the remaining score/menu display helpers (`0x6407`, `0x646E`,
+  `0x8984`) and the INT 10h teletype/scroll path used under the custom CRTC.
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.

@@ -813,3 +813,45 @@ Committed the sprite engine and pixel layer (9 files). Continuing with the title
 - **Original-vs-port difference**: the edge-wrapping retries (`+320/-2`, `-640/+4`) in `setrdrwflgs`/`bcollides` are present in the original and reproduced here.
 
 Artifacts: `C/sprite.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.
+
+### Assistant
+
+Committed the sprite engine as `ae8abe5` (9 files), then finished the title-screen/menu code in a new `C/main.c`.
+
+**`main` (`CS:0x82A6`)**
+- Video/sound init (`setretr`, `cga_init`, `gpal`, `ginten`), keyboard hook, then a 10-try disk-signature check; failure hangs forever (`0x08BE0`).
+- `loadscores`, `initsound`, title setup with the alternate sprite draw order at `DS:0x4FBE`, `creatembspr`, RLE title blit, and `"D I G G E R"`.
+- Scripted title animation: nobbin at frame `0x32`, hobbin `0x5A`, digger `0x82`, gold `0xB2`, emerald `0xC6`, bonus `0xDA`, with `NOBBIN`/`HOBBIN`/`DIGGER`/`GOLD`/`EMERALD`/`BONUS` labels; the counter wraps at 250 and any normal key press cuts the 45-tick pacing loop short.
+- On a key, the life loop starts each player with level 1 / 3 lives, calls `initmbspr` + `game` every frame, and switches players until both are out, then returns to the title.
+
+**Title text**
+- 64-entry glyph table at `CS:0x1523` (space, `.`, `0-9`, `A-Z`, `_`), glyphs `[width][height][2bpp rows]` in the data segment.
+- `drawglyph` (`0x08E5`), `drawchar` (`0x11E4`), `writestring` (`0x11A4`, 12-pixel cells), colour via the replicated 2-bit mask `DS:0x0623`.
+
+**Copy protection**
+- `read_sector2` (`0x0321`) → `disk_signature` (`0x02F3`): sector-2 byte `0x0E` plus BIOS `0x40:0x42..0x44` = `40 20 20`; `diskcheck` (`0x026C`) returns `0x45` on success. `game()` re-checks the stored byte every frame.
+
+Artifacts updated: `SYMBOLS.md` (function/data tables incl. strings and font), `ANALYSIS.md`, `C/README.md`, `TODO.md`, `symbols.h`, 12 new `.lst` labels, and `digger.dat` annotations.
+
+All `C/*.c` compile with `-std=c99 -Wall -Wextra`. Uncommitted: `main.c` plus artifact updates. Remaining: the score/menu display helpers (`0x6407`, `0x646E`, `0x8984`), the INT 10h teletype/scroll path, and decoding the sprite/tile data and title bitmap. Both `.swp` files remain untouched.
+
+## Title screen, menu, font and life loop
+
+Previous commit: ae8abe5
+
+### User
+
+commit it
+
+### Assistant
+
+Committed the title-screen/menu code (9 files).
+
+## What was added
+
+- **`main`** (`CS:0x82A6`): init, the 10-try sector-2 signature check with `hang()` on failure, title RLE blit and `"D I G G E R"`, the scripted animation at frames `0x32/0x5A/0x82/0xB2/0xC6/0xDA` with its labels, the 250-frame wrap, the key wait, and the two-player life loop (`initmbspr` + `game` per frame, player switching, back to the title when both are out).
+- **Title text**: 64-entry glyph table `CS:0x1523`, `drawglyph`/`drawchar`/`writestring`, 12-pixel cells, colour via `DS:0x0623`.
+- **Copy protection**: `read_sector2`/`disk_signature`/`diskcheck`, sector-2 byte `0x0E` and BIOS `0x40:0x42..0x44`.
+- **Data**: alternate title sprite order at `DS:0x4FBE`; strings `D I G G E R`, `NOBBIN`, `HOBBIN`, `DIGGER`, `GOLD`, `EMERALD`, `BONUS`, `PLAYER `, `1`, `2`.
+
+Artifacts: `C/main.c`, `C/sprite.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.

@@ -85,7 +85,17 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x7FA2` | `0x7EA2` | `sett2val` | verified | If `sndflag`, writes a 16-bit divisor to port `0x42`. |
 | `0x7FD5` | `0x7ED5` | `timer2` / `timer2_write` | verified | Writes a 16-bit divisor to port `0x42` (LSB then MSB). |
 | `0x8001` | `0x7F01` | `getlevch` | verified | Switches on level 1..8; `y*15+x`; per-level bases. |
-| `0x82A6` | `0x81A6` | `main`/title loop? | probable | Calls init/score/title routines; reads keys; prints `DS:0x4FBE`. |
+| `0x82A6` | `0x81A6` | `main`/title | verified | Video/sound init, the 10-try disk signature check, title animation (scripted frames 0x32..0xDF), menu key wait, then the two-player life loop calling `initmbspr` + `game` per frame. |
+| `0x08E5` | `0x07E5` | `drawglyph` | verified | Reads `[w][h]` at the DS pointer; draws with `gputich` and the colour byte `DS:0x0623`. |
+| `0x11E4` | `0x10E4` | `drawchar` | verified | `ch-0x20` indexes the 64-entry glyph table at `CS:0x1523`; only space, `.`, digits, A-Z, `_` exist. |
+| `0x11A4` | `0x10A4` | `writestring` | verified | Walks a NUL-terminated DS string, one 12-pixel cell per character. |
+| `0x026C` | `0x016C` | `diskcheck` | verified | Calls the sector-2 signature check twice; returns `0x45` on success, `0` otherwise. |
+| `0x02F3` | `0x01F3` | `disk_signature` | verified | Sector-2 byte `0x0E` plus BIOS `0x40:0x42..0x44` = `40 20 20`. |
+| `0x0321` | `0x0221` | `read_sector2` | verified | INT 13h AH=2, cylinder 0x27, sector 2. |
+| `0x08BE0` | `0x08AE0` | `hang` | verified | Infinite loop; called when the signature check fails. |
+| `0x5B3F` | `0x5A3F` | `input_init` | verified | Resets the keyboard-controller/input state. |
+| `0x5C5E` | `0x5B5E` | `readkey` | verified | Returns nonzero when a normal key press should start the game. |
+| `0x0E06` | `0x0D06` | `install_keyboard` | verified | Saves the old keyboard vector and installs the handler. |
 | `0x8C7D` | `0x8B7D` | `long_divide`? | probable | C runtime 32-bit divide helper. |
 | `0x8DDD` | `0x8CDD` | `inportb`? | probable | C runtime port read helper. |
 | `0x8DE8` | `0x8CE8` | `outportb`? | probable | C runtime port write helper. |
@@ -259,6 +269,11 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x4F28` | `0xDC98` | 150 B | level 8 | verified |
 | `0x4FBE` | `0xDD2E` | text | NUL-separated UI strings | verified |
 | `0x509A` | `0xDE0A` | 257 B | C `ctype` / character-class table | verified |
+| `0x4FBE` | `0xDD2E` | 32 B | title sprite draw order: `14,13,7,6,5,4,3,2,1,12,11,10,9,8,15,0` | verified |
+| `0x5018` | `0xDD88` | text | `"D I G G E R"` title string | verified |
+| `0x5024` | `0xDD94` | text | twelve-space menu clear line | verified |
+| `0x5031..0x5065` | `0xDDA1..0xDDD5` | text | `NOBBIN`, `HOBBIN`, `DIGGER`, `GOLD`, `EMERALD`, `BONUS`, `PLAYER `, `1`, `2` | verified |
+| `0x06B6..0x0C80` | `0x9426..0x99F0` | 64 glyphs | title font: `[w][h][2bpp rows]`, 39-byte slots | verified |
 | `0x4438` | `0xD1A8` | 300 B | play field, 15x10 16-bit cells (row stride 0x1E) | verified |
 | `0x4018` | `0xCD88` | 150 B | emerald map, 15x10 bytes (row stride 0x0F) | verified |
 | `0x40AE` | `0xCE1E` | 2 B | `emmask`, per-player emerald mask | verified |

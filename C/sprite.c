@@ -96,6 +96,7 @@ void erasespr(int spr);
 int drawspr(int spr, int x, int y);
 
 static u8 csseg[0x10000];      /* the loaded .COM image; sprite sources are CS offsets */
+u8 dsseg[0x10000];             /* data segment; glyphs and strings are DS offsets */
 static u8 cga_mem[0x4000];     /* B800 framebuffer */
 static u8 sprmaskbyte;          /* DS:0x0623 */
 
@@ -146,17 +147,21 @@ static void gputim(int x, int y, int data, int mask, int w, int h)
     }
 }
 
-/* CS:0x0C1E (file 0x0B1E) - used by the title/text glyph path. */
-void gputich(int x, int y, int data, int w, int h)
+/* CS:0x0C1E (file 0x0B1E) - used by the title/text glyph path.  The glyph
+ * data lives in the data segment; the colour byte (DS:0x0623) is the 2-bit
+ * colour replicated across all four pixels of a byte. */
+void gputich(int x, int y, int data, int w, int h, int color)
 {
     int row;
 
+    sprmaskbyte = (u8)((color & 3) | ((color & 3) << 2) |
+                       ((color & 3) << 4) | ((color & 3) << 6));
     for (row = 0; row < h; row++) {
         u16 dst = pixel_addr(x, y + row);
         int i;
         for (i = 0; i < w; i++)
             cga_mem[(u16)(dst + i)] =
-                (u8)(csseg[(u16)(data + row * w + i)] & sprmaskbyte);
+                (u8)(dsseg[(u16)(data + row * w + i)] & sprmaskbyte);
     }
 }
 
