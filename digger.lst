@@ -2374,6 +2374,7 @@ Disassembly of section .data:
     1823:	5d                   	pop    bp
     1824:	07                   	pop    es
     1825:	c3                   	ret    
+; --- creatembspr (sprite bank setup) ---
     1826:	55                   	push   bp
     1827:	83 ec 06             	sub    sp,0x6
     182a:	8b ec                	mov    bp,sp
@@ -2612,6 +2613,7 @@ Disassembly of section .data:
     19fe:	83 c4 06             	add    sp,0x6
     1a01:	5d                   	pop    bp
     1a02:	c3                   	ret    
+; --- initmbspr (sprite init) ---
     1a03:	55                   	push   bp
     1a04:	8b ec                	mov    bp,sp
     1a06:	33 c0                	xor    ax,ax
@@ -2812,6 +2814,7 @@ Disassembly of section .data:
     1b7f:	e8 e5 05             	call   0x2167
     1b82:	5d                   	pop    bp
     1b83:	c3                   	ret    
+; --- drawmon (probable: returns sprite collision mask) ---
     1b84:	55                   	push   bp
     1b85:	83 ec 08             	sub    sp,0x8
     1b88:	8b ec                	mov    bp,sp
@@ -3072,6 +3075,7 @@ Disassembly of section .data:
     1dd6:	83 c4 08             	add    sp,0x8
     1dd9:	5d                   	pop    bp
     1dda:	c3                   	ret    
+; --- drawmondie (probable) ---
     1ddb:	55                   	push   bp
     1ddc:	83 ec 06             	sub    sp,0x6
     1ddf:	8b ec                	mov    bp,sp
@@ -3160,6 +3164,7 @@ Disassembly of section .data:
     1e98:	83 c4 06             	add    sp,0x6
     1e9b:	5d                   	pop    bp
     1e9c:	c3                   	ret    
+; --- drawgold (frames 4/5/6) ---
     1e9d:	55                   	push   bp
     1e9e:	83 ec 04             	sub    sp,0x4
     1ea1:	8b ec                	mov    bp,sp
@@ -4058,6 +4063,7 @@ Disassembly of section .data:
     263b:	8b e5                	mov    sp,bp
     263d:	5d                   	pop    bp
     263e:	c3                   	ret    
+; --- drawdig (digger animation/sprite) ---
     263f:	55                   	push   bp
     2640:	83 ec 04             	sub    sp,0x4
     2643:	8b ec                	mov    bp,sp
@@ -4726,6 +4732,7 @@ Disassembly of section .data:
     2bbc:	83 c4 04             	add    sp,0x4
     2bbf:	5d                   	pop    bp
     2bc0:	c3                   	ret    
+; --- initmonsters ---
     2bc1:	55                   	push   bp
     2bc2:	83 ec 04             	sub    sp,0x4
     2bc5:	8b ec                	mov    bp,sp
@@ -4778,6 +4785,7 @@ Disassembly of section .data:
     2c53:	83 c4 04             	add    sp,0x4
     2c56:	5d                   	pop    bp
     2c57:	c3                   	ret    
+; --- erasemonsters ---
     2c58:	55                   	push   bp
     2c59:	83 ec 04             	sub    sp,0x4
     2c5c:	8b ec                	mov    bp,sp
@@ -4800,7 +4808,7 @@ Disassembly of section .data:
     2c8b:	83 c4 04             	add    sp,0x4
     2c8e:	5d                   	pop    bp
     2c8f:	c3                   	ret    
-; --- domonsters (6 monsters, randno(15-levof10())) ---
+; --- domonsters (verified: 6 monsters, stride 0x28, randno(15-levof10())) ---
     2c90:	55                   	push   bp
     2c91:	83 ec 06             	sub    sp,0x6
     2c94:	8b ec                	mov    bp,sp
@@ -4919,7 +4927,7 @@ Disassembly of section .data:
     2dce:	83 c4 06             	add    sp,0x6
     2dd1:	5d                   	pop    bp
     2dd2:	c3                   	ret    
-; --- createmonster? ---
+; --- createmonster (verified: fills the 0x28 record, stime=5) ---
     2dd3:	55                   	push   bp
     2dd4:	83 ec 0a             	sub    sp,0xa
     2dd7:	8b ec                	mov    bp,sp
@@ -4969,7 +4977,7 @@ Disassembly of section .data:
     2e70:	83 c4 0a             	add    sp,0xa
     2e73:	5d                   	pop    bp
     2e74:	c3                   	ret    
-; --- monai (randno(levof10()+5) direction swap) ---
+; --- monai (verified direction selection; movement branch at 0x306A) ---
     2e75:	55                   	push   bp
     2e76:	83 ec 20             	sub    sp,0x20
     2e79:	8b ec                	mov    bp,sp
@@ -5137,6 +5145,7 @@ Disassembly of section .data:
     3061:	8b 5e 1c             	mov    bx,WORD PTR [bp+0x1c]
     3064:	89 46 1c             	mov    WORD PTR [bp+0x1c],ax
     3067:	89 5e 1a             	mov    WORD PTR [bp+0x1a],bx
+; --- monai movement branch (xr/yr nonzero or after direction selection) ---
     306a:	e8 20 5a             	call   0x8a8d
     306d:	05 05 00             	add    ax,0x5
     3070:	50                   	push   ax
@@ -5684,6 +5693,7 @@ Disassembly of section .data:
     367d:	83 c4 20             	add    sp,0x20
     3680:	5d                   	pop    bp
     3681:	c3                   	ret    
+; --- mondie ---
     3682:	55                   	push   bp
     3683:	83 ec 0c             	sub    sp,0xc
     3686:	8b ec                	mov    bp,sp
@@ -5766,6 +5776,7 @@ Disassembly of section .data:
     3762:	83 c4 0c             	add    sp,0xc
     3765:	5d                   	pop    bp
     3766:	c3                   	ret    
+; --- collision_penalties (one incpenalty per monster bit) ---
     3767:	55                   	push   bp
     3768:	83 ec 06             	sub    sp,0x6
     376b:	8b ec                	mov    bp,sp
@@ -5783,6 +5794,7 @@ Disassembly of section .data:
     3790:	83 c4 06             	add    sp,0x6
     3793:	5d                   	pop    bp
     3794:	c3                   	ret    
+; --- monster_collisions (reverse same-direction monsters) ---
     3795:	55                   	push   bp
     3796:	83 ec 0c             	sub    sp,0xc
     3799:	8b ec                	mov    bp,sp
@@ -5829,6 +5841,7 @@ Disassembly of section .data:
     3810:	83 c4 0c             	add    sp,0xc
     3813:	5d                   	pop    bp
     3814:	c3                   	ret    
+; --- fieldclear ---
     3815:	55                   	push   bp
     3816:	83 ec 06             	sub    sp,0x6
     3819:	8b ec                	mov    bp,sp
@@ -5987,6 +6000,7 @@ Disassembly of section .data:
     39a4:	83 c4 06             	add    sp,0x6
     39a7:	5d                   	pop    bp
     39a8:	c3                   	ret    
+; --- killmon ---
     39a9:	55                   	push   bp
     39aa:	83 ec 04             	sub    sp,0x4
     39ad:	8b ec                	mov    bp,sp
@@ -6092,6 +6106,7 @@ Disassembly of section .data:
     3ab6:	83 c4 02             	add    sp,0x2
     3ab9:	5d                   	pop    bp
     3aba:	c3                   	ret    
+; --- nmononscr ---
     3abb:	55                   	push   bp
     3abc:	83 ec 06             	sub    sp,0x6
     3abf:	8b ec                	mov    bp,sp
@@ -6135,11 +6150,13 @@ Disassembly of section .data:
     3b21:	83 c4 04             	add    sp,0x4
     3b24:	5d                   	pop    bp
     3b25:	c3                   	ret    
+; --- mongold (sets DS:0x3C0C) ---
     3b26:	55                   	push   bp
     3b27:	8b ec                	mov    bp,sp
     3b29:	c7 06 0c 3c 01 00    	mov    WORD PTR ds:0x3c0c,0x1
     3b2f:	5d                   	pop    bp
     3b30:	c3                   	ret    
+; --- initbags (goldtime = 150 - 10*levof10) ---
     3b31:	55                   	push   bp
     3b32:	83 ec 16             	sub    sp,0x16
     3b35:	8b ec                	mov    bp,sp
@@ -6257,6 +6274,7 @@ Disassembly of section .data:
     3c8e:	83 c4 16             	add    sp,0x16
     3c91:	5d                   	pop    bp
     3c92:	c3                   	ret    
+; --- drawbags ---
     3c93:	55                   	push   bp
     3c94:	83 ec 0e             	sub    sp,0xe
     3c97:	8b ec                	mov    bp,sp
@@ -6404,7 +6422,7 @@ Disassembly of section .data:
     3e28:	83 c4 0e             	add    sp,0xe
     3e2b:	5d                   	pop    bp
     3e2c:	c3                   	ret    
-; --- dobags? ---
+; --- dobags (verified: 7 bags, stride 0x28, gold frames 4/5/6) ---
     3e2d:	55                   	push   bp
     3e2e:	83 ec 10             	sub    sp,0x10
     3e31:	8b ec                	mov    bp,sp
@@ -6563,6 +6581,7 @@ Disassembly of section .data:
     3fe8:	83 c4 10             	add    sp,0x10
     3feb:	5d                   	pop    bp
     3fec:	c3                   	ret    
+; --- updatebag ---
     3fed:	55                   	push   bp
     3fee:	83 ec 12             	sub    sp,0x12
     3ff1:	8b ec                	mov    bp,sp
@@ -7159,6 +7178,7 @@ Disassembly of section .data:
     4667:	83 c4 22             	add    sp,0x22
     466a:	5d                   	pop    bp
     466b:	c3                   	ret    
+; --- pushbags ---
     466c:	55                   	push   bp
     466d:	83 ec 08             	sub    sp,0x8
     4670:	8b ec                	mov    bp,sp
@@ -7185,6 +7205,7 @@ Disassembly of section .data:
     46ad:	83 c4 08             	add    sp,0x8
     46b0:	5d                   	pop    bp
     46b1:	c3                   	ret    
+; --- pushudbags ---
     46b2:	55                   	push   bp
     46b3:	83 ec 08             	sub    sp,0x8
     46b6:	8b ec                	mov    bp,sp
@@ -7215,6 +7236,7 @@ Disassembly of section .data:
     46fe:	83 c4 08             	add    sp,0x8
     4701:	5d                   	pop    bp
     4702:	c3                   	ret    
+; --- removebag ---
     4703:	55                   	push   bp
     4704:	83 ec 04             	sub    sp,0x4
     4707:	8b ec                	mov    bp,sp
@@ -7232,6 +7254,7 @@ Disassembly of section .data:
     472b:	83 c4 04             	add    sp,0x4
     472e:	5d                   	pop    bp
     472f:	c3                   	ret    
+; --- bagy ---
     4730:	55                   	push   bp
     4731:	83 ec 02             	sub    sp,0x2
     4734:	8b ec                	mov    bp,sp
@@ -7243,6 +7266,7 @@ Disassembly of section .data:
     4744:	83 c4 02             	add    sp,0x2
     4747:	5d                   	pop    bp
     4748:	c3                   	ret    
+; --- getbagdir ---
     4749:	55                   	push   bp
     474a:	83 ec 04             	sub    sp,0x4
     474d:	8b ec                	mov    bp,sp
@@ -7261,6 +7285,7 @@ Disassembly of section .data:
     476f:	83 c4 04             	add    sp,0x4
     4772:	5d                   	pop    bp
     4773:	c3                   	ret    
+; --- bagmask (OR of 1<<bag for existing bags) ---
     4774:	55                   	push   bp
     4775:	83 ec 08             	sub    sp,0x8
     4778:	8b ec                	mov    bp,sp
@@ -7284,6 +7309,7 @@ Disassembly of section .data:
     47b0:	83 c4 08             	add    sp,0x8
     47b3:	5d                   	pop    bp
     47b4:	c3                   	ret    
+; --- removebags ---
     47b5:	55                   	push   bp
     47b6:	83 ec 06             	sub    sp,0x6
     47b9:	8b ec                	mov    bp,sp
@@ -7372,6 +7398,7 @@ Disassembly of section .data:
     489b:	83 c4 0a             	add    sp,0xa
     489e:	5d                   	pop    bp
     489f:	c3                   	ret    
+; --- initdigger ---
     48a0:	55                   	push   bp
     48a1:	83 ec 02             	sub    sp,0x2
     48a4:	8b ec                	mov    bp,sp
@@ -7427,7 +7454,7 @@ Disassembly of section .data:
     4931:	c7 06 f4 3f 00 00    	mov    WORD PTR ds:0x3ff4,0x0
     4937:	5d                   	pop    bp
     4938:	c3                   	ret    
-; --- dodigger? ---
+; --- dodigger (verified: calls drawdig/updatefire/updatedigger/diggerdie, bonus block) ---
     4939:	55                   	push   bp
     493a:	83 ec 02             	sub    sp,0x2
     493d:	8b ec                	mov    bp,sp
@@ -7525,6 +7552,7 @@ Disassembly of section .data:
     4a39:	83 c4 02             	add    sp,0x2
     4a3c:	5d                   	pop    bp
     4a3d:	c3                   	ret    
+; --- updatefire ---
     4a3e:	55                   	push   bp
     4a3f:	83 ec 0e             	sub    sp,0xe
     4a42:	8b ec                	mov    bp,sp
@@ -7899,6 +7927,7 @@ Disassembly of section .data:
     4e61:	83 c4 0e             	add    sp,0xe
     4e64:	5d                   	pop    bp
     4e65:	c3                   	ret    
+; --- drawexplosion ---
     4e66:	55                   	push   bp
     4e67:	8b ec                	mov    bp,sp
     4e69:	a1 00 40             	mov    ax,ds:0x4000
@@ -7957,6 +7986,7 @@ Disassembly of section .data:
     4f02:	83 c4 02             	add    sp,0x2
     4f05:	5d                   	pop    bp
     4f06:	c3                   	ret    
+; --- updatedigger ---
     4f07:	55                   	push   bp
     4f08:	83 ec 1a             	sub    sp,0x1a
     4f0b:	8b ec                	mov    bp,sp
@@ -8233,6 +8263,7 @@ Disassembly of section .data:
     5213:	83 c4 1a             	add    sp,0x1a
     5216:	5d                   	pop    bp
     5217:	c3                   	ret    
+; --- diggerdie ---
     5218:	55                   	push   bp
     5219:	83 ec 04             	sub    sp,0x4
     521c:	8b ec                	mov    bp,sp
@@ -8565,6 +8596,7 @@ Disassembly of section .data:
     5594:	8b e5                	mov    sp,bp
     5596:	5d                   	pop    bp
     5597:	c3                   	ret    
+; --- sceatm (addscore(msc*200), msc <<= 1) ---
     5598:	55                   	push   bp
     5599:	83 ec 02             	sub    sp,0x2
     559c:	8b ec                	mov    bp,sp
@@ -8578,11 +8610,13 @@ Disassembly of section .data:
     55b0:	83 c4 02             	add    sp,0x2
     55b3:	5d                   	pop    bp
     55b4:	c3                   	ret    
+; --- bonusmode getter (DS:0x4012) ---
     55b5:	55                   	push   bp
     55b6:	8b ec                	mov    bp,sp
     55b8:	a1 12 40             	mov    ax,ds:0x4012
     55bb:	5d                   	pop    bp
     55bc:	c3                   	ret    
+; --- reversedir ---
     55bd:	55                   	push   bp
     55be:	8b ec                	mov    bp,sp
     55c0:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -8646,21 +8680,25 @@ Disassembly of section .data:
     564b:	83 c4 04             	add    sp,0x4
     564e:	5d                   	pop    bp
     564f:	c3                   	ret    
+; --- diggerx (DS:0x3FDE) ---
     5650:	55                   	push   bp
     5651:	8b ec                	mov    bp,sp
     5653:	a1 de 3f             	mov    ax,ds:0x3fde
     5656:	5d                   	pop    bp
     5657:	c3                   	ret    
+; --- diggery (DS:0x3FE0) ---
     5658:	55                   	push   bp
     5659:	8b ec                	mov    bp,sp
     565b:	a1 e0 3f             	mov    ax,ds:0x3fe0
     565e:	5d                   	pop    bp
     565f:	c3                   	ret    
+; --- digalive (DS:0x3FF2) ---
     5660:	55                   	push   bp
     5661:	8b ec                	mov    bp,sp
     5663:	a1 f2 3f             	mov    ax,ds:0x3ff2
     5666:	5d                   	pop    bp
     5667:	c3                   	ret    
+; --- killdigger (single digger: death, bag) ---
     5668:	55                   	push   bp
     5669:	83 ec 02             	sub    sp,0x2
     566c:	8b ec                	mov    bp,sp
@@ -8709,6 +8747,7 @@ Disassembly of section .data:
     56e3:	83 c4 06             	add    sp,0x6
     56e6:	5d                   	pop    bp
     56e7:	c3                   	ret    
+; --- makeemfield ---
     56e8:	55                   	push   bp
     56e9:	83 ec 0a             	sub    sp,0xa
     56ec:	8b ec                	mov    bp,sp
@@ -8760,6 +8799,7 @@ Disassembly of section .data:
     5772:	83 c4 0a             	add    sp,0xa
     5775:	5d                   	pop    bp
     5776:	c3                   	ret    
+; --- drawemeralds ---
     5777:	55                   	push   bp
     5778:	83 ec 08             	sub    sp,0x8
     577b:	8b ec                	mov    bp,sp
@@ -8804,6 +8844,7 @@ Disassembly of section .data:
     57ec:	83 c4 08             	add    sp,0x8
     57ef:	5d                   	pop    bp
     57f0:	c3                   	ret    
+; --- hitemerald ---
     57f1:	55                   	push   bp
     57f2:	83 ec 08             	sub    sp,0x8
     57f5:	8b ec                	mov    bp,sp
@@ -10466,9 +10507,9 @@ Disassembly of section .data:
     689a:	83 c4 0a             	add    sp,0xa
     689d:	5d                   	pop    bp
     689e:	c3                   	ret    
+; --- scorekill (verified: addscore(250)) ---
     689f:	55                   	push   bp
     68a0:	8b ec                	mov    bp,sp
-; --- scorekill/scoreoctave wrapper  (250) ---
     68a2:	b8 fa 00             	mov    ax,0xfa
     68a5:	50                   	push   ax
     68a6:	e8 f8 f6             	call   0x5fa1
@@ -10644,6 +10685,7 @@ Disassembly of section .data:
     6a43:	83 c4 0e             	add    sp,0xe
     6a46:	5d                   	pop    bp
     6a47:	c3                   	ret    
+; --- makefield ---
     6a48:	55                   	push   bp
     6a49:	83 ec 10             	sub    sp,0x10
     6a4c:	8b ec                	mov    bp,sp
@@ -10730,6 +10772,7 @@ Disassembly of section .data:
     6b2c:	83 c4 10             	add    sp,0x10
     6b2f:	5d                   	pop    bp
     6b30:	c3                   	ret    
+; --- drawstatics ---
     6b31:	55                   	push   bp
     6b32:	83 ec 0e             	sub    sp,0xe
     6b35:	8b ec                	mov    bp,sp
@@ -11003,6 +11046,7 @@ Disassembly of section .data:
     6df9:	83 c4 10             	add    sp,0x10
     6dfc:	5d                   	pop    bp
     6dfd:	c3                   	ret    
+; --- eatfield ---
     6dfe:	55                   	push   bp
     6dff:	83 ec 10             	sub    sp,0x10
     6e02:	8b ec                	mov    bp,sp
@@ -11584,6 +11628,7 @@ Disassembly of section .data:
     7439:	c7 06 78 45 01 00    	mov    WORD PTR ds:0x4578,0x1
     743f:	5d                   	pop    bp
     7440:	c3                   	ret    
+; --- soundfalloff ---
     7441:	55                   	push   bp
     7442:	8b ec                	mov    bp,sp
     7444:	33 c0                	xor    ax,ax
@@ -11616,6 +11661,7 @@ Disassembly of section .data:
     7492:	83 c4 02             	add    sp,0x2
     7495:	5d                   	pop    bp
     7496:	c3                   	ret    
+; --- soundbreak ---
     7497:	55                   	push   bp
     7498:	83 ec 02             	sub    sp,0x2
     749b:	8b ec                	mov    bp,sp
@@ -11627,6 +11673,7 @@ Disassembly of section .data:
     74b7:	83 c4 02             	add    sp,0x2
     74ba:	5d                   	pop    bp
     74bb:	c3                   	ret    
+; --- soundbreakoff ---
     74bc:	55                   	push   bp
     74bd:	8b ec                	mov    bp,sp
     74bf:	c7 06 94 45 00 00    	mov    WORD PTR ds:0x4594,0x0
@@ -11691,6 +11738,7 @@ Disassembly of section .data:
     755c:	c7 06 7e 45 01 00    	mov    WORD PTR ds:0x457e,0x1
     7562:	5d                   	pop    bp
     7563:	c3                   	ret    
+; --- soundwobbleoff ---
     7564:	55                   	push   bp
     7565:	8b ec                	mov    bp,sp
     7567:	33 c0                	xor    ax,ax
@@ -11778,11 +11826,13 @@ Disassembly of section .data:
     7641:	83 c4 02             	add    sp,0x2
     7644:	5d                   	pop    bp
     7645:	c3                   	ret    
+; --- soundbonus ---
     7646:	55                   	push   bp
     7647:	8b ec                	mov    bp,sp
     7649:	c7 06 88 45 01 00    	mov    WORD PTR ds:0x4588,0x1
     764f:	5d                   	pop    bp
     7650:	c3                   	ret    
+; --- soundbonusoff ---
     7651:	55                   	push   bp
     7652:	8b ec                	mov    bp,sp
     7654:	33 c0                	xor    ax,ax
@@ -11993,6 +12043,7 @@ Disassembly of section .data:
     7889:	c7 06 a6 45 00 00    	mov    WORD PTR ds:0x45a6,0x0
     788f:	5d                   	pop    bp
     7890:	c3                   	ret    
+; --- soundeatm ---
     7891:	55                   	push   bp
     7892:	8b ec                	mov    bp,sp
     7894:	c7 06 aa 45 14 00    	mov    WORD PTR ds:0x45aa,0x14
@@ -13705,7 +13756,7 @@ Disassembly of section .data:
     899f:	83 c4 02             	add    sp,0x2
     89a2:	5d                   	pop    bp
     89a3:	c3                   	ret    
-; --- initlevel? ---
+; --- initlevel (levdone=0, makefield, makeemfield, initbags, levnotdrawn=1) ---
     89a4:	55                   	push   bp
     89a5:	83 ec 02             	sub    sp,0x2
     89a8:	8b ec                	mov    bp,sp
@@ -13721,7 +13772,7 @@ Disassembly of section .data:
     89c8:	83 c4 02             	add    sp,0x2
     89cb:	5d                   	pop    bp
     89cc:	c3                   	ret    
-; --- drawscreen? ---
+; --- drawscreen (creatembspr, drawstatics, drawbags, drawemeralds, initdigger, initmonsters) ---
     89cd:	55                   	push   bp
     89ce:	8b ec                	mov    bp,sp
     89d0:	e8 53 8e             	call   0x1826
@@ -13732,7 +13783,7 @@ Disassembly of section .data:
     89df:	e8 df a1             	call   0x2bc1
     89e2:	5d                   	pop    bp
     89e3:	c3                   	ret    
-; --- initchars? ---
+; --- initchars (initmbspr, initdigger, initmonsters) ---
     89e4:	55                   	push   bp
     89e5:	8b ec                	mov    bp,sp
     89e7:	e8 19 90             	call   0x1a03

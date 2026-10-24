@@ -232,8 +232,47 @@ port's `randno(levof10()+5)==1` direction swap. `initlevel` (`CS:0x89A4`),
 `drawscreen` (`CS:0x89CD`), `initchars` (`CS:0x89E4`), and `initscores`
 (`CS:0x5DE0`) map to the port. The post-level path matches the port's
 `getnmovingbags` loop plus the soundstop/erasebonus/cleanupbags/savefield/
-erasemonsters/countem sequence. Line-level movement/collision/drawing bodies
-remain to be reconstructed.
+erasemonsters/countem sequence.
+
+### Game-logic bodies
+
+- **`dodigger` `CS:0x4939`** — uses single-digger globals: x `0x3FDE`,
+  y `0x3FE0`, mdir `0x3FEA`, bagtime `0x3FF0`, alive `0x3FF2`, digvisible
+  `0x3FF4`, notfiring `0x3FF6`, rechargetime `0x3FF8`, expsn `0x4000`,
+  emocttime `0x4016`. It calls `drawdig` `0x263F`, `updatefire` `0x4A3E`,
+  `drawexplosion` `0x4E66`, `updatedigger` `0x4F07`, `diggerdie` `0x5218`,
+  and contains the bonus block (`bonusmode`/`bonustimeleft`/`startbonustimeleft`).
+  The port's `digdat[]` loop and simultaneous two-player mode are extensions.
+  Reconstructed in `C/digger.c`.
+- **`dobags` `CS:0x3E2D`** — bag records stride `0x28`: x `0x3E9A`, y `0x3E9C`,
+  h `0x3E9E`, v `0x3EA0`, dir `0x3EA6`, wobbling `0x3EA8`, exist `0x3EAE`,
+  gt `0x3EB0`, goldtime `0x3FDC`. Calls `soundbreak`, `drawgold`, `incpenalty`,
+  `removebag`, `getfield`, `updatebag`; matches the port's `dobags`.
+  Reconstructed in `C/bags.c`.
+- **`monai` `CS:0x2E75`** — the whole per-monster update matches the port:
+  hobbin conversion, digger-0 chase target (there is no per-monster `chase`
+  field in the original), priority list, `bonusmode` reversal, `reversedir`,
+  `randno(levof10()+5)` swap, `fieldclear` priority checks, the screen-edge
+  stop, `eatfield`/blob drawing and the +4/-4/+3/-3 movement, `hitemerald`,
+  `stime`/`hnt`, `drawmon`, the monster/bag/digger collision blocks, and the
+  final `h`/`v`/`xr`/`yr` update. Fields: flag `0x3B1C`, x `0x3B1E`, y
+  `0x3B20`, h `0x3B22`, v `0x3B24`, xr `0x3B26`, yr `0x3B28`, dir `0x3B2A`,
+  hdir `0x3B2C`, t `0x3B2E`, alive `0x3B30`, nob `0x3B32`, hnt `0x3B34`,
+  death `0x3B36`, bag `0x3B38`, dtime `0x3B3A`, stime `0x3B3C`.
+  `domonsters` (`CS:0x2C90`) also contains the spawn timer
+  (`nextmontime`, `createmonster`) and the `unbonusflag`/`createbonus`
+  step, matching the port. See `C/monster.c`.
+- **Monster helpers** — `initmonsters` `0x2BC1`, `erasemonsters` `0x2C58`,
+  `mondie` `0x3682`, `nmononscr` `0x3ABB`, `incmont` `0x3AEF`, `mongold`
+  `0x3B26`, `fieldclear` `0x3815`, collision routines `0x3795`/`0x3767`,
+  blob draws `0x21CC`/`0x2214`/`0x225C`/`0x22A2`, `killmon` `0x39A9`,
+  `killdigger` `0x5668`, `bagmask` `0x4774`, `removebags` `0x47B5`.
+- **Drawing calls** — `initlevel` `CS:0x89A4` calls `makefield` `0x6A48`,
+  `makeemfield` `0x56E8`, `initbags` `0x3B31`; `drawscreen` `CS:0x89CD` calls
+  `creatembspr` `0x1826`, `drawstatics` `0x6B31`, `drawbags` `0x3C93`,
+  `drawemeralds` `0x5777`, `initdigger` `0x48A0`, `initmonsters` `0x2BC1`;
+  `initchars` `CS:0x89E4` calls `initmbspr` `0x1A03`, `initdigger`,
+  `initmonsters`. See `C/drawing.c`.
 
 ### Bonus mode — `CS:0x5510..0x5575`
 
@@ -303,8 +342,9 @@ reference; it is a default/legacy score image. The sector-2 read/check
 
 ## Open items / next work
 
-- Reconstruct the line-level movement/collision/drawing bodies behind the
-  mapped game functions (`dodigger`, `dobags`, `monai`, the drawing routines).
+- Reconstruct the remaining movement/collision bodies: `updatefire`,
+  `updatedigger`, `diggerdie`, `updatebag`/`pushbags`/`pushudbags`,
+  `eatfield`/`hitemerald`, and the sprite/drawing routines.
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.

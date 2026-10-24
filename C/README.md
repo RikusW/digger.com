@@ -39,7 +39,14 @@ reconstructed from the 8086 disassembly.
 | Game loop + dodigger/domonsters/dobags/monai mapping | mapped | `game.c` |
 | Bonus mode (`createbonus`/`initbonusmode`/`endbonusmode`) | reconstructed | `game.c` |
 | Score I/O (INT 13h sector 7) | reconstructed/mapped | `game.c` |
-| Line-level movement/collision/drawing routines | remaining | `TODO.md` |
+| `dodigger` + per-digger state + bonus block | reconstructed | `digger.c` |
+| `dobags` bag physics loop | reconstructed | `bags.c` |
+| `domonsters`, `monai` (full update), `createmonster`, `mondie` | reconstructed | `monster.c` |
+| `initmonsters`, `erasemonsters`, `nmononscr`, `incmont`, `mongold` | reconstructed | `monster.c` |
+| `fieldclear`, monster collision/penalty, blob draws | reconstructed | `monster.c` |
+| `pushbags`, `pushudbags`, `removebags`, `bagmask`, `eatfield`, `hitemerald` | mapped (externs) | `monster.c` |
+| `initlevel`/`drawscreen`/`initchars` | reconstructed | `drawing.c` |
+| Digger/fire/bag movement details, sprite draw routines | remaining | `TODO.md` |
 
 See `ANALYSIS.md` for the comparison and exact-match findings.
 See `CGA.md` for the CGA mode/register analysis and the DOSBox failure

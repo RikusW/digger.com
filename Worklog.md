@@ -617,3 +617,62 @@ All changes are uncommitted. `C/.TODO.md.swp` (a vim swap file) and `C/rng.c` ar
 ### User
 
 Commit and continue with game logic
+
+### Assistant
+
+Continued the game-logic reconstruction and synchronized the artifacts.
+
+## Newly verified/reconstructed
+
+**`monai` movement branch (CS:0x306A onward)** — the "remaining" part is now fully mapped and matches the port step for step:
+- screen-edge stop → `dir = DIR_NONE`
+- `hdir` update for horizontal moves
+- `eatfield`, then the direction switch with `drawrightblob`/`drawtopblob`/`drawleftblob`/`drawbottomblob` (CS:0x21CC/0x225C/0x2214/0x22A2, verified by their `x±`, `y±` and sizes)
+- movement deltas `x±4`, `y∓3`, `hitemerald`, `digalive`, `stime`, `hnt`
+- `drawmon`, monster/bag/digger collision blocks, and the final `h/v/xr/yr` update
+
+**Monster module** (`C/monster.c`, rewritten):
+- full `domonsters` including the spawn timer (`nextmontime`, `createmonster`) and `unbonusflag` → `createbonus`
+- `initmonsters` (0x2BC1), `erasemonsters` (0x2C58), `createmonster` (0x2DD3), `mondie` (0x3682), `fieldclear` (0x3815), `nmononscr`, `incmont`, `mongold`
+- collision helpers 0x3767/0x3795
+
+Notable findings: the original has **no per-monster `chase` field** — it always chases digger 0; and `createbonus` ignores the extra word its caller pushes.
+
+## Corrected field maps
+
+- `0x3FDA` = `pushcount`, `0x3FDC` = global `goldtime` (`150 - levof10()*10`), not bag fields.
+- Monster record extends to `0x3B3C`: `hdir 0x3B2C`, `death 0x3B36`, `bag 0x3B38`, `dtime 0x3B3A`, `stime 0x3B3C`; the record is 0x28 bytes with three unreferenced trailing words.
+- Monster scheduling globals `0x3C0C..0x3C18` and digger `death/bag` at `0x4002/0x4004`.
+- `CS_CREATEMONSTER` was mis-typed as `0x3DD3`; fixed to `0x2DD3`.
+
+Updated `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst` (21 new labels), `digger.dat`, `C/symbols.h`, `README.md`, `TODO.md`. All `C/*.c` pass `gcc -fsyntax-only -std=c99 -Wall -Wextra`.
+
+Nothing committed for this batch yet; `C/.TODO.md.swp` is left untouched per `Agents.md`. Next in the queue is `updatefire` (0x4A3E), which I've started reading — it is a large routine with its own fireball state at `0x3FEE..0x4000`.
+
+## Reconstruct the full monster module and finish `monai`
+
+Previous commit: a5ce437
+
+### User
+
+Commit and continue
+
+### Assistant
+
+Committed the game-logic continuation.
+
+- `C/monster.c` — full `domonsters`/`monai`/`createmonster`/`mondie`, plus `initmonsters`, `erasemonsters`, `nmononscr`, `incmont`, `mongold`, `fieldclear` and the collision helpers.
+- `C/digger.c`, `C/bags.c`, `C/drawing.c` — the level-body reconstructions from the previous pass.
+- `SYMBOLS.md`, `ANALYSIS.md`, `C/symbols.h`, `C/README.md`, `C/TODO.md` — verified addresses and record layouts.
+- `digger.lst` / `digger.dat` — 21 new function labels and the monster/digger record maps.
+
+All `C/*.c` pass `gcc -fsyntax-only -std=c99 -Wall -Wextra`. The vim swap file is untouched and not committed. Next: `updatefire` (`CS:0x4A3E`).
+
+## What was added
+
+- **Full `monai`** (`CS:0x2E75`): direction selection (priority order, `bonusmode` reversal, `reversedir`, random swap, `fieldclear`), screen-edge stop, `hdir`, `eatfield`, blob drawing and the ±4/∓3 movement, `hitemerald`, `digalive`/`stime` rollback, `hnt`, `drawmon`, monster/bag/digger collisions, coordinate update.
+- **Monster scheduling** in `domonsters` (`CS:0x2C90`): `nextmontime`, `createmonster`, and the `unbonusflag` → `createbonus` step.
+- **Helper routines**: `initmonsters` (`0x2BC1`), `erasemonsters` (`0x2C58`), `createmonster` (`0x2DD3`), `mondie` (`0x3682`), `nmononscr` (`0x3ABB`), `incmont` (`0x3AEF`), `mongold` (`0x3B26`), collision routines `0x3767`/`0x3795`, `fieldclear` (`0x3815`), blob draws `0x21CC`/`0x2214`/`0x225C`/`0x22A2`, `killmon` (`0x39A9`), `killdigger` (`0x5668`), `bagmask` (`0x4774`), `removebags` (`0x47B5`).
+- **Corrections**: `pushcount` `0x3FDA` / global `goldtime` `0x3FDC`; monster record fields through `stime` `0x3B3C`; scheduling globals `0x3C0C..0x3C18`; digger `death`/`bag` `0x4002`/`0x4004`; `CS_CREATEMONSTER` fixed to `0x2DD3`.
+
+Artifacts: `C/monster.c` (rewritten), `C/digger.c`, `C/bags.c`, `C/drawing.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`.

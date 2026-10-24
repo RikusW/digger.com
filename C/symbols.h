@@ -17,6 +17,23 @@ typedef int16_t  s16;
 typedef uint32_t u32;
 typedef int32_t  s32;
 
+/* Direction values (same numbering as the port). */
+#define DIR_NONE  (-1)
+#define DIR_RIGHT 0
+#define DIR_UP    2
+#define DIR_LEFT  4
+#define DIR_DOWN  6
+
+#define MONSTERS 6
+#define BAGS     7
+
+/* Sprite-presence bits.  The original numbers the digger as sprite 0, the
+ * bags as 1..7 and the monsters as 8..13; drawmon() returns the set of
+ * sprites it overlapped. */
+#define COLL_DIGGER   0x0001
+#define COLL_BAG_BIT  0x00FE
+#define COLL_MON_BIT  0x3F00
+
 /* Code addresses (CS:IP). */
 #define CS_TIMER_ISR            0x0397u  /* INT 8 handler: PC speaker + soundint gate */
 #define CS_INT8_HOOK            0x0339u  /* saves old vector, points INT 8 at CS_TIMER_ISR */
@@ -119,6 +136,61 @@ typedef int32_t  s32;
 #define CS_SOUNDLEVDONE         0x7310u  /* probable */
 #define CS_MUSICOFF             0x7A63u  /* probable */
 #define CS_SOUNDSTOP            0x71D7u  /* probable */
+#define CS_DRAWDIG              0x263Fu  /* drawdig(t,x,y,f) */
+#define CS_UPDATEFIRE           0x4A3Eu  /* updatefire */
+#define CS_DRAWEXPLOSION        0x4E66u  /* drawexplosion */
+#define CS_UPDATEDIGGER         0x4F07u  /* updatedigger */
+#define CS_DIGGERDIE            0x5218u  /* diggerdie */
+#define CS_SOUNDBONUS           0x7646u
+#define CS_SOUNDBONUSOFF        0x7651u
+#define CS_UPDATEBAG            0x3FEDu
+#define CS_REMOVEBAG            0x4703u
+#define CS_GETFIELD             0x7207u
+#define CS_DRAWGOLD             0x1E9Du
+#define CS_SOUNDBREAK           0x7497u
+#define CS_DIGGERX              0x5650u
+#define CS_DIGGERY              0x5658u
+#define CS_REVERSEDIR           0x55BDu
+#define CS_BONUSMODE_GET        0x55B5u
+#define CS_CREATEMONSTER        0x2DD3u  /* verified: fills the 0x28 record, stime=5 */
+#define CS_INITBAGS             0x3B31u  /* verified: scans level for 'B' */
+#define CS_MAKEFIELD            0x6A48u  /* probable */
+#define CS_MAKEEMFIELD          0x56E8u  /* probable */
+#define CS_CREATEMBSPR          0x1826u  /* probable */
+#define CS_DRAWSTATICS          0x6B31u  /* probable */
+#define CS_DRAWBAGS             0x3C93u  /* probable */
+#define CS_DRAWEMERALDS         0x5777u  /* probable */
+#define CS_INITDIGGER           0x48A0u  /* probable */
+#define CS_INITMONSTERS         0x2BC1u  /* probable */
+#define CS_INITMBSPR            0x1A03u  /* probable */
+#define CS_ERASEMONSTERS        0x2C58u
+#define CS_MONAI                0x2E75u  /* verified */
+#define CS_MONDIE               0x3682u
+#define CS_NMONONSCR            0x3ABBu  /* verified */
+#define CS_INCMONT              0x3AEFu  /* verified: increments t of monsters 1..n-1 */
+#define CS_MONGOLD              0x3B26u  /* verified: sets DS:0x3C0C */
+#define CS_MONSTER_COLLISIONS   0x3795u  /* verified */
+#define CS_COLLISION_PENALTIES  0x3767u  /* verified */
+#define CS_FIELDCLEAR           0x3815u  /* verified */
+#define CS_DRAWMON              0x1B84u  /* probable */
+#define CS_DRAWMONDIE           0x1DDBu  /* probable */
+#define CS_DRAWRIGHTBLOB        0x21CCu  /* verified: x+16, y-1, 2x18 */
+#define CS_DRAWLEFTBLOB         0x2214u  /* verified: x-8, y-1, 2x18 */
+#define CS_DRAWTOPBLOB          0x225Cu  /* verified: x-4, y-6, 6x6 */
+#define CS_DRAWBOTTOMBLOB       0x22A2u  /* verified: x-4, y+15, 6x6 */
+#define CS_EATFIELD             0x6DFEu
+#define CS_HITMERALD            0x57F1u
+#define CS_BAGMASK              0x4774u  /* OR of 1<<bag for existing bags */
+#define CS_PUSHBAGS             0x466Cu
+#define CS_PUSHUDBAGS           0x46B2u
+#define CS_REMOVEBAGS           0x47B5u
+#define CS_BAGY                 0x4730u
+#define CS_GETBAGDIR            0x4749u
+#define CS_KILLMON              0x39A9u  /* verified */
+#define CS_KILLDIGGER0          0x5668u  /* verified: killdigger(death, bag) for digger 0 */
+#define CS_SCEATM               0x5598u  /* verified: addscore(msc*200), msc <<= 1 */
+#define CS_SOUNDEATM            0x7891u  /* verified */
+#define CS_SCOREKILL            0x689Fu  /* verified: addscore(250) */
 
 /* Score storage: INT 13h sector 7 (cylinder 39, head 0). */
 #define CS_READ_SECTOR7         0x028Fu
@@ -189,6 +261,61 @@ typedef int32_t  s32;
 #define DS_HIGHBUF              0x40D6u
 #define DS_SCOREHIGH            0x4108u  /* 12 x 32-bit */
 #define DS_SCOREINIT            0x4134u  /* 11 x 4 chars */
+#define DS_LEVNOTDRAWN          0x5010u
+
+/* Current digger state (single-digger globals in the original). */
+#define DS_DIG_X                0x3FDEu
+#define DS_DIG_Y                0x3FE0u
+#define DS_DIG_MDIR             0x3FEAu
+#define DS_DIG_BAGTIME          0x3FF0u
+#define DS_DIG_ALIVE            0x3FF2u
+#define DS_DIG_VISIBLE          0x3FF4u
+#define DS_DIG_NOTFIRING        0x3FF6u
+#define DS_DIG_RECHARGETIME     0x3FF8u
+#define DS_DIG_EXPSN            0x4000u
+#define DS_DIG_DEATH            0x4002u  /* killdigger() writes the death state */
+#define DS_DIG_BAG              0x4004u  /* ... and the bag index */
+#define DS_DIG_EMOCTTIME        0x4016u
+
+/* Monster scheduling globals. */
+#define DS_MONGOTGOLD           0x3C0Cu
+#define DS_NEXTMONSTER          0x3C0Eu
+#define DS_TOTALMONSTERS        0x3C10u
+#define DS_MAXMONONSCR          0x3C12u
+#define DS_NEXTMONTIME          0x3C14u
+#define DS_MONGAPTIME           0x3C16u
+#define DS_UNBONUSFLAG          0x3C18u
+
+/* Bag record, stride 0x28. */
+#define DS_BAG_X                0x3E9Au
+#define DS_BAG_Y                0x3E9Cu
+#define DS_BAG_H                0x3E9Eu
+#define DS_BAG_V                0x3EA0u
+#define DS_BAG_DIR              0x3EA6u
+#define DS_BAG_WOBBLING         0x3EA8u
+#define DS_BAG_EXIST            0x3EAEu
+#define DS_BAG_GT               0x3EB0u
+#define DS_PUSHCOUNT            0x3FDAu  /* set by the push routine, per-frame decay */
+#define DS_GOLDTIME             0x3FDCu  /* 150 - levof10()*10 (initbags) */
+
+/* Monster record, stride 0x28. */
+#define DS_MON_FLAG             0x3B1Cu
+#define DS_MON_X                0x3B1Eu
+#define DS_MON_Y                0x3B20u
+#define DS_MON_H                0x3B22u
+#define DS_MON_V                0x3B24u
+#define DS_MON_XR               0x3B26u
+#define DS_MON_YR               0x3B28u
+#define DS_MON_DIR              0x3B2Au
+#define DS_MON_HDIR             0x3B2Cu
+#define DS_MON_T                0x3B2Eu
+#define DS_MON_ALIVE            0x3B30u
+#define DS_MON_NOB              0x3B32u
+#define DS_MON_HNT              0x3B34u
+#define DS_MON_DEATH            0x3B36u
+#define DS_MON_BAG              0x3B38u
+#define DS_MON_DTIME            0x3B3Au
+#define DS_MON_STIME            0x3B3Cu
 
 /* Data tables (DS offsets). */
 #define DS_CGA_CRTC_TABLE       0x0255u  /* 14 bytes, R0..R13 */

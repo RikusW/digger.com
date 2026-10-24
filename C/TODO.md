@@ -31,11 +31,18 @@
   The format matches the port's `.sco` file.  The `DS:0x4690` block is a
   default image/legacy table with no direct code reference.
 
+- **Game bodies (first pass)**: `dodigger` (`CS:0x4939`) with the per-digger
+  fields and bonus block in `digger.c`; `dobags` (`CS:0x3E2D`) in `bags.c`;
+  `domonsters` (`CS:0x2C90`) and the `monai` (`CS:0x2E75`) direction-selection
+  in `monster.c`; `initlevel`/`drawscreen`/`initchars` call order in
+  `drawing.c`.
+
 ## High priority
 
-- **Line-level game logic**: reconstruct the movement, collision, and drawing
-  bodies behind the mapped functions (`dodigger`, `dobags`, `monai`, the
-  drawing routines) against the port.  The main loop, monster loop, RNG,
+- **Remaining game bodies**: `updatefire`, `updatedigger`, `diggerdie`; bag
+  `updatebag`/`pushbags`/`pushudbags`; `eatfield`/`hitemerald`; and the
+  sprite/drawing routines (`drawmon`, `drawmondie`, `drawdig`).  The main
+  loop, monster loop (`domonsters`/`monai`/`mondie`/`createmonster`), RNG,
   bonus mode, and score I/O are done.
 
 ## CGA / DOSBox
