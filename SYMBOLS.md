@@ -15,6 +15,32 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x0337` | `0x0237` | saved data segment | verified | Word in the code segment; `cs:[0x337]` is loaded by the ISR. |
 | `0x0339` | `0x0239` | INT 8 hook setup | verified | Saves the old vector at `DS:0x0251/0x0253` and points vector `0:0x20` at `CS:0x0397`. |
 | `0x0397` | `0x0297` | `timer_isr` | verified | Toggles/speaker-pulses port `0x61`; `timercount += timerrate`; on 16-bit overflow calls `soundint`. |
+| `0x03F4` | `0x02F4` | CGA video init entry | verified | Calls `CS:0x03FC`. |
+| `0x03FC` | `0x02FC` | CGA video init | verified | Probes CGA, calls `cga_init`, prints the startup message. |
+| `0x0418` | `0x0318` | `cga_probe` | verified | Writes/reads `B800:0000` with `0x55`. |
+| `0x0429` | `0x0329` | `cga_init` | verified | `3D8=2`, CRTC table, `3D9=0x20`, clear, `3D8=0x0A`. |
+| `0x0456` | `0x0356` | `cga_print_text` | verified | INT 10h cursor/teletype; checks BIOS equipment word `0x30`. |
+| `0x048A` | `0x038A` | `cga_mode_off` | verified | Wait retrace; `3D8=2`. |
+| `0x04A0` | `0x03A0` | `cga_mode_on` | verified | Wait retrace; `3D8=0x0A`. |
+| `0x04AE` | `0x03AE` | `cga_clear` | verified | Calls the fill worker. |
+| `0x04B9` | `0x03B9` | `cga_clear_fill` | verified | Replicates 2-bit colour, fills 16KB with video off/on. |
+| `0x04E7` | `0x03E7` | `cga_palette` | verified | `3D9` bit 5. |
+| `0x050B` | `0x040B` | `cga_wait_retrace` | verified | Polls `3DA` bit 3 when `DS:0x03B3` is set. |
+| `0x0520` | `0x0420` | `cga_set_background` | verified | `3D9` bits 0-3. |
+| `0x054B` | `0x044B` | `cga_set_intensity` | verified | `3D9` bit 4. |
+| `0x0556` | `0x0456` | CGA intensity worker | verified | Called by `cga_set_intensity`. |
+| `0x057A` | `0x047A` | `cga_putpixel` | verified | Replace mode; bounds 320x200. |
+| `0x0595` | `0x0495` | `cga_xor_pixel` | verified | XOR mode. |
+| `0x05B0` | `0x04B0` | CGA pixel worker | verified | Bounds/address/apply. |
+| `0x05C3` | `0x04C3` | CGA pixel bounds | verified | `x < 0x140`, `y < 0xC8`. |
+| `0x05CF` | `0x04CF` | CGA pixel address | verified | `(y&~1)*40 + (y&1)*0x2000 + x/4`. |
+| `0x05EB` | `0x04EB` | CGA pixel apply | verified | 2bpp mask/write, leftmost in bits 7-6. |
+| `0x0628` | `0x0528` | CGA block put | probable | Five args; calls worker `CS:0x0682`. |
+| `0x0655` | `0x0555` | CGA block XOR | probable | Five args; calls worker `CS:0x0682`. |
+| `0x0682` | `0x0582` | CGA block worker | probable | Computes width/height from two corners. |
+| `0x1128` | `0x1028` | `cga_shift_inc` | verified | CRTC R2++, clamp `0x2A..0x2E`. |
+| `0x1155` | `0x1055` | `cga_shift_dec` | verified | CRTC R2--, clamp `0x2A..0x2E`. |
+| `0x17EB` | `0x16EB` | `cga_blit_rle` | verified | `DS:0x0DAC` to `B800`, 0x4000 bytes, `0xFE` escape. |
 | `0x5EEA` | `0x5DEA` | `score_init`? | probable | Initializes 32-bit score fields to 0 and next-bonus fields to `0x4E20` (20000). |
 | `0x5FA1` | `0x5EA1` | `score_add`? | probable | Adds to score; the `0x4E20` step at `CS:0x6034` is the extra-life bonus. |
 | `0x68A2` | `0x67A2` | scorekill/scoreoctave wrapper | probable | Calls `score_add(250)`. |
@@ -69,9 +95,9 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 
 | DS | file | Size | Name | Confidence |
 |---|---:|---:|---|---|
-| `0x0195` | `0x9005` | text | CGA "Please turn on display ..." | verified |
-| `0x01D2` | `0x9042` | text | CGA "... Color Graphics Display Adapter" | verified |
-| `0x0254` | `0x90C4` | text | CGA "This program requires ..." | verified |
+| `0x0255` | `0x8FC5` | 14 B | CGA CRTC table R0..R13 | verified |
+| `0x0263` | `0x8FD3` | text | "Please turn on display connected to your Color Graphics Display Adapter" (`$` at file `0x9091`; printable text starts file `0x9005` / DS `0x0295`) | verified |
+| `0x0322` | `0x9092` | text | "This program requires the Color/Graphics Display Adapter" (`$` at file `0x9122`; printable text starts file `0x90C4` / DS `0x0354`) | verified |
 | `0x0DAC` | `0x9B1C` | RLE | title bitmap / RLE data | probable |
 | `0x45E4` | `0xD354` | 172 B | bonus jingle `T1` (86 words / 43 notes) | verified |
 | `0x4690` | `0xD400` | 112 B | embedded default high scores | verified |
@@ -133,6 +159,11 @@ These are data-segment variables, not tables. Names are from the port; offsets c
 
 | DS | Port name | Evidence |
 |---:|---|---|
+| `0x03B3` | `cga_retrace_flag` | Data byte starts `0xFF`; `cga_wait_retrace` tests it. |
+| `0x03B4` | `cga_write_mode` | `0` = replace, `0xFF` = XOR. |
+| `0x03B5` | `cga_color_select` | Cached `3D9` value. |
+| `0x03B6` | `cga_pixel_color` | Current 2-bit pixel colour. |
+| `0x0673` | `cga_r2` | Current CRTC R2; data byte is `0x2C`, clamped to `0x2A..0x2E`. |
 | `0x0658` | `keypressed` | `testpause` and the input code read it. |
 | `0x4FE0` | lives field A | `getlives(arg==1)` / `addlife`. |
 | `0x4FE2` | level, `curplayer` | `levno`: `base + 8*curplayer`. |

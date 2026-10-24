@@ -31,11 +31,21 @@
 - **Score file I/O**: locate the open/read/write path and confirm the embedded
   default-score block at `DS:0x4690` is copied or written to disk.
 
-## Medium priority
+## CGA / DOSBox
 
-- Decode the CGA sprite/graphics data.  The RLE block at `DS:0x0DAC` is used by
-  the video routine at CS:0x17EB; identify the other bitmap/font tables in the
-  data segment.
+- The mode is standard CGA 320x200x4 entered by direct 3D8/3D9/CRTC writes;
+  the only nonstandard timing value is the PCjr H-sync `R2=0x2C`, and the game
+  rewrites R2 at runtime for a horizontal shift.  See `CGA.md`.
+- Reproduce the DOSBox failure with `machine=cga` vs the default machine and
+  with `cycles=fixed 400` vs 3000 before changing emulator code.
+- Reconstruct the CGA block put/XOR functions at `CS:0x0628`/`CS:0x0655` and
+  the worker at `CS:0x0682`.
+- Reconstruct the INT 10h teletype/scroll path used for the startup message
+  under the custom CRTC.
+- Decode the title bitmap (`DS:0x0DAC`) and the remaining CGA sprite/font
+  tables.
+
+## Medium priority
 - Confirm the two-player flow: the original has `TWO`/`PLAYERS` text but no
   `SIMULTANEOUS` string; determine whether players alternate or play together.
 - Map the title-screen/main-loop function at CS:0x82A6 and its callees.

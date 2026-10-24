@@ -372,11 +372,13 @@ Disassembly of section .data:
      3f1:	59                   	pop    cx
      3f2:	58                   	pop    ax
      3f3:	cf                   	iret   
+; --- CGA video init entry ---
      3f4:	55                   	push   bp
      3f5:	8b ec                	mov    bp,sp
      3f7:	e8 02 00             	call   0x3fc
      3fa:	5d                   	pop    bp
      3fb:	c3                   	ret    
+; --- CGA video init (probe/init/print) ---
      3fc:	e8 19 00             	call   0x418
      3ff:	75 0d                	jne    0x40e
      401:	e8 25 00             	call   0x429
@@ -388,6 +390,7 @@ Disassembly of section .data:
      411:	e8 42 00             	call   0x456
      414:	b8 00 00             	mov    ax,0x0
      417:	c3                   	ret    
+; --- cga_probe (B800:0 write/read) ---
      418:	1e                   	push   ds
      419:	b8 00 b8             	mov    ax,0xb800
      41c:	8e d8                	mov    ds,ax
@@ -396,6 +399,7 @@ Disassembly of section .data:
      423:	3a 06 00 00          	cmp    al,BYTE PTR ds:0x0
      427:	1f                   	pop    ds
      428:	c3                   	ret    
+; --- cga_init (3D8=2, CRTC table, 3D9=0x20, clear, 3D8=0x0A) ---
      429:	e8 5e 00             	call   0x48a
      42c:	be 55 02             	mov    si,0x255
      42f:	b9 0e 00             	mov    cx,0xe
@@ -418,6 +422,7 @@ Disassembly of section .data:
      44f:	e8 67 00             	call   0x4b9
      452:	e8 4b 00             	call   0x4a0
      455:	c3                   	ret    
+; --- cga_print_text (INT 10h teletype) ---
      456:	06                   	push   es
      457:	b8 40 00             	mov    ax,0x40
      45a:	8e c0                	mov    es,ax
@@ -446,6 +451,7 @@ Disassembly of section .data:
      485:	e8 02 00             	call   0x48a
      488:	5d                   	pop    bp
      489:	c3                   	ret    
+; --- cga_mode_off (3D8=2) ---
      48a:	e8 7e 00             	call   0x50b
      48d:	52                   	push   dx
      48e:	50                   	push   ax
@@ -460,6 +466,7 @@ Disassembly of section .data:
      49b:	e8 02 00             	call   0x4a0
      49e:	5d                   	pop    bp
      49f:	c3                   	ret    
+; --- cga_mode_on (3D8=0x0A) ---
      4a0:	e8 68 00             	call   0x50b
      4a3:	52                   	push   dx
      4a4:	50                   	push   ax
@@ -469,12 +476,14 @@ Disassembly of section .data:
      4ab:	58                   	pop    ax
      4ac:	5a                   	pop    dx
      4ad:	c3                   	ret    
+; --- cga_clear ---
      4ae:	55                   	push   bp
      4af:	8b ec                	mov    bp,sp
      4b1:	8a 46 04             	mov    al,BYTE PTR [bp+0x4]
      4b4:	e8 02 00             	call   0x4b9
      4b7:	5d                   	pop    bp
      4b8:	c3                   	ret    
+; --- cga_clear_fill (16KB 2-bit colour fill) ---
      4b9:	24 03                	and    al,0x3
      4bb:	b1 02                	mov    cl,0x2
      4bd:	8a d0                	mov    dl,al
@@ -498,6 +507,7 @@ Disassembly of section .data:
      4e2:	1f                   	pop    ds
      4e3:	e8 ba ff             	call   0x4a0
      4e6:	c3                   	ret    
+; --- cga_palette (3D9 bit 5) ---
      4e7:	55                   	push   bp
      4e8:	8b ec                	mov    bp,sp
      4ea:	8a 5e 04             	mov    bl,BYTE PTR [bp+0x4]
@@ -515,6 +525,7 @@ Disassembly of section .data:
      506:	ba d9 03             	mov    dx,0x3d9
      509:	ee                   	out    dx,al
      50a:	c3                   	ret    
+; --- cga_wait_retrace (3DA bit 3) ---
      50b:	80 3e b3 03 00       	cmp    BYTE PTR ds:0x3b3,0x0
      510:	75 01                	jne    0x513
      512:	c3                   	ret    
@@ -527,6 +538,7 @@ Disassembly of section .data:
      51d:	58                   	pop    ax
      51e:	5a                   	pop    dx
      51f:	c3                   	ret    
+; --- cga_set_background (3D9 bits 0-3) ---
      520:	55                   	push   bp
      521:	8b ec                	mov    bp,sp
      523:	8a 5e 04             	mov    bl,BYTE PTR [bp+0x4]
@@ -548,12 +560,14 @@ Disassembly of section .data:
      546:	a2 b3 03             	mov    ds:0x3b3,al
      549:	5d                   	pop    bp
      54a:	c3                   	ret    
+; --- cga_set_intensity (3D9 bit 4) ---
      54b:	55                   	push   bp
      54c:	8b ec                	mov    bp,sp
      54e:	8a 5e 04             	mov    bl,BYTE PTR [bp+0x4]
      551:	e8 02 00             	call   0x556
      554:	5d                   	pop    bp
      555:	c3                   	ret    
+; --- CGA intensity worker ---
      556:	0a db                	or     bl,bl
      558:	74 10                	je     0x56a
      55a:	a0 b5 03             	mov    al,ds:0x3b5
@@ -570,6 +584,7 @@ Disassembly of section .data:
      575:	ba d9 03             	mov    dx,0x3d9
      578:	ee                   	out    dx,al
      579:	c3                   	ret    
+; --- cga_putpixel (replace) ---
      57a:	55                   	push   bp
      57b:	8b ec                	mov    bp,sp
      57d:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -581,6 +596,7 @@ Disassembly of section .data:
      590:	e8 1d 00             	call   0x5b0
      593:	5d                   	pop    bp
      594:	c3                   	ret    
+; --- cga_xor_pixel (XOR) ---
      595:	55                   	push   bp
      596:	8b ec                	mov    bp,sp
      598:	8b 5e 04             	mov    bx,WORD PTR [bp+0x4]
@@ -592,6 +608,7 @@ Disassembly of section .data:
      5ab:	e8 02 00             	call   0x5b0
      5ae:	5d                   	pop    bp
      5af:	c3                   	ret    
+; --- CGA pixel worker ---
      5b0:	e8 10 00             	call   0x5c3
      5b3:	72 04                	jb     0x5b9
      5b5:	b8 00 00             	mov    ax,0x0
@@ -600,11 +617,13 @@ Disassembly of section .data:
      5bc:	e8 2c 00             	call   0x5eb
      5bf:	b8 ff ff             	mov    ax,0xffff
      5c2:	c3                   	ret    
+; --- CGA pixel bounds (320x200) ---
      5c3:	81 fb 40 01          	cmp    bx,0x140
      5c7:	72 01                	jb     0x5ca
      5c9:	c3                   	ret    
      5ca:	81 f9 c8 00          	cmp    cx,0xc8
      5ce:	c3                   	ret    
+; --- CGA pixel address ((y&~1)*40+(y&1)*0x2000+x/4) ---
      5cf:	51                   	push   cx
      5d0:	80 e1 fe             	and    cl,0xfe
      5d3:	b0 28                	mov    al,0x28
@@ -620,6 +639,7 @@ Disassembly of section .data:
      5e7:	8b f8                	mov    di,ax
      5e9:	5b                   	pop    bx
      5ea:	c3                   	ret    
+; --- CGA pixel apply (2bpp mask) ---
      5eb:	53                   	push   bx
      5ec:	51                   	push   cx
      5ed:	80 e3 03             	and    bl,0x3
@@ -652,6 +672,7 @@ Disassembly of section .data:
      625:	59                   	pop    cx
      626:	5b                   	pop    bx
      627:	c3                   	ret    
+; --- CGA block put? ---
      628:	55                   	push   bp
      629:	8b ec                	mov    bp,sp
      62b:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -669,6 +690,7 @@ Disassembly of section .data:
      650:	e8 2f 00             	call   0x682
      653:	5d                   	pop    bp
      654:	c3                   	ret    
+; --- CGA block XOR? ---
      655:	55                   	push   bp
      656:	8b ec                	mov    bp,sp
      658:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -686,6 +708,7 @@ Disassembly of section .data:
      67d:	e8 02 00             	call   0x682
      680:	5d                   	pop    bp
      681:	c3                   	ret    
+; --- CGA block worker? ---
      682:	a1 bb 03             	mov    ax,ds:0x3bb
      685:	2b 06 b7 03          	sub    ax,WORD PTR ds:0x3b7
      689:	a3 bf 03             	mov    ds:0x3bf,ax
@@ -1618,6 +1641,7 @@ Disassembly of section .data:
     111b:	8e d8                	mov    ds,ax
     111d:	c7 06 72 00 34 12    	mov    WORD PTR ds:0x72,0x1234
     1123:	ea f0 ff 00 f0       	jmp    0xf000:0xfff0
+; --- cga_shift_inc (CRTC R2) ---
     1128:	80 3e 53 06 ff       	cmp    BYTE PTR ds:0x653,0xff
     112d:	74 01                	je     0x1130
     112f:	c3                   	ret    
@@ -1636,6 +1660,7 @@ Disassembly of section .data:
     1152:	ee                   	out    dx,al
     1153:	5a                   	pop    dx
     1154:	c3                   	ret    
+; --- cga_shift_dec (CRTC R2) ---
     1155:	80 3e 4c 06 ff       	cmp    BYTE PTR ds:0x64c,0xff
     115a:	75 1e                	jne    0x117a
     115c:	fe 0e 73 06          	dec    BYTE PTR ds:0x673

@@ -29,6 +29,7 @@ reconstructed from the 8086 disassembly.
 | `music`, `musicupdate` | reconstructed | `sound.c` |
 | `soundemerald`, `soundddie` | reconstructed | `sound.c` |
 | `getlevch`, level data | reconstructed | `levels.c` |
+| CGA init/palette/pixel/RLE/R2 shift | reconstructed | `cga.c` |
 | `incpenalty`, `levno`, `levplan`, `levof10`, `getlives`, `addlife`, `curplayer` | reconstructed | `state.c` |
 | `nplayers` getter, `testpause` | getter done; pause flow noted | `state.c` |
 | `sett0`, `setsoundt2`, `setsoundmode`, `sett2val`, `timer2` | reconstructed | `sound.c` |
@@ -38,3 +39,5 @@ reconstructed from the 8086 disassembly.
 | RNG | not yet identified | `TODO.md` |
 
 See `ANALYSIS.md` for the comparison and exact-match findings.
+See `CGA.md` for the CGA mode/register analysis and the DOSBox failure
+diagnosis.

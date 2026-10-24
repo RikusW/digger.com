@@ -8,8 +8,9 @@ Artifacts:
 - `digger.lst` — full annotated 8086 disassembly, CS:IP addresses.
 - `digger.dat` — data-segment hex dump, DS offsets, known tables labelled.
 - `SYMBOLS.md` — address/offset symbol tables with confidence levels.
+- `CGA.md` — CGA mode/register analysis and DOSBox failure diagnosis.
 - `C/` — C decompilation progress (timer/speaker ISR, sound helpers,
-  music, levels, game-state accessors, scoring notes).
+  music, levels, CGA, game-state accessors, scoring notes).
 
 ## How the binary is organised
 
@@ -179,6 +180,26 @@ The high-call-count region is the core state layer and matches the port:
   (`CS:0x8B4D`), and `testpause` (`CS:0x8B55`) match the port's state access
   and pause flow.
 
+### CGA video — `CS:0x03F4..0x05EB`, `CS:0x1128/0x1155`
+
+The original uses **standard CGA mode 4** (320×200, 4 colours, 2 bpp,
+interleaved) but enters it by direct register writes, not INT 10h:
+
+```
+3D8h = 02h
+CRTC R0..R13 = 38 28 2C 0A 7F 06 64 70 02 01 20 00 00 00
+3D9h = 20h
+fill 16KB framebuffer with colour 0
+3D8h = 0Ah
+```
+
+The only nonstandard timing value is the **PCjr H-sync `R2=0x2C`** (IBM CGA
+mode 4 uses `0x2D`); the game also rewrites `R2` at runtime (0x2A..0x2E) for
+a horizontal shift. The framebuffer address formula is
+`(y&~1)*40 + (y&1)*0x2000 + (x>>2)`, i.e. the standard CGA even/odd bank
+layout. `R9=1` is normal for mode 4. See `CGA.md` for the DOSBox failure
+analysis and fix directions.
+
 ## Differences
 
 ### Port additions
@@ -211,9 +232,10 @@ The high-call-count region is the core state layer and matches the port:
   speaker filter/oversampling added for SDL.
 - **Default scores**: the original embeds the 1200-score block; the port reads
   a `.sco` file and otherwise starts at zero.
-- **CGA startup text**: the original contains the two "Please turn on
-  display..."/"This program requires the Color/Graphics Display Adapter"
-  messages; the SDL port does not.
+- **CGA startup text**: the messages are at `DS:0x0263` / `DS:0x0322`
+  (`file 0x8FD3` / `0x9092`; the printable text starts at file `0x9005` /
+  `0x90C4`). They are printed via INT 10h after the custom CRTC is installed;
+  the SDL port does not have them.
 
 ## Open items / next work
 
@@ -222,8 +244,11 @@ The high-call-count region is the core state layer and matches the port:
 - Map the main game-logic functions (`digger`, `monster`, `bags`, `drawing`,
   input/joystick) to the port.
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
+- Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
+  and `cycles=fixed 400` vs 3000; see `CGA.md`.
+- Reconstruct the CGA block put/XOR functions and the INT 10h teletype/scroll
+  path.
 - Confirm the original two-player flow (alternating vs simultaneous).
-- Complete `sett0`, `setsoundmode`, `setsoundt2`, `sett2val` reconstruction.
 - Map the score file I/O and the remaining score display functions.
 
 ## Method

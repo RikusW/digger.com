@@ -363,3 +363,126 @@ All changes are uncommitted. When you want them committed, I’ll add this excha
 ### User
 
 Commit it
+
+## CGA video analysis: direct mode 4, PCjr R2, DOSBox diagnosis
+
+Previous commit: c467021
+
+### User
+
+Continue on CGA code, an undocumented mode is used and that cause dosbox to display incorrectly, side by side comparison in dosbox_digger.png, once this is understood I can clone dosbox for to attempt fixing this.
+
+### Assistant
+
+I'll start by looking at the comparison image and locating both the original's CGA setup and the port's CGA implementation.
+
+### Assistant
+
+The image looks like a 16-colour CGA title screen rendered with the wrong geometry — likely the 160×100 'undocumented' CGA mode. Let me decode the original's exact mode and CRTC programming.
+
+### Assistant
+
+Found the CGA setup. The key is a 14-byte CRTC table at `DS:0x0255` written to ports `0x3D4/0x3D5`. Let me decode those registers and the surrounding mode control.
+
+### Assistant
+
+The registers decode as standard CGA mode 4 with a PCjr H-sync value (`R2=0x2C`) and disabled cursor — plus the game changes `R2` at runtime. Let me verify the archive build and DOSBox's mode handling.
+
+### Assistant
+
+The archive's working config is the important clue: `machine=cga`, `cycles=fixed 400`. Let me check DOSBox's CGA mode handling to explain the difference between CGA-only and EGA/VGA machines.
+
+### Assistant
+
+The screenshot is from the archive's `digdug.com`, which is a different 57,600-byte build from the repo's `digger.com`. Let me compare their CGA code and look at the archive's working screenshots.
+
+### Assistant
+
+The archive's screenshots confirm the game is standard 320×200×4 CGA; the garbling is the direct-register path. Let me decode the pixel/blit routines to nail down the exact framebuffer layout.
+
+### Assistant
+
+One artifact correction surfaced: the CGA messages are actually at `DS:0x0263`/`DS:0x0322`; the earlier `0x0195` labels were wrong. Let me verify and fix that, then document the CGA findings.
+
+### Assistant
+
+## Bottom line
+
+It is **not a different resolution mode**. Digger is using **standard CGA mode 4: 320×200, 4 colours, 2 bits/pixel, interleaved banks**. What is “undocumented” is that it enters mode 4 by **writing the CGA registers directly** instead of calling INT 10h, and its CRTC table uses the **PCjr H-sync value `R2=0x2C`** (IBM CGA mode 4 uses `0x2D`). It also rewrites `R2` at runtime for a horizontal shift.
+
+That is consistent with DOSBox leaving the display in text/VGA mode: the 2bpp title bitmap is then interpreted as 80×25 characters/attributes, producing the repeated text and green boxes in the left half of `dosbox_digger.png`.
+
+## Exact setup from `digger.com`
+
+The init entry is `CS:0x03F4` → `CS:0x03FC` → `cga_init` at `CS:0x0429`:
+
+```
+3D8h = 02h                 ; video off, graphics, colour, 320x200
+CRTC R0..R13 = 38 28 2C 0A 7F 06 64 70 02 01 20 00 00 00
+3D9h = 20h                 ; background black, palette 1
+fill the 16KB framebuffer with colour 0
+3D8h = 0Ah                 ; video on, graphics, colour, 320x200
+```
+
+CRTC differences from IBM mode 4: **`R2=0x2C`** (PCjr H-sync; IBM `0x2D`) and cursor registers `R10=0x20`, `R11=0x00` (cursor disabled). `R9=1` is the normal CGA mode 4/5/6 maximum-scan-line value, not the anomaly.
+
+Framebuffer layout, from the pixel routine at `CS:0x05CF`:
+
+```
+addr = (y & ~1) * 40 + (y & 1) * 0x2000 + (x >> 2)
+```
+
+- 320×200, 80 bytes/scanline, 16KB at `B800:0000`.
+- Even scanlines in bank 0, odd scanlines in bank 1 (`+0x2000`).
+- Four pixels per byte, 2 bits each, leftmost in bits 7–6.
+- The title screen is an RLE-compressed 16KB bitmap at `DS:0x0DAC`, blitted by `CS:0x17EB` (`0xFE count value`).
+
+The runtime shift is in the keyboard handler at `CS:0x1128`/`CS:0x1155`: it increments/decrements `DS:0x0673` (initial value **0x2C**) and writes it to CRTC R2 (clamped 0x2A..0x2E). That is an H-sync shift, **not** a framebuffer/stride change.
+
+## DOSBox behaviour
+
+- `src/hardware/vga_other.cpp:write_cga()` handles `3D8h/3D9h` **only when `machine==MCH_CGA`**. `0x02`/`0x0A` map to `M_TANDY4` (CGA 320×200×4), then `write_color_select()`/`VGA_SetBlinking()`.
+- On the **default EGA/VGA machine**, those direct CGA port writes are not handled by `write_cga()` at all. The VGA can remain in text/VGA mode while the game writes CGA CRTC values and a CGA framebuffer → the repeated text/green-box garbage. This is the VOGONS “direct 3D8” issue.
+- On `machine=cga`, `VGA_SetupDrawing()` for `M_TANDY4` uses `vga.other.hdend/vdend/max_scanline`, `doubleheight=true`, `doublewidth=(mode_control & 1)==0`, a fixed 80-byte source stride, and the CGA line handler’s `line_mask`/`line_shift`/`addr_mask`. If the game’s direct CRTC R0–R13 writes are not propagated into `vga.other` / the CGA line state / a renderer resize, the renderer keeps stale timing — a 2×2 tiling like the screenshot is what stale text-mode geometry can produce. R2 must be treated as H-sync only, never as visible width/stride.
+
+## Working reference
+
+The Internet Archive item **Digger (working CGA)** uses:
+
+```
+[dosbox]
+machine=cga
+[cpu]
+cycles=fixed 400
+```
+
+Its `screenshot_00.png` (title) and `00_coverscreenshot.png` (gameplay) show the correct 320×200×4 display. The left half of your `dosbox_digger.png` is the archive’s **`digdug.com`** build (hence the window title “Program: DIGDUG”). That build and `digger.com` have the **same CGA code and CRTC table at the same file offsets**; the binaries differ elsewhere (SHA-256 differs). Your DOSBox shows **3000 cycles**, not the archive’s 400, so the machine type and cycle setting are the first things to isolate.
+
+## Fix directions
+
+1. **Test the archive config first**: `machine=cga`, `cycles=fixed 400`. If the title/game displays correctly, no DOSBox code change is needed for your current setup.
+2. **If you want the default EGA/VGA machine to work**: make the VGA/EGA `3D8h` path detect the CGA mode-control write and perform a CGA-compatible mode-4 switch (the equivalent of BIOS INT 10h mode 4) after the game’s CRTC writes, or emulate a CGA CRTC overlay. The game-level workaround is the VOGONS patch: at file offset `0x38F`, replace `BA D8 03 B0 02 EE` with `B8 04 00 CD 10 90`.
+3. **If `machine=cga` still garbles**: audit `vga_crtc.cpp` (`write_crtc`/`VGA_StartResize`), `vga_draw.cpp` (`VGA_SetupDrawing`, `M_TANDY4`/`M_CGA4`, `address_add=80`, CGA line handlers), and the INT 10h teletype/scroll path used for the startup message. Ensure direct R0–R13 writes while video is off update the CGA timing/state, and that R2 only changes H-sync.
+4. Compare with DOSBox-X’s `vga_other.cpp`/`vga_draw.cpp` and MAME’s CGA device; both have more complete CGA mode handling.
+
+## Added to the repo
+
+- `CGA.md` — full mode/register analysis, DOSBox code paths, fix directions.
+- `C/cga.c` — reconstructed `cga_init`, palette/background/intensity, retrace wait, pixel address/apply, replace/XOR pixel, R2 shift, and RLE blit.
+- Updated `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `C/README.md`, `C/TODO.md`, `C/symbols.h`.
+- Corrected the CGA message offsets: they are `DS:0x0263` and `DS:0x0322` (file `0x8FD3`/`0x9092`); the earlier `0x0195` labels were wrong.
+
+All changes are uncommitted, and `dosbox_digger.png` is still untracked. When you want it committed, I’ll add this exchange to `Worklog.md` with the previous commit hash (`c467021`) and include the CGA artifacts (and the comparison PNG if you want it tracked).
+
+Sources:
+- [VOGONS: Digger and Hercules Graphics, using CGA emulation](https://www.vogons.org/viewtopic.php?t=33424)
+- [Internet Archive: Digger (working CGA)](https://archive.org/details/digger_cga)
+- [Internet Archive: Digger (with palette fix)](https://archive.org/details/digger_with_palette_fix)
+- [reenigne: 8088/CGA register values](https://github.com/reenigne/reenigne/blob/master/8088/cga/register_values.txt)
+- [DOSBox vga_other.cpp](https://github.com/blackberry/DosBox/blob/master/src/hardware/vga_other.cpp)
+- [DOSBox-X vga_other.cpp source](https://dosbox-x.com/doxygen/html/vga__other_8cpp_source.html)
+- [int10h.org: Astro-Dodge's Dirty Video Tricks](https://int10h.org/blog/2023/10/astro-dodge-cga-dirty-video-tricks/)
+
+### User
+
+commit it

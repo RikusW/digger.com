@@ -70,7 +70,28 @@ typedef int32_t  s32;
 #define CS_OUTPORTB             0x8DE8u  /* probable runtime helper */
 #define CS_LONG_DIVIDE          0x8C7Du  /* probable runtime helper */
 #define CS_LONG_COMPARE         0x8E23u  /* probable runtime helper */
-#define CS_VIDEO_RLE_BLIT       0x17EBu  /* probable: DS:0x0DAC -> B800 */
+#define CS_VIDEO_RLE_BLIT       0x17EBu  /* DS:0x0DAC -> B800, 0x4000 bytes */
+#define CS_CGA_ENTRY            0x03F4u
+#define CS_CGA_VIDEO_INIT       0x03FCu
+#define CS_CGA_PROBE            0x0418u
+#define CS_CGA_INIT             0x0429u
+#define CS_CGA_PRINT_TEXT       0x0456u
+#define CS_CGA_MODE_OFF         0x048Au
+#define CS_CGA_MODE_ON          0x04A0u
+#define CS_CGA_CLEAR            0x04AEu
+#define CS_CGA_CLEAR_FILL       0x04B9u
+#define CS_CGA_PALETTE          0x04E7u
+#define CS_CGA_WAIT_RETRACE     0x050Bu
+#define CS_CGA_SET_BACKGROUND   0x0520u
+#define CS_CGA_SET_INTENSITY    0x054Bu
+#define CS_CGA_PUTPIXEL         0x057Au
+#define CS_CGA_XORPIXEL         0x0595u
+#define CS_CGA_PIXEL_WORKER     0x05B0u
+#define CS_CGA_BLOCK_PUT        0x0628u
+#define CS_CGA_BLOCK_XOR        0x0655u
+#define CS_CGA_BLOCK_WORKER     0x0682u
+#define CS_CGA_SHIFT_INC        0x1128u
+#define CS_CGA_SHIFT_DEC        0x1155u
 
 /* Sound/timer state (DS offsets). */
 #define DS_SPKRMODE             0x0248u
@@ -123,10 +144,15 @@ typedef int32_t  s32;
 #define DS_KEYPRESSED           0x0658u
 
 /* Data tables (DS offsets). */
-#define DS_CGA_MSG1             0x0195u
-#define DS_CGA_MSG2             0x01D2u
-#define DS_CGA_MSG3             0x0254u
-#define DS_RLE_BITMAP           0x0DACu
+#define DS_CGA_CRTC_TABLE       0x0255u  /* 14 bytes, R0..R13 */
+#define DS_CGA_MSG_PLEASE       0x0263u  /* $ terminated */
+#define DS_CGA_MSG_REQUIRES     0x0322u  /* $ terminated */
+#define DS_CGA_RETRACE_FLAG     0x03B3u
+#define DS_CGA_WRITE_MODE       0x03B4u  /* 0 = replace, 0xFF = XOR */
+#define DS_CGA_COLOR_SELECT     0x03B5u  /* cached 3D9 value */
+#define DS_CGA_PIXEL_COLOR      0x03B6u
+#define DS_CGA_R2               0x0673u  /* current CRTC R2; starts at 0x2C */
+#define DS_RLE_BITMAP           0x0DACu  /* title-screen RLE, 0x4000 bytes out */
 #define DS_BONUS_T1             0x45E4u  /* 86 words */
 #define DS_DEFAULT_SCORES       0x4690u  /* 112 bytes */
 #define DS_BONUS_T2             0x4700u  /* 179 words, ends 0x7D64 */
