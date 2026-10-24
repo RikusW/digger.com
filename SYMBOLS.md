@@ -254,8 +254,8 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x5BB9` | `0x5AB9` | `readdir` | verified | Merges the key edge/hold directions, sets `firepflag`, samples the mouse when active. |
 | `0x5D71` | `0x5C71` | `getdir` | verified | Returns `DS:0x40B0`, or `-1` for pause. |
 | `0x5DE0` | `0x5CE0` | `initscores` | verified | Calls `addscore(0)`. |
-| `0x5DED` | `0x5CED` | `loadscores` | verified | Reads sector 7, parses `s` + ten entries. |
-| `0x6521` | `0x6421` | `savescores` | verified | Builds the sector buffer and writes sector 7. |
+| `0x5DED` | `0x5CED` | `loadscores` | verified | Reads sector 7, parses `s` + ten `[3 initials][2 pad][6 digits]` entries into `DS:0x4134`/`0x4108`; falls back to zeroed entries when the header is wrong. |
+| `0x6521` | `0x6421` | `savescores` | verified | Builds the same `s`+ten-entry 512-byte buffer and writes sector 7. |
 | `0x71D7` | `0x71D7` | `soundstop` | probable | Post-level sound stop. |
 | `0x7310` | `0x7210` | `soundlevdone` | probable | Level-done tune. |
 | `0x7A63` | `0x7963` | `musicoff` | probable | Music off. |
@@ -263,7 +263,16 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x8A3B` | `0x893B` | `cleartopline` | verified | Writes 26 spaces at (0,0) and one at (0x134,0). |
 | `0x5F2E` | `0x5E2E` | `drawscore` | verified | Draws the current player score at (0,6) in the given colour. |
 | `0x62D0` | `0x61D0` | `drawhighscore` | verified | Draws the high score at (0,6), colour 3. |
-| `0x610B` | `0x600B` | `gameover` | verified | `addscore(0)`, copies the player score into the high-score slot when player 0, then the game-over display. |
+| `0x610B` | `0x600B` | `gameover` | verified | `addscore(0)`, compares the score with the tenth entry; on a new high score it clears, prompts for initials and saves; otherwise the flashing `GAME OVER` display. |
+| `0x201A` | `0x1F1A` | `drawlife` | verified | 4x12 icon; frames 0/1/2 use `0x17B0`, `0x1812`, `0x1874` source pairs. |
+| `0x6345` | `0x6245` | `drawlives` | verified | Up to four icons per player at `i*20+0x3C` (player 1) or `0xF4-i*20` (player 2). |
+| `0x6407` | `0x6307` | `draw_highscores` | verified | `ONE`/`TWO` plus ` PLAYER `/` PLAYERS`. |
+| `0x646E` | `0x636E` | `draw_menu` | verified | `HIGH SCORES` and the ten-entry table at `i*13+0x1F`. |
+| `0x65B5` | `0x64B5` | `enter_initials` | verified | Prompts for three initials after a new high score. |
+| `0x6807` | `0x6707` | `insert_score` | verified | Shifts the table down from entry 10 to the insertion point. |
+| `0x68E5` | `0x67E5` | `format_score` | verified | 32-bit decimal with leading-zero suppression. |
+| `0x69C3` | `0x68C3` | `atoi_ds` | verified | Decimal string to 32-bit. |
+| `0x8984` | `0x8884` | `menu_redraw` | verified | Toggles `nplayers` between 1 and 2. |
 | `0x4926` | `0x4826` | `erasediggers` | verified | `erasespr(0)` and `digvisible=0`. |
 | `0x3D2F` | `0x3C2F` | `cleanupbags` | verified | `soundfalloff`, removes bags at the digger start/off-grid, saves per-player copies. |
 | `0x8D2D` | `0x8C2D` | `strcpy_ds` | verified | C runtime `strcpy` over data-segment offsets. |

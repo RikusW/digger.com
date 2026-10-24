@@ -72,6 +72,22 @@ int curplayer_get(void)
     return curplayer_g;
 }
 
+void set_nplayers(int n)
+{
+    nplayers_g = (u16)n;
+}
+
+void set_curplayer(int c)
+{
+    curplayer_g = (u16)c;
+}
+
+/* CS:0x8984 (file 0x8884) - toggle one/two players from the menu. */
+void menu_redraw(void)
+{
+    nplayers_g = (nplayers_g == 1) ? 2 : 1;
+}
+
 /* CS:0x8B4D (file 0x8A4D) - probable nplayers getter. */
 int nplayers_get(void)
 {

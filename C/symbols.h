@@ -128,6 +128,11 @@ typedef int32_t  s32;
 #define CS_DRAWSCORE            0x5F2Eu  /* current player score at (0,6), colour arg */
 #define CS_DRAWHIGHSCORE        0x62D0u
 #define CS_GAMEOVER             0x610Bu  /* called when the last life is lost */
+#define CS_DRAWLIFE             0x201Au  /* one 4x12 life icon */
+#define CS_ENTERINITIALS        0x65B5u  /* prompt for three initials */
+#define CS_INSERTSCORE          0x6807u  /* shift the table and insert */
+#define CS_FORMATSCORE          0x68E5u  /* 32-bit value -> decimal string */
+#define CS_ATOI_DS              0x69C3u  /* decimal string -> 32-bit */
 #define CS_ERASEDIGGERS         0x4926u
 #define CS_CLEANUPBAGS          0x3D2Fu
 #define CS_STRCPY_DS            0x8D2Du  /* C runtime: strcpy into the data segment */

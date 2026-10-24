@@ -925,3 +925,38 @@ Artifacts: `C/input.c`, `C/digger.c`, `C/monster.c`,
 `C/state.c`, `C/main.c`, `C/sprite.c`, `C/symbols.h`,
 `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`,
 `digger.lst`, `Worklog.md`.
+
+## Reconstruct score/menu display and high-score storage
+
+Previous commit: c3cd86e
+
+### User
+
+I looked at CGA.md sources and at https://archive.org/details/digger_cga I found digger83b.zip with a dosbox config file which now properly runs it on my current dosbox. I also compared it to the digger.com I have and it was byte identical except for the hiscore section which is to be expected. 6 is resolved. Finish 1 - 4 each in its own commit.
+
+### Assistant
+
+Reconstructed the score/menu display and high-score storage (item 3).
+
+## What was added
+
+- **Number rendering**: `draw_number` (`0x1617`) and `draw_digit`
+  (`0x1681`, via `drawchar`) in `main.c`.
+- **Score display** (`display.c`): `drawscore` (`0x5F2E`), `drawhighscore`
+  (`0x62D0`), `drawlife` (`0x201A`), `drawlives` (`0x6345`),
+  `draw_highscores` (`0x6407`), `draw_menu` (`0x646E`), `menu_redraw`
+  (`0x8984`) and `gameover` (`0x610B`, high-score branch plus the flashing
+  GAME OVER display).
+- **Storage** (`scores.c`): `strcpy_ds`/`strcat_ds`, `format_score`
+  (`0x68E5`), `atoi_ds` (`0x69C3`), `read_sector7`/`write_sector7`,
+  `loadscores` (`0x5DED`), `savescores` (`0x6521`), `enter_initials`
+  (`0x65B5`) and `insert_score` (`0x6807`).
+- **State views**: `score_get`, `game_lives`, `game_dead`, `game_set_dead`
+  and `game_init_player` in `game.c`; `set_nplayers`/`set_curplayer` in
+  `state.c`, so `main.c` and the display layer share one model of the
+  per-player DS fields.
+
+Artifacts: `C/display.c`, `C/scores.c`, `C/main.c`,
+`C/game.c`, `C/state.c`, `C/symbols.h`, `C/README.md`,
+`C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`,
+`digger.dat`, `Worklog.md`.

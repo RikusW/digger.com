@@ -47,10 +47,10 @@
   the blob/emerald helpers, and the sprite-buffer initialisers).
 - `game()` is reconstructed in `game.c`.  The sprite engine and pixel layer are in `sprite.c`; the start-up, title
   screen, menu, font and life loop are in `main.c`.  The remaining work is
-  the score/menu display helpers (`0x6407`, `0x646E`, `0x8984`), the INT 10h
-  teletype/scroll path, and decoding the CGA sprite/tile data and title
-  bitmap.  The input layer, accessors, score accounting, sound events and
-  CGA wrappers are now reconstructed.
+  the INT 10h teletype/scroll path, and decoding the CGA sprite/tile data
+  and title bitmap.  The input layer, accessors, score accounting, sound
+  events, CGA wrappers, score/menu display and high-score storage are now
+  reconstructed.
 
 ## CGA / DOSBox
 

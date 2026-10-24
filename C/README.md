@@ -59,6 +59,8 @@ reconstructed from the 8086 disassembly.
 | `drawbackg`, `drawemerald`/`eraseemerald`, blob draws | reconstructed | `drawing.c` |
 | `creatembspr`, `initmbspr`, `createdbfspr`, `initdbfspr` | reconstructed | `drawing.c` |
 | Start-up, title screen, menu and life loop (`main` `0x82A6`) | reconstructed | `main.c` |
+| Score/menu display (`drawscore`, `drawhighscore`, `drawlives`, `draw_menu`, `gameover`) | reconstructed | `display.c` |
+| High-score table and sector-7 storage (`loadscores`/`savescores`, formatting) | reconstructed | `scores.c` |
 | Keyboard ISR, mouse sampling, `readdir`/`getdir`/`readkey`, `delay` | reconstructed | `input.c` |
 | Accessors, `setdead`, `addscore`/score wrappers, `sceatm`, `killdigger`/`killmon` | reconstructed | `digger.c`/`monster.c`/`game.c` |
 | Sound-event one-liners, `soundstopall`, `soundlevdone`, pause | reconstructed | `sound.c` |

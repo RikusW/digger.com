@@ -342,6 +342,19 @@ erasemonsters/countem sequence. `game()` is reconstructed in `C/game.c`.
   calls `initmbspr` + `game` per frame. The title text uses a 64-entry
   font (`CS:0x1523`) of `[w][h][2bpp]` glyphs; `writestring` advances 12
   pixels per character (`drawglyph` `0x08E5`, `drawchar` `0x11E4`).
+- **Score and menu display** — `draw_number` (`0x1617`) renders a 32-bit
+  value right-to-left with `draw_digit` (`0x1681`), suppressing leading
+  zeros. `drawscore` (`0x5F2E`) draws the current player's six-digit score;
+  `drawhighscore` (`0x62D0`) draws both in two-player mode. `drawlives`
+  (`0x6345`) shows up to four 4x12 icons per player (`drawlife` `0x201A`).
+  `draw_highscores` (`0x6407`) and `draw_menu` (`0x646E`) render the
+  ONE/TWO PLAYER labels and the ten-entry table; `menu_redraw` (`0x8984`)
+  toggles the player count. `gameover` (`0x610B`) compares against the tenth
+  entry, prompts for initials (`0x65B5`), inserts the score (`0x6807`) and
+  saves, or runs the flashing GAME OVER display. `loadscores`/`savescores`
+  convert between the sector-7 buffer and the table with `format_score`
+  (`0x68E5`) and `atoi_ds` (`0x69C3`). Reconstructed in `display.c` and
+  `scores.c`.
 - **Input, score and sound helpers** — the INT 9 handler (`0x0E48`) reads
   port 0x60, acknowledges via 0x61 and dispatches on a 21-entry scan-code
   table: keypad arrows set the direction flags, Ctrl+arrow shifts CRTC R2,

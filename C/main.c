@@ -32,16 +32,16 @@
 extern u8 dsseg[0x10000];
 
 /* Per-player game state (DS:0x4FE0 + 8*player, 0x4FE2 + 8*player, ...). */
-static s16 curplayer;          /* DS:0x500C */
-static s16 nplayers;           /* DS:0x500E */
+extern int curplayer_get(void);
+extern int nplayers_get(void);
+extern void set_curplayer(int c);
+extern void set_nplayers(int n);
+extern void game_init_player(int p, int level, int lives);
+extern int game_lives(int p);
+extern int game_dead(int p);
+extern void game_set_dead(int p, int dead);
 static s16 levnotdrawn0;       /* DS:0x5010 */
 static s16 levnotdrawn1;       /* DS:0x5012 */
-static s16 level0;             /* DS:0x4FE2 */
-static s16 level1;             /* DS:0x4FEA */
-static s16 lives0;             /* DS:0x4FE0 */
-static s16 lives1;             /* DS:0x4FE8 */
-static s16 dead0;              /* DS:0x4FDE */
-static s16 dead1;              /* DS:0x4FE6 */
 static s16 checkbyte;          /* DS:0x5016 */
 static s16 menuflag;           /* DS:0x0665 */
 extern volatile u8 keypressed; /* DS:0x0658, input.c */
@@ -198,7 +198,7 @@ void main_title(void)
 
     loadscores();
     initsound();
-    nplayers = 1;
+    set_nplayers(1);
 
 restart:
     soundstopall();
@@ -313,50 +313,67 @@ next_frame:
     }
 
     /* Start the game. */
-    level0 = 1;
-    lives0 = 3;
-    if (nplayers == 2) {
-        level1 = 1;
-        lives1 = 3;
-    } else
-        lives1 = 0;
+    game_init_player(0, 1, 3);
+    if (nplayers_get() == 2)
+        game_init_player(1, 1, 3);
+    else
+        game_init_player(1, 1, 0);
 
     gclear(0);
-    curplayer = 0;
+    set_curplayer(0);
     initlevel();
-    curplayer = 1;
+    set_curplayer(1);
     initlevel();
     initscores();
     levnotdrawn0 = 1;
-    if (nplayers == 2)
+    if (nplayers_get() == 2)
         levnotdrawn1 = 1;
-    curplayer = 0;
+    set_curplayer(0);
 
     for (;;) {
-        if (lives0 == 0 && lives1 == 0)
+        if (game_lives(0) == 0 && game_lives(1) == 0)
             goto restart;
 
-        if (curplayer == 0)
-            dead0 = 0;
-        else
-            dead1 = 0;
+        game_set_dead(curplayer_get(), 0);
 
-        while (((curplayer == 0) ? dead0 : dead1) == 0 &&
-               ((curplayer == 0) ? lives0 : lives1) != 0) {
+        while (game_dead(curplayer_get()) == 0 &&
+               game_lives(curplayer_get()) != 0) {
             initmbspr();
             game();
         }
 
-        if (curplayer == 0) {
-            if (lives1 == 0)
+        if (curplayer_get() == 0) {
+            if (game_lives(1) == 0)
                 continue;
-            curplayer = 1;
+            set_curplayer(1);
         } else {
-            if (lives0 == 0)
+            if (game_lives(0) == 0)
                 continue;
-            curplayer = 0;
+            set_curplayer(0);
         }
         levnotdrawn0 = 1;
         levnotdrawn1 = 1;
+    }
+}
+
+/* CS:0x1681 (file 0x1581) - one digit cell. */
+static void draw_digit(int d, int x, int y, int color)
+{
+    drawchar('0' + d, x, y, color);
+}
+
+/* CS:0x1617 (file 0x1517) - 32-bit decimal number, right-aligned. */
+void draw_number(u32 value, int x, int y, int digits, int color)
+{
+    int pos = x + (digits - 1) * 12;
+
+    while (digits > 0) {
+        u32 q = value / 10;
+        int r = (int)(value % 10);
+        if (digits > 1 || r != 0)
+            draw_digit(r, pos, y, color);
+        value = q;
+        digits--;
+        pos -= 12;
     }
 }

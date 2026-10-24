@@ -359,6 +359,33 @@ static u32 nextbonus0 = 20000;  /* DS:0x40CE/0x40D0 */
 static u32 nextbonus1 = 20000;  /* DS:0x40D2/0x40D4 */
 static s16 msc = 1;             /* DS:0x4014, doubles during bonus mode */
 
+/* Views of the shared score/life state for the display layer. */
+u32 score_get(int player)
+{
+    return player ? score1 : score0;
+}
+
+int game_lives(int player)
+{
+    return g_lives[player];
+}
+
+int game_dead(int player)
+{
+    return g_dead[player];
+}
+
+void game_set_dead(int player, int dead)
+{
+    g_dead[player] = (s16)dead;
+}
+
+void game_init_player(int player, int level, int lives)
+{
+    g_level[player] = (s16)level;
+    g_lives[player] = (s16)lives;
+}
+
 /* CS:0x8B2A (file 0x8A2A) */
 void setdead(int dead)
 {

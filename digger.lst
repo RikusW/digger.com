@@ -3373,6 +3373,7 @@ Disassembly of section .data:
     2015:	83 c4 04             	add    sp,0x4
     2018:	5d                   	pop    bp
     2019:	c3                   	ret    
+; --- drawlife (one 4x12 icon) ---
     201a:	55                   	push   bp
     201b:	8b ec                	mov    bp,sp
     201d:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -10094,6 +10095,7 @@ Disassembly of section .data:
     6402:	83 c4 06             	add    sp,0x6
     6405:	5d                   	pop    bp
     6406:	c3                   	ret    
+; --- draw_highscores (ONE/TWO PLAYER) ---
     6407:	55                   	push   bp
     6408:	83 ec 02             	sub    sp,0x2
     640b:	8b ec                	mov    bp,sp
@@ -10144,6 +10146,7 @@ Disassembly of section .data:
     6469:	83 c4 02             	add    sp,0x2
     646c:	5d                   	pop    bp
     646d:	c3                   	ret    
+; --- draw_menu (HIGH SCORES table) ---
     646e:	55                   	push   bp
     646f:	83 ec 06             	sub    sp,0x6
     6472:	8b ec                	mov    bp,sp
@@ -10284,6 +10287,7 @@ Disassembly of section .data:
     65b0:	83 c4 06             	add    sp,0x6
     65b3:	5d                   	pop    bp
     65b4:	c3                   	ret    
+; --- enter_initials ---
     65b5:	55                   	push   bp
     65b6:	83 ec 0e             	sub    sp,0xe
     65b9:	8b ec                	mov    bp,sp
@@ -10522,6 +10526,7 @@ Disassembly of section .data:
     6802:	83 c4 06             	add    sp,0x6
     6805:	5d                   	pop    bp
     6806:	c3                   	ret    
+; --- insert_score ---
     6807:	55                   	push   bp
     6808:	83 ec 0a             	sub    sp,0xa
     680b:	8b ec                	mov    bp,sp
@@ -10623,6 +10628,7 @@ Disassembly of section .data:
     68e1:	8b e5                	mov    sp,bp
     68e3:	5d                   	pop    bp
     68e4:	c3                   	ret    
+; --- format_score (32-bit decimal) ---
     68e5:	55                   	push   bp
     68e6:	83 ec 1c             	sub    sp,0x1c
     68e9:	8b ec                	mov    bp,sp
@@ -10707,6 +10713,7 @@ Disassembly of section .data:
     69be:	83 c4 1c             	add    sp,0x1c
     69c1:	5d                   	pop    bp
     69c2:	c3                   	ret    
+; --- atoi_ds ---
     69c3:	55                   	push   bp
     69c4:	83 ec 0e             	sub    sp,0xe
     69c7:	8b ec                	mov    bp,sp
@@ -13835,6 +13842,7 @@ Disassembly of section .data:
     897f:	83 c4 06             	add    sp,0x6
     8982:	5d                   	pop    bp
     8983:	c3                   	ret    
+; --- menu_redraw (toggle players) ---
     8984:	55                   	push   bp
     8985:	83 ec 02             	sub    sp,0x2
     8988:	8b ec                	mov    bp,sp
