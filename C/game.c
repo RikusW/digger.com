@@ -161,3 +161,186 @@ void endbonusmode(void)
  * table at DS:0x0CA7, a counter at DS:0x0DA7, and the BIOS tick byte at
  * 0x40:0x006C.  The port's randno/randnos 32-bit LCG is a replacement.
  */
+
+/* ---- per-frame game loop -------------------------------------------- */
+
+/*
+ * CS:0x86F1 (file 0x85F1).  This function runs a whole life/level: it is
+ * entered once per life, draws the level the first time, then loops until
+ * the digger dies or the level is completed.  The main life loop calls it
+ * again after a death; in that case levnotdrawn is already 0 and only
+ * initchars() runs, re-seating the digger and monsters on the existing field.
+ */
+
+extern u8 dsseg[0x10000];
+
+extern void hang(void);
+extern void drawscreen(void);
+extern void initchars(void);
+extern void cleartopline(void);       /* CS:0x8A3B */
+extern void strcpy_ds(int dst, int src);  /* CS:0x8D2D */
+extern void strcat_ds(int dst, int src);  /* CS:0x8DF4 */
+extern void writestring(int s, int x, int y, int color);
+extern void drawscore(int color);     /* CS:0x5F2E */
+extern void drawhighscore(void);      /* CS:0x62D0 */
+extern void addscore(int n);
+extern void initscores(void);
+extern void drawlives(void);
+extern void music(int tune);
+extern void playmusic(int tune);
+extern void musicoff(void);
+extern void readdir(void);
+extern void dodigger(void);
+extern void domonsters(void);
+extern void dobags(void);
+extern void delay(int n);
+extern void incmont(int n);
+extern void testpause(void);
+extern void checklevdone(void);
+extern void erasediggers(void);
+extern int getnmovingbags(void);
+extern void killfire(void);
+extern void erasebonus(void);
+extern void cleanupbags(void);
+extern void savefield(void);
+extern void erasemonsters(void);
+extern void soundlevdone(void);
+extern int countem(void);
+extern void initlevel(void);
+extern void gameover(void);           /* CS:0x610B */
+
+static s16 g_curplayer;               /* DS:0x500C */
+static s16 g_penalty;                 /* DS:0x5014 */
+static s16 g_lives[2] = { 3, 0 };     /* DS:0x4FE0 / 0x4FE8 */
+static s16 g_level[2] = { 1, 1 };     /* DS:0x4FE2 / 0x4FEA */
+static s16 g_dead[2];                 /* DS:0x4FDE / 0x4FE6 */
+static s16 g_levdone[2];              /* DS:0x4FE4 / 0x4FEC */
+static s16 g_levnotdrawn;             /* DS:0x5010 */
+static s16 g_banner;                  /* DS:0x5012 */
+static s16 g_checkbyte;               /* DS:0x5016 */
+static u8 g_keypressed;               /* DS:0x0658 */
+
+void game(void)
+{
+    int i, n;
+
+    /* The sector-2 signature must still be valid. */
+    if (g_checkbyte != 0x45)
+        hang();
+
+    if (!g_levnotdrawn) {
+        initchars();
+        goto frame;
+    }
+
+    g_levnotdrawn = 0;
+    drawscreen();
+
+    if (!g_banner)
+        goto frame;
+
+    g_banner = 0;
+    strcpy_ds(0x4FEE, 0x5059);            /* "PLAYER " */
+    strcat_ds(0x4FEE, g_curplayer == 0 ? 0x5061 : 0x5063);  /* "1"/"2" */
+    cleartopline();
+
+    for (i = 0; i < 15; i++) {
+        writestring(0x4FEE, 0x6C, 0, 1);
+        drawscore(1);
+        delay(20);
+        writestring(0x4FEE, 0x6C, 0, 2);
+        drawscore(2);
+        delay(20);
+        writestring(0x4FEE, 0x6C, 0, 3);
+        drawscore(3);
+        delay(20);
+    }
+    drawhighscore();
+    addscore(0);
+
+frame:
+    g_keypressed = 0;
+    writestring(0x5065, 0x6C, 0, 3);      /* blank score line */
+    initscores();
+    drawlives();
+    music(1);
+
+    for (;;) {
+        readdir();
+
+        if (g_dead[g_curplayer] == 0 && g_levdone[g_curplayer] == 0) {
+            g_penalty = 0;
+            dodigger();
+            domonsters();
+            dobags();
+
+            if (g_penalty < 8) {
+                n = (8 - g_penalty) * 5;
+                while (n > 0) {
+                    delay(1);
+                    n--;
+                }
+            } else
+                incmont(g_penalty - 8);
+
+            testpause();
+            checklevdone();
+            continue;
+        }
+        break;
+    }
+
+    /* Level over (death or completion): let the bags settle, then clean up. */
+    erasediggers();
+    musicoff();
+
+    n = 20;
+    for (;;) {
+        if (getnmovingbags() == 0 && n == 0)
+            break;
+        if (n != 0)
+            n--;
+        g_penalty = 0;
+        dobags();
+        dodigger();
+        domonsters();
+        if (g_penalty < 8) {
+            n = (8 - g_penalty) * 5;
+            while (n > 0) {
+                delay(1);
+                n--;
+            }
+        }
+    }
+
+    playmusic(0);
+    killfire();
+    erasebonus();
+    cleanupbags();
+    savefield();
+    erasemonsters();
+
+    if (g_levdone[g_curplayer])
+        soundlevdone();
+
+    if (countem() == 0) {
+        g_level[g_curplayer]++;
+        if (g_level[g_curplayer] > 1000)
+            g_level[g_curplayer] = 1000;
+        initlevel();
+    }
+
+    if (g_dead[g_curplayer]) {
+        g_lives[g_curplayer]--;
+        drawlives();
+        if (g_lives[g_curplayer] == 0)
+            gameover();
+    }
+
+    if (g_levdone[g_curplayer]) {
+        g_level[g_curplayer]++;
+        if (g_level[g_curplayer] > 1000)
+            g_level[g_curplayer] = 1000;
+        initlevel();
+    }
+}

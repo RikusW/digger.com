@@ -6383,6 +6383,7 @@ Disassembly of section .data:
     3d2a:	83 c4 0e             	add    sp,0xe
     3d2d:	5d                   	pop    bp
     3d2e:	c3                   	ret    
+; --- cleanupbags ---
     3d2f:	55                   	push   bp
     3d30:	83 ec 0e             	sub    sp,0xe
     3d33:	8b ec                	mov    bp,sp
@@ -7499,6 +7500,7 @@ Disassembly of section .data:
     4921:	83 c4 02             	add    sp,0x2
     4924:	5d                   	pop    bp
     4925:	c3                   	ret    
+; --- erasediggers ---
     4926:	55                   	push   bp
     4927:	8b ec                	mov    bp,sp
     4929:	33 c0                	xor    ax,ax
@@ -9578,6 +9580,7 @@ Disassembly of section .data:
     5f29:	83 c4 02             	add    sp,0x2
     5f2c:	5d                   	pop    bp
     5f2d:	c3                   	ret    
+; --- drawscore (current player, colour arg) ---
     5f2e:	55                   	push   bp
     5f2f:	83 ec 02             	sub    sp,0x2
     5f32:	8b ec                	mov    bp,sp
@@ -9761,6 +9764,7 @@ Disassembly of section .data:
     6106:	83 c4 04             	add    sp,0x4
     6109:	5d                   	pop    bp
     610a:	c3                   	ret    
+; --- gameover ---
     610b:	55                   	push   bp
     610c:	83 ec 08             	sub    sp,0x8
     610f:	8b ec                	mov    bp,sp
@@ -9950,6 +9954,7 @@ Disassembly of section .data:
     62cb:	83 c4 08             	add    sp,0x8
     62ce:	5d                   	pop    bp
     62cf:	c3                   	ret    
+; --- drawhighscore ---
     62d0:	55                   	push   bp
     62d1:	83 ec 02             	sub    sp,0x2
     62d4:	8b ec                	mov    bp,sp
@@ -13893,6 +13898,7 @@ Disassembly of section .data:
     8a35:	ff 06 14 50          	inc    WORD PTR ds:0x5014
     8a39:	5d                   	pop    bp
     8a3a:	c3                   	ret    
+; --- cleartopline (top status line) ---
     8a3b:	55                   	push   bp
     8a3c:	8b ec                	mov    bp,sp
     8a3e:	b8 03 00             	mov    ax,0x3
@@ -14250,6 +14256,7 @@ Disassembly of section .data:
     8d2b:	5d                   	pop    bp
     8d2c:	c3                   	ret    
 ; --- strcpy?  (C runtime) ---
+; --- strcpy_ds (C runtime) ---
     8d2d:	55                   	push   bp
     8d2e:	83 ec 04             	sub    sp,0x4
     8d31:	8b ec                	mov    bp,sp
@@ -14338,6 +14345,7 @@ Disassembly of section .data:
     8df1:	ee                   	out    dx,al
     8df2:	5d                   	pop    bp
     8df3:	c3                   	ret    
+; --- strcat_ds (C runtime) ---
     8df4:	55                   	push   bp
     8df5:	83 ec 04             	sub    sp,0x4
     8df8:	8b ec                	mov    bp,sp

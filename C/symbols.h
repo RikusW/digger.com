@@ -124,6 +124,14 @@ typedef int32_t  s32;
 
 /* Game loop and core updates (mapped from the port's game()/domonsters()). */
 #define CS_GAME_LOOP            0x86F1u
+#define CS_CLEARTOPLINE         0x8A3Bu  /* clears the top status line */
+#define CS_DRAWSCORE            0x5F2Eu  /* current player score at (0,6), colour arg */
+#define CS_DRAWHIGHSCORE        0x62D0u
+#define CS_GAMEOVER             0x610Bu  /* called when the last life is lost */
+#define CS_ERASEDIGGERS         0x4926u
+#define CS_CLEANUPBAGS          0x3D2Fu
+#define CS_STRCPY_DS            0x8D2Du  /* C runtime: strcpy into the data segment */
+#define CS_STRCAT_DS            0x8DF4u  /* C runtime: strcat */
 #define CS_DODIGGER             0x4939u  /* verified by bonus block at CS:0x4912..0x4A11 */
 #define CS_DOMONSTERS           0x2C90u  /* verified structure */
 #define CS_DOBAGS               0x3E2Du  /* verified */
@@ -305,12 +313,10 @@ typedef int32_t  s32;
 #define DS_MUSICSTAGE           0x45E0u
 #define DS_MUSICN               0x45E2u
 #define DS_CURPLAYER            0x500Cu
-#define DS_NPLAYERS             0x500Eu  /* probable */
 #define DS_PENALTY              0x5014u
 #define DS_LEVEL_BASE           0x4FE2u  /* + 8*curplayer */
 #define DS_LIVES_A              0x4FE0u
 #define DS_LIVES_B              0x4FE8u
-#define DS_KEYPRESSED           0x0658u
 #define DS_SCOREBUF             0x0046u  /* 512-byte disk sector / score buffer */
 #define DS_DISK_RETRY           0x0247u
 #define DS_RNG_TABLE            0x0CA7u  /* 256-byte permutation */
@@ -325,6 +331,14 @@ typedef int32_t  s32;
 #define DS_SCOREINIT            0x4134u  /* 11 x 4 chars */
 #define DS_LEVNOTDRAWN          0x5010u
 #define DS_LEVNOTDRAWN1         0x5012u
+#define DS_PLAYER_DEAD1         0x4FE6u
+#define DS_PLAYER_LIVES         0x4FE0u  /* plus 8*curplayer */
+#define DS_PLAYER_LEVEL         0x4FE2u  /* plus 8*curplayer */
+#define DS_PLAYER_LEVDONE       0x4FE4u  /* plus 8*curplayer */
+#define DS_PLAYER_LIVES1        0x4FE8u
+#define DS_PLAYER_LEVEL1        0x4FEAu
+#define DS_PLAYER_LEVDONE1      0x4FECu
+#define DS_PLAYER_BANNER        0x4FEEu  /* "PLAYER n" scratch string */
 #define DS_CHECKBYTE            0x5016u  /* 0x45 when the disk signature check passed */
 #define DS_NPLAYERS             0x500Eu
 #define DS_MENUFLAG             0x0665u

@@ -855,3 +855,30 @@ Committed the title-screen/menu code (9 files).
 - **Data**: alternate title sprite order at `DS:0x4FBE`; strings `D I G G E R`, `NOBBIN`, `HOBBIN`, `DIGGER`, `GOLD`, `EMERALD`, `BONUS`, `PLAYER `, `1`, `2`.
 
 Artifacts: `C/main.c`, `C/sprite.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.
+
+## Reconstruct the whole-level `game()` loop
+
+Previous commit: 4736c11
+
+### User
+
+I looked at CGA.md sources and at https://archive.org/details/digger_cga I found digger83b.zip with a dosbox config file which now properly runs it on my current dosbox. I also compared it to the digger.com I have and it was byte identical except for the hiscore section which is to be expected. 6 is resolved. Finish 1 - 4 each in its own commit.
+
+### Assistant
+
+Reconstructed `game()` (`CS:0x86F1`) in `C/game.c`.
+
+## What was added
+
+- **`game()`** runs a whole life/level internally rather than one frame: signature re-check, `drawscreen` on a new level, the optional `PLAYER n` banner with fifteen colour flashes, the `readdir`/`dodigger`/`domonsters`/`dobags`/penalty/`testpause`/`checklevdone` frame loop, and the post-level path (bag-settle loop, `playmusic(0)`, `killfire`, `erasebonus`, `cleanupbags`, `savefield`, `erasemonsters`, level advance on `countem()==0` or `levdone`, life loss and `gameover`).
+- **Helpers identified**: `cleartopline` `0x8A3B`, `drawscore` `0x5F2E`, `drawhighscore` `0x62D0`, `gameover` `0x610B`, `erasediggers` `0x4926`, `cleanupbags` `0x3D2F`, and the C runtime `strcpy_ds`/`strcat_ds` `0x8D2D`/`0x8DF4`.
+- **State map**: the per-player block `0x4FDE..0x4FEC` (dead, lives, level, levdone for each player), `levnotdrawn` `0x5010`, banner flag `0x5012`, check byte `0x5016`, and the `PLAYER n` scratch string at `0x4FEE`.
+
+Artifacts: `C/game.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.
+
+## Resolved: DOSBox CGA
+
+The archive item `digger_cga`'s `digger83b.zip` ships a DOSBox configuration that
+runs the game correctly on current DOSBox.  The `digger.com` in that archive is
+byte-identical to the repo's `digger.com` apart from the embedded
+high-score section, which is expected.  No emulator change is needed.

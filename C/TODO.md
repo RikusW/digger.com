@@ -45,7 +45,7 @@
   (`drawmon`/`drawmondie`/`drawdig`/`drawgold`/`drawfire`, `makefield`/
   `makeemfield`/`drawfield`/`drawstatics`/`drawemeralds`, `drawbackg`,
   the blob/emerald helpers, and the sprite-buffer initialisers).
-- The sprite engine and pixel layer are in `sprite.c`; the start-up, title
+- `game()` is reconstructed in `game.c`.  The sprite engine and pixel layer are in `sprite.c`; the start-up, title
   screen, menu, font and life loop are in `main.c`.  The remaining work is
   the score/menu display helpers (`0x6407`, `0x646E`, `0x8984`), the INT 10h
   teletype/scroll path, and decoding the CGA sprite/tile data and title

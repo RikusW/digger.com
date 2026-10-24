@@ -240,7 +240,15 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x71D7` | `0x71D7` | `soundstop` | probable | Post-level sound stop. |
 | `0x7310` | `0x7210` | `soundlevdone` | probable | Level-done tune. |
 | `0x7A63` | `0x7963` | `musicoff` | probable | Music off. |
-| `0x86F1` | `0x85F1` | `game` loop | verified | Per-frame order: dodigger, domonsters, dobags, penalty, testpause, checklevdone. |
+| `0x86F1` | `0x85F1` | `game` | verified | Runs a whole life/level: signature re-check; on a new level `drawscreen`, optional `PLAYER n` banner (15 colour flashes); frame loop `readdir`/`dodigger`/`domonsters`/`dobags`/penalty/`testpause`/`checklevdone`; on death/level end a 20-frame bag-settle loop, then `playmusic(0)`, `killfire`, `erasebonus`, `cleanupbags`, `savefield`, `erasemonsters`, level advance (countem/levdone) and life loss. |
+| `0x8A3B` | `0x893B` | `cleartopline` | verified | Writes 26 spaces at (0,0) and one at (0x134,0). |
+| `0x5F2E` | `0x5E2E` | `drawscore` | verified | Draws the current player score at (0,6) in the given colour. |
+| `0x62D0` | `0x61D0` | `drawhighscore` | verified | Draws the high score at (0,6), colour 3. |
+| `0x610B` | `0x600B` | `gameover` | verified | `addscore(0)`, copies the player score into the high-score slot when player 0, then the game-over display. |
+| `0x4926` | `0x4826` | `erasediggers` | verified | `erasespr(0)` and `digvisible=0`. |
+| `0x3D2F` | `0x3C2F` | `cleanupbags` | verified | `soundfalloff`, removes bags at the digger start/off-grid, saves per-player copies. |
+| `0x8D2D` | `0x8C2D` | `strcpy_ds` | verified | C runtime `strcpy` over data-segment offsets. |
+| `0x8DF4` | `0x8CF4` | `strcat_ds` | verified | C runtime `strcat` over data-segment offsets. |
 | `0x89A4` | `0x88A4` | `initlevel`? | probable | `levdone=0`, `makefield` `0x6A48`, `makeemfield` `0x56E8`, `initbags` `0x3B31`, `levnotdrawn=1` (`DS:0x5010`). |
 | `0x89CD` | `0x88CD` | `drawscreen`? | probable | `creatembspr` `0x1826`, `drawstatics` `0x6B31`, `drawbags` `0x3C93`, `drawemeralds` `0x5777`, `initdigger` `0x48A0`, `initmonsters` `0x2BC1`. |
 | `0x89E4` | `0x88E4` | `initchars`? | probable | `initmbspr` `0x1A03`, `initdigger` `0x48A0`, `initmonsters` `0x2BC1`. |

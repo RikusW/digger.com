@@ -1382,6 +1382,7 @@
 ; --- DS:4fbe title sprite draw order (16 words): 14,13,7,6,5,4,3,2,1,12,11,10,9,8,15,0 ---
 4fb0: 48 48 48 48 48 48 48 48 48 48 48 48 48 48 0e 00  HHHHHHHHHHHHHH..
 4fc0: 0d 00 07 00 06 00 05 00 04 00 03 00 02 00 01 00  ................
+; --- DS:4fde dead0, 4fe0 lives0, 4fe2 level0, 4fe4 levdone0; 4fe6 dead1, 4fe8 lives1, 4fea level1, 4fec levdone1; 4fee "PLAYER n" scratch ---
 4fd0: 0c 00 0b 00 0a 00 09 00 08 00 0f 00 00 00 00 00  ................
 ; --- DS:4fe0 4fe0 lives field A? ---
 ; --- DS:4fe2 4fe2 level (curplayer*8 base)? ---

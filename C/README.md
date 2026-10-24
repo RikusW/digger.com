@@ -36,7 +36,7 @@ reconstructed from the 8086 disassembly.
 | `startint8`, `stopint8`, `soundoff`, `initsound` | reconstructed (some probable) | `sound.c` |
 | `addscore`, fixed-score wrappers, score init | structure + fragments | `game.c` |
 | RNG (table + BIOS tick, shared by game/sound) | reconstructed | `rng.c` |
-| Game loop + dodigger/domonsters/dobags/monai mapping | mapped | `game.c` |
+| `game` (whole-level loop, banner, post-level path) | reconstructed | `game.c` |
 | Bonus mode (`createbonus`/`initbonusmode`/`endbonusmode`) | reconstructed | `game.c` |
 | Score I/O (INT 13h sector 7) | reconstructed/mapped | `game.c` |
 | `dodigger` + per-digger state + bonus block | reconstructed | `digger.c` |

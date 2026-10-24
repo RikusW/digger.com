@@ -218,13 +218,21 @@ replacement; its sequence differs. See `C/rng.c`.
 
 ### Main game loop — `CS:0x86F1`
 
-The per-frame order matches the port's `game()`:
+`game()` is entered **once per life/level** and runs an internal frame loop;
+it does not return each frame:
 
-- `dodigger` (`CS:0x4939`, probable)
-- `domonsters` (`CS:0x2C90`, verified structure)
-- `dobags` (`CS:0x3E2D`, probable)
-- penalty delay if `<8`, otherwise `incmont(penalty-8)` (`CS:0x3AEF`)
-- `testpause` (`CS:0x8B55`), `checklevdone` (`CS:0x89F2`)
+- copy-protection re-check (`DS:0x5016` must be `0x45`, else hang);
+- if `levnotdrawn` (`DS:0x5010`) is set: `drawscreen`; if the banner flag
+  (`DS:0x5012`) is set, build `"PLAYER n"` at `DS:0x4FEE`, clear the top
+  line, flash it in colours 1/2/3 fifteen times, then `addscore(0)`;
+  otherwise `initchars` (a re-entry after a death on the same field);
+- frame loop: `readdir`, `dodigger`, `domonsters`, `dobags`, penalty delay
+  `(8-penalty)*5` or `incmont(penalty-8)`, `testpause`, `checklevdone`;
+- on death/level end: `erasediggers`, `musicoff`, a 20-frame bag-settle loop
+  (`getnmovingbags`, `dobags`/`dodigger`/`domonsters`), then `playmusic(0)`,
+  `killfire`, `erasebonus`, `cleanupbags`, `savefield`, `erasemonsters`,
+  `soundlevdone`, level advance on `countem()==0` or `levdone`, life loss
+  and `gameover` (`0x610B`) when the last life goes.
 
 `domonsters` loops six monsters (stride `0x28`, table `DS:0x3B1C`), applies
 `hnt > 10-levof10()`, and calls `monai` (`CS:0x2E75`), which contains the
@@ -232,7 +240,7 @@ port's `randno(levof10()+5)==1` direction swap. `initlevel` (`CS:0x89A4`),
 `drawscreen` (`CS:0x89CD`), `initchars` (`CS:0x89E4`), and `initscores`
 (`CS:0x5DE0`) map to the port. The post-level path matches the port's
 `getnmovingbags` loop plus the soundstop/erasebonus/cleanupbags/savefield/
-erasemonsters/countem sequence.
+erasemonsters/countem sequence. `game()` is reconstructed in `C/game.c`.
 
 ### Game-logic bodies
 
