@@ -48,7 +48,7 @@ extern volatile u8 keypressed; /* DS:0x0658, input.c */
 
 /* externs */
 extern void setretr(int on);
-extern void cga_init(void);
+extern int cga_start(void);
 extern void gpal(int pal);
 extern void gbackground(int color);
 extern void gclear(int color);
@@ -179,7 +179,7 @@ void main_title(void)
     int i, y;
 
     setretr(0);
-    cga_init();
+    cga_start();
     setretr(1);
     gpal(0);
     gbackground(0);

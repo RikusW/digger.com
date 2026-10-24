@@ -192,3 +192,58 @@ offsets** (the binaries differ elsewhere; SHA-256 differs).
 - [DOSBox vga_other.cpp (blackberry mirror)](https://github.com/blackberry/DosBox/blob/master/src/hardware/vga_other.cpp)
 - [DOSBox-X vga_other.cpp source](https://dosbox-x.com/doxygen/html/vga__other_8cpp_source.html)
 - [int10h.org: Astro-Dodge's Dirty Video Tricks](https://int10h.org/blog/2023/10/astro-dodge-cga-dirty-video-tricks/)
+
+## Resolution (2026-10-24)
+
+The archive item [`digger_cga`](https://archive.org/details/digger_cga) contains
+`digger83b.zip`, whose DOSBox configuration runs the game correctly on current
+DOSBox.  The `digger.com` in that archive is byte-identical to the repo's
+`digger.com` apart from the embedded high-score section, which is expected.
+No DOSBox code change is needed for this build: the working configuration is
+`machine=cga` (with the archive's cycle setting) rather than the default
+EGA/VGA machine.
+
+## Data formats
+
+### Title bitmap — `DS:0x0DAC`
+
+The title image is RLE-compressed into the 16 KB CGA framebuffer:
+
+```
+while (out < 0x4000)
+    if (byte == 0xFE) { count = next; value = next; repeat value count times; }
+    else                out[di++] = byte;
+```
+
+The blitter is `CS:0x17EB`; it writes directly to `B800:0000`.
+
+### Sprite frames — CS source pairs
+
+Each moving sprite has two CS source blocks passed to `setspr`/`setspr2`:
+a colour/data block and a transparency-mask block.  A frame is `height` rows
+of `width` bytes (2bpp, 4 pixels per byte, leftmost in bits 7–6); drawing
+computes `(screen & mask) | data` per byte.  Frame sizes:
+
+| Sprite | Size | Example sources |
+|---|---|---|
+| bag/gold, monster, digger | 4x15 | `0x18D6/0x1913`, `0x1DD0/0x1E0D` |
+| monster death (left) | 4x14 | `0x24EE/0x2527` |
+| emerald | 4x10 | `0x16E4/0x170D` |
+| life icon | 4x12 | `0x17B0/0x17E1` |
+| fireball | 2x7 | `0x2A2A/0x2A39` |
+| wall blob | 2x18 | `0x2706/0x272B` |
+| wall blob | 6x6 | `0x279A/0x27BF` |
+| furry blob | 6x8 | `0x282E/0x285F` |
+| background tile | 5x4 | `0x28DA/0x28EF` … `0x2A00/0x2A15` |
+
+### Title font — `DS:0x06B6`
+
+Sixty-four glyph pointers for characters `0x20..0x5F` (table at
+`CS:0x1523`).  Each glyph is `[width in bytes][height][2bpp rows]`, stored in
+`0x27`-byte slots; only space, `.`, `0-9`, `A-Z` and `_` exist.  Text cells
+advance 12 pixels.
+
+### Background
+
+`drawbackg` tiles a 5x4 source pair over the 320x186 area for `y=14..199`;
+the eight tile sets are selected by `levplan()`.

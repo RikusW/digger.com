@@ -30,6 +30,7 @@ reconstructed from the 8086 disassembly.
 | `soundemerald`, `soundddie` | reconstructed | `sound.c` |
 | `getlevch`, level data | reconstructed | `levels.c` |
 | CGA init/palette/pixel/RLE/R2 shift | reconstructed | `cga.c` |
+| CGA startup probe/INT 10h message, block/line drawing | reconstructed | `cga.c` |
 | `incpenalty`, `levno`, `levplan`, `levof10`, `getlives`, `addlife`, `curplayer` | reconstructed | `state.c` |
 | `nplayers` getter, `testpause` | getter done; pause flow noted | `state.c` |
 | `sett0`, `setsoundt2`, `setsoundmode`, `sett2val`, `timer2` | reconstructed | `sound.c` |

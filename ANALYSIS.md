@@ -197,8 +197,12 @@ The only nonstandard timing value is the **PCjr H-sync `R2=0x2C`** (IBM CGA
 mode 4 uses `0x2D`); the game also rewrites `R2` at runtime (0x2A..0x2E) for
 a horizontal shift. The framebuffer address formula is
 `(y&~1)*40 + (y&1)*0x2000 + (x>>2)`, i.e. the standard CGA even/odd bank
-layout. `R9=1` is normal for mode 4. See `CGA.md` for the DOSBox failure
-analysis and fix directions.
+layout. `R9=1` is normal for mode 4. The startup wrapper `CS:0x03F4` probes
+`B800`, enters mode 4, and prints the `DS:0x0263`/`0x0322` message through
+the BIOS INT 10h teletype (`CS:0x0456`, gated on the equipment word).
+Block/line drawing: `0x0628` (replace) and `0x0655` (XOR) both call the
+Bresenham worker `0x0682` through `0x05B0`. The archive's working DOSBox
+configuration resolves the display issue; see `CGA.md`.
 
 ### Random numbers — `CS:0x177F`
 

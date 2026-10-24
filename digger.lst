@@ -379,6 +379,7 @@ Disassembly of section .data:
      3f2:	58                   	pop    ax
      3f3:	cf                   	iret   
 ; --- CGA video init entry ---
+; --- cga_start (probe, init, startup message) ---
      3f4:	55                   	push   bp
      3f5:	8b ec                	mov    bp,sp
      3f7:	e8 02 00             	call   0x3fc
@@ -428,6 +429,7 @@ Disassembly of section .data:
      44f:	e8 67 00             	call   0x4b9
      452:	e8 4b 00             	call   0x4a0
      455:	c3                   	ret    
+; --- cga_print_text (INT 10h teletype) ---
 ; --- cga_print_text (INT 10h teletype) ---
      456:	06                   	push   es
      457:	b8 40 00             	mov    ax,0x40
@@ -679,6 +681,7 @@ Disassembly of section .data:
      626:	5b                   	pop    bx
      627:	c3                   	ret    
 ; --- CGA block put? ---
+; --- cga_draw_block (replace line) ---
      628:	55                   	push   bp
      629:	8b ec                	mov    bp,sp
      62b:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -697,6 +700,7 @@ Disassembly of section .data:
      653:	5d                   	pop    bp
      654:	c3                   	ret    
 ; --- CGA block XOR? ---
+; --- cga_xor_block (XOR line) ---
      655:	55                   	push   bp
      656:	8b ec                	mov    bp,sp
      658:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -715,6 +719,7 @@ Disassembly of section .data:
      680:	5d                   	pop    bp
      681:	c3                   	ret    
 ; --- CGA block worker? ---
+; --- cga_line (Bresenham) ---
      682:	a1 bb 03             	mov    ax,ds:0x3bb
      685:	2b 06 b7 03          	sub    ax,WORD PTR ds:0x3b7
      689:	a3 bf 03             	mov    ds:0x3bf,ax

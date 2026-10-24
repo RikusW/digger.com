@@ -304,3 +304,97 @@ void outportb(u16 port, u8 value)
     (void)value;
 }
 #endif
+
+/* ---- block/line drawing (0x0628/0x0655/0x0682) ----------------------- */
+
+/* CS:0x0682 (file 0x0582) - Bresenham line through cga_pixel_apply(). */
+static void cga_line(int x1, int y1, int x2, int y2, int color, int mode)
+{
+    int dx = x2 - x1, dy = y2 - y1;
+    int diag1 = 0, diag2 = 0, incx = 1, incy = 1, err, n;
+
+    cga_pixel_color = (u8)(color & 3);
+    cga_write_mode = (u8)mode;
+
+    if (dx < 0) { incx = -1; dx = -dx; }
+    if (dy < 0) { incy = -1; dy = -dy; }
+    if (dx < dy) {
+        int t = dx; dx = dy; dy = t;
+        diag1 = incx; incx = 0;
+        diag2 = incy; incy = 0;
+    }
+
+    err = dx >> 1;
+    n = 1;
+    cga_pixel_apply(x1, y1);
+    for (;;) {
+        if (n > dx)
+            return;
+        x1 += incx;
+        y1 += incy;
+        err += dy;
+        n++;
+        if (err > dx) {
+            err -= dx;
+            x1 += diag1;
+            y1 += diag2;
+        }
+        cga_pixel_apply(x1, y1);
+    }
+}
+
+/* CS:0x0628 (file 0x0528) */
+void cga_draw_block(int x1, int y1, int x2, int y2, int color)
+{
+    cga_line(x1, y1, x2, y2, color, 0x00);
+}
+
+/* CS:0x0655 (file 0x0555) */
+void cga_xor_block(int x1, int y1, int x2, int y2, int color)
+{
+    cga_line(x1, y1, x2, y2, color, 0xFF);
+}
+
+/* ---- startup: probe, mode, INT 10h message --------------------------- */
+
+/* CS:0x0456 (file 0x0356) - print a '$'-terminated string through the BIOS
+ * teletype, only when the equipment word reports an 80x25 CGA. */
+void cga_print_text(int s)
+{
+    u8 eq = 0x30;                 /* assume the CGA equipment bits */
+
+#if defined(__i386__) || defined(__x86_64__)
+    {
+        u16 ax;
+        __asm__ volatile ("movw $0x40, %%ax; movw %%ax, %%es; "
+                          "movb %%es:0x10, %%al"
+                          : "=a"(ax) : : "memory");
+        eq = (u8)(ax & 0x30);
+    }
+#endif
+    if (eq != 0x30)
+        return;
+
+#if defined(__i386__) || defined(__x86_64__)
+    __asm__ volatile ("int $0x10" : : "a"((u16)0x0100), "c"((u16)0x2000));
+#endif
+    while (dsseg[s] != '$') {
+#if defined(__i386__) || defined(__x86_64__)
+        __asm__ volatile ("int $0x10" : : "a"((u16)(0x0E00 | dsseg[s])),
+                          "b"((u16)0));
+#endif
+        s++;
+    }
+}
+
+/* CS:0x03F4 (file 0x02F4) */
+int cga_start(void)
+{
+    if (cga_probe()) {
+        cga_init();
+        cga_print_text(0x263);    /* "Please turn on display ..." */
+        return -1;
+    }
+    cga_print_text(0x322);        /* "This program requires ..." */
+    return 0;
+}

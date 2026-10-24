@@ -96,11 +96,11 @@ typedef int32_t  s32;
 #define CS_LONG_DIVIDE          0x8C7Du  /* probable runtime helper */
 #define CS_LONG_COMPARE         0x8E23u  /* probable runtime helper */
 #define CS_VIDEO_RLE_BLIT       0x17EBu  /* DS:0x0DAC -> B800, 0x4000 bytes */
-#define CS_CGA_ENTRY            0x03F4u
+#define CS_CGA_ENTRY            0x03F4u  /* probe, init, startup message */
 #define CS_CGA_VIDEO_INIT       0x03FCu
 #define CS_CGA_PROBE            0x0418u
 #define CS_CGA_INIT             0x0429u
-#define CS_CGA_PRINT_TEXT       0x0456u
+#define CS_CGA_PRINT_TEXT       0x0456u  /* INT 10h teletype, equipment check */
 #define CS_CGA_MODE_OFF         0x048Au
 #define CS_CGA_MODE_ON          0x04A0u
 #define CS_CGA_CLEAR            0x04AEu
@@ -112,9 +112,9 @@ typedef int32_t  s32;
 #define CS_CGA_PUTPIXEL         0x057Au
 #define CS_CGA_XORPIXEL         0x0595u
 #define CS_CGA_PIXEL_WORKER     0x05B0u
-#define CS_CGA_BLOCK_PUT        0x0628u
-#define CS_CGA_BLOCK_XOR        0x0655u
-#define CS_CGA_BLOCK_WORKER     0x0682u
+#define CS_CGA_BLOCK_PUT        0x0628u  /* line draw, replace mode */
+#define CS_CGA_BLOCK_XOR        0x0655u  /* line draw, XOR mode */
+#define CS_CGA_BLOCK_WORKER     0x0682u  /* Bresenham line through 0x05B0 */
 #define CS_CGA_SHIFT_INC        0x1128u
 #define CS_CGA_SHIFT_DEC        0x1155u
 

@@ -39,43 +39,34 @@
 
 ## High priority
 
-- **All game and rendering bodies are reconstructed**: main loop, digger
-  (`dodigger`/`updatedigger`/`diggerdie`), fireball, monsters, bags, field
-  and emerald helpers, RNG, bonus mode, score I/O, and the drawing layer
-  (`drawmon`/`drawmondie`/`drawdig`/`drawgold`/`drawfire`, `makefield`/
-  `makeemfield`/`drawfield`/`drawstatics`/`drawemeralds`, `drawbackg`,
-  the blob/emerald helpers, and the sprite-buffer initialisers).
-- `game()` is reconstructed in `game.c`.  The sprite engine and pixel layer are in `sprite.c`; the start-up, title
-  screen, menu, font and life loop are in `main.c`.  The remaining work is
-  the INT 10h teletype/scroll path, and decoding the CGA sprite/tile data
-  and title bitmap.  The input layer, accessors, score accounting, sound
-  events, CGA wrappers, score/menu display and high-score storage are now
-  reconstructed.
+- Nothing outstanding.  Every game, rendering, input, score, sound and CGA
+  body is reconstructed: `game()`, digger/monsters/bags/fireball/field,
+  the drawing and sprite engine, `main`/title/menu/font, the input layer,
+  score accounting and display, high-score storage, and the CGA startup,
+  block/line and pixel paths.
 
 ## CGA / DOSBox
 
-- The mode is standard CGA 320x200x4 entered by direct 3D8/3D9/CRTC writes;
-  the only nonstandard timing value is the PCjr H-sync `R2=0x2C`, and the game
-  rewrites R2 at runtime for a horizontal shift.  See `CGA.md`.
-- Reproduce the DOSBox failure with `machine=cga` vs the default machine and
-  with `cycles=fixed 400` vs 3000 before changing emulator code.
-- Reconstruct the CGA block put/XOR functions at `CS:0x0628`/`CS:0x0655` and
-  the worker at `CS:0x0682`.
-- Reconstruct the INT 10h teletype/scroll path used for the startup message
-  under the custom CRTC.
-- Decode the title bitmap (`DS:0x0DAC`) and the remaining CGA sprite/font
-  tables.
+- Resolved.  The archive item `digger_cga`'s `digger83b.zip` configuration
+  runs the game correctly; its `digger.com` is byte-identical to the repo's
+  apart from the high-score section.  `machine=cga` is the working machine
+  type.  See `CGA.md`.
+- The title bitmap format (RLE, `0xFE count value`) and the sprite/tile/font
+  block format are documented in `CGA.md`.
 
 ## Medium priority
-- Confirm the two-player flow: the original has `TWO`/`PLAYERS` text but no
-  `SIMULTANEOUS` string; determine whether players alternate or play together.
-- Map the title-screen/main-loop function at CS:0x82A6 and its callees.
-- Map the score event call sites to the actual game events (which wrapper is
-  called on which collision/bonus).
+
+- The two-player flow is alternating: `main` initialises both players with
+  three lives and `game()` runs one life at a time, switching players.
+- The score call sites are mapped: `scorekill` in monster/digger/fireball
+  collisions, `scoreemerald` + `sceatm` in `updatedigger`, `scoregold` in
+  `getgold`, `scorebonus` on the bonus pickup, and the score wrappers in the
+  monster/bag paths.
 
 ## Low priority
 
-- Name the remaining C runtime helpers (long arithmetic, formatting).
+- Name the remaining C runtime helpers (long arithmetic at `0x8BFC`, the
+  number formatter, the string routines).
 - Add a label map for every function boundary; the current `.lst` labels are
   the verified/probable subset.
 - Produce a byte-for-byte diff tool that compares this reconstruction's data

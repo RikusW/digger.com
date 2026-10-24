@@ -960,3 +960,36 @@ Artifacts: `C/display.c`, `C/scores.c`, `C/main.c`,
 `C/game.c`, `C/state.c`, `C/symbols.h`, `C/README.md`,
 `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`,
 `digger.dat`, `Worklog.md`.
+
+## Reconstruct the CGA startup, block drawing and data formats
+
+Previous commit: 009986d
+
+### User
+
+I looked at CGA.md sources and at https://archive.org/details/digger_cga I found digger83b.zip with a dosbox config file which now properly runs it on my current dosbox. I also compared it to the digger.com I have and it was byte identical except for the hiscore section which is to be expected. 6 is resolved. Finish 1 - 4 each in its own commit.
+
+### Assistant
+
+Reconstructed the remaining CGA layer (item 4) and recorded the resolved
+DOSBox finding.
+
+## What was added
+
+- **Startup**: `cga_start` (`0x03F4`) probes `B800`, enters mode 4 and prints
+  the `DS:0x0263`/`0x0322` message through `cga_print_text` (`0x0456`,
+  INT 10h teletype gated on the BIOS equipment word).
+- **Block drawing**: `cga_draw_block` (`0x0628`, replace) and
+  `cga_xor_block` (`0x0655`, XOR) both call the Bresenham worker `0x0682`
+  through `cga_pixel_apply`.
+- **Data formats** documented in `CGA.md`: the title RLE
+  (`0xFE count value`, 16 KB out at `B800`), per-frame sprite data/mask
+  blocks and their sizes, the `[w][h][2bpp]` title font, and the 5x4
+  background tiles.
+- **Resolution record**: the archive `digger83b.zip` DOSBox configuration
+  (`machine=cga`) works, and its binary matches `digger.com` apart from
+  the high-score section.
+
+Artifacts: `C/cga.c`, `C/main.c`, `C/symbols.h`,
+`C/README.md`, `C/TODO.md`, `CGA.md`, `ANALYSIS.md`,
+`digger.lst`, `Worklog.md`.
