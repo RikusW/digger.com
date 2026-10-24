@@ -30,6 +30,10 @@ fill 16KB framebuffer with colour 0
 out 3D8h, 0Ah              ; video on, graphics, colour, 320x200
 ```
 
+`main` then calls `gpal(0)` (`CS:0x04E7`) and `gbackground(0)`
+(`CS:0x0520`), so the game itself runs in **palette 0**: black, green, red,
+brown.  The `0x20` above only selects palette 1 momentarily during init.
+
 `0x02`/`0x0A` mean: bit 1 = graphics, bit 2 = colour, bit 3 = video enable,
 bit 4 = 320×200 (not 640×200), bit 5 = blink off.
 
@@ -69,7 +73,8 @@ addr = (y & ~1) * 40 + (y & 1) * 0x2000 + (x >> 2)
 - `R9=1` matches this: one character row = one even/odd scanline pair.
 
 The title screen is an RLE-compressed 16 KB bitmap at `DS:0x0DAC`, blitted
-sequentially into the framebuffer by `CS:0x17EB` (`0xFE count value` escape).
+sequentially into the framebuffer by `CS:0x17EB` (`0xFE count value` escape;
+`count` copies, with 0 meaning 256).
 `DS:0x0DAC` is therefore already in the CGA interleaved layout.
 
 ### Palette/background
@@ -215,14 +220,26 @@ while (out < 0x4000)
     else                out[di++] = byte;
 ```
 
-The blitter is `CS:0x17EB`; it writes directly to `B800:0000`.
+The blitter is `CS:0x17EB`; it writes directly to `B800:0000`.  The stream is
+2523 bytes and its tail (from `DS:0x16E4`) overlaps the first 163 bytes of the
+sprite bank; those bytes only affect the final two scanlines.
 
-### Sprite frames — CS source pairs
+### Packing
 
-Each moving sprite has two CS source blocks passed to `setspr`/`setspr2`:
+There is no single large bitmap for the sprites or the font.  The font is a
+contiguous array of 0x27-byte glyph records at `DS:0x06B6`; sprite frames are
+packed data/mask bank pairs from `DS:0x16E4` to `DS:0x3B23`, with 1-byte
+padding and scratch (saved-background) blocks interleaved.  The background is
+eight 5x4 tiles rather than a bitmap.  Only the title screen is a full-screen
+bitmap, and it is RLE-compressed.
+
+### Sprite frames — DS source pairs
+
+Each moving sprite has two DS source blocks passed to `setspr`/`setspr2`:
 a colour/data block and a transparency-mask block.  A frame is `height` rows
 of `width` bytes (2bpp, 4 pixels per byte, leftmost in bits 7–6); drawing
-computes `(screen & mask) | data` per byte.  Frame sizes:
+computes `(screen & mask) | data` per byte.  The sizes below are in bytes;
+multiply the width by four for pixels.  Frame sizes:
 
 | Sprite | Size | Example sources |
 |---|---|---|
@@ -247,3 +264,12 @@ advance 12 pixels.
 
 `drawbackg` tiles a 5x4 source pair over the 320x186 area for `y=14..199`;
 the eight tile sets are selected by `levplan()`.
+
+### Extracted files
+
+`tools/extract_data.py` writes every table and graphic here to `data/`
+(raw segment images, tables, all 76 sprite frames, the 39 font glyphs, the
+title RLE/framebuffer and PNGs); see `data/README.md`.  The PNGs use
+palette 0, low intensity (black/green/red/brown) and are nearest-neighbour
+4x upscales of the native 2bpp images.  `data/` is generated and ignored
+by git; only the tool is committed.

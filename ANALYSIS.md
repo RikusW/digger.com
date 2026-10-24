@@ -386,7 +386,7 @@ erasemonsters/countem sequence. `game()` is reconstructed in `C/game.c`.
   and call `createdbfspr` `0x20F6` / `initdbfspr` `0x2167` for the digger,
   bonus and fireball. `drawmon` `0x1B84` and `drawdig` `0x263F` animate legs
   (per-monster `0x16CC/0x16D8`, digger `0x2700/0x2702`, fireball `0x2704`)
-  and select 4x15 frames from CS source pairs; `drawmondie` `0x1DDB` picks
+  and select 4x15 frames from DS source pairs; `drawmondie` `0x1DDB` picks
   the 4x15/4x14 death frames; `drawgold` `0x1E9D` has seven 4x15 frames;
   `drawfire` `0x24C6` uses 2x7 frames. The field walls come from
   `drawfield` `0x6C3E` (matches the port), the tiled background from
@@ -463,18 +463,10 @@ reference; it is a default/legacy score image. The sector-2 read/check
 
 ## Open items / next work
 
-- Decode the CGA sprite/tile data behind the source addresses
-  (`CS:0x16E4..0x3B00`) and the title bitmap.
-- Reconstruct the remaining score/menu display helpers (`0x6407`, `0x646E`,
-  `0x8984`) and the INT 10h teletype/scroll path used under the custom CRTC.
-- Decode the CGA sprite/graphics data and its RLE title bitmap.
-- Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
-  and `cycles=fixed 400` vs 3000; see `CGA.md`.
-- Reconstruct the CGA block put/XOR functions and the INT 10h teletype/scroll
-  path.
-- Confirm the original two-player flow (alternating vs simultaneous).
-- Map the remaining score display functions and the default-sector
-  initialization path.
+- Nothing required.  Optional polish: expand `FUNCTIONS.md` with non-call
+  entry points (jump-table targets) and add higher-level animation metadata on
+  top of the extracted sprite frames.
+- The DOSBox display issue is resolved; see `CGA.md`.
 
 ## Method
 
@@ -518,3 +510,10 @@ Reconstructed in `C/runtime.c`; the ABI notes are in its header.
   byte-compares them with `digger.com`: the eight level arrays, the RNG
   permutation table, the CGA CRTC table and the default sprite draw order.
   It exits non-zero on any mismatch, so it can gate future edits.
+- `tools/extract_data.py` extracts all data to `data/`: the complete
+  code/data segment images, every table (levels, music, RNG, ctype, scores,
+  strings, orders, the keyboard scan-code table, the copyright string), the
+  64-glyph font with its dispatch table, all 76 sprite frames as data/mask
+  banks plus PNGs, and the title RLE, framebuffer and PNG.  The output is
+  deterministic and ignored by git (`data/`); only the tool and the
+  generated-format description are committed.

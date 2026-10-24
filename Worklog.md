@@ -1104,3 +1104,31 @@ Committed the low-priority work (11 files).
 - `SYMBOLS.md`, `symbols.h`, `ANALYSIS.md`, `README.md`, `TODO.md`, `digger.lst` updated.
 
 Artifacts: `C/runtime.c`, `FUNCTIONS.md`, `tools/label_functions.py`, `tools/compare_tables.py`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `Worklog.md`.
+
+## Commit extraction tooling and ignore generated data
+
+Previous commit: 4c25db7
+
+### User
+
+Can tools can regenerate everything in data ? if so only tools needs to be committed and data can go in .gitignore
+
+### Assistant
+
+Yes. `tools/extract_data.py` reads only `digger.com` and uses the
+Python standard library; I verified it is deterministic by hashing all 348
+generated files, re-running it, and getting identical hashes.  `data/` is
+now in `.gitignore`, so only the tools (and docs) are committed.
+
+## What changed
+
+- `.gitignore`: added `data/` and `__pycache__/`.
+- `tools/extract_data.py` (new): deterministic extraction of the raw
+  segment images, all tables, the 76 sprite frames, 39 glyphs and the title
+  bitmap, using CGA palette 0 and 4x nearest-neighbour PNGs.
+- `tools/README.md` (new): usage and the reproduction commands.
+- `ANALYSIS.md`, `CGA.md`, `C/TODO.md`: note that `data/`
+  is generated/ignored, and refreshed the stale open-items list.
+
+Artifacts: `.gitignore`, `tools/extract_data.py`, `tools/README.md`,
+`ANALYSIS.md`, `CGA.md`, `C/TODO.md`, `Worklog.md`.

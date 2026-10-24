@@ -67,3 +67,6 @@
   `FUNCTIONS.md` (`tools/label_functions.py`), and
   `tools/compare_tables.py` byte-compares the reconstructed tables with
   `digger.com`.
+- All data is extracted to `data/` by `tools/extract_data.py`: segment
+  images, tables, strings, font glyphs, sprite frames and the title bitmap.
+  The output is deterministic and ignored by git; only the tool is committed.

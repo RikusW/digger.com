@@ -1,2 +1,4 @@
 digger
 *.o
+data/
+__pycache__/
