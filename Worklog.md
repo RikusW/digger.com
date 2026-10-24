@@ -771,3 +771,45 @@ Committed the rendering layer (10 files): the draw functions, sprite-buffer init
 - **Mapped primitives**: `setspr` `0x0804`, `setspr2` `0x0754`, `drawspr` `0x07E4`, `initmiscspr` `0x084F`, `drawmiscspr` `0x08AD`, `getis` `0x0876`.
 
 Artifacts: `C/drawing.c`, `C/field.c`, `C/monster.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.
+
+### User
+
+continue
+
+### Assistant
+
+Continued into the low-level layer: the sprite engine and pixel blitters are now reconstructed in a new `C/sprite.c` (uncommitted; all files compile cleanly with `-Wall -Wextra`).
+
+**Sprite engine**
+- 16 sprites + one misc slot, with the property arrays at `DS:0x03CF..0x0603` (`sprrdrwf`, `sprrecf`, `sprenf`, live/nominal sources, boxes, sizes) and the default draw order `0..15` at `DS:0x0627`.
+- `setspr`/`setspr2`/`setorder`, `movedrawspr`, `erasespr`, and the two-stage `drawspr` (`0x07E4` → `0x0997`).
+- Dirty-region recursion `clearrdrwf`/`clearrecf`/`setrdrwflgs`, the box tests `collide`/`bcollide`, and `bcollides` filling `first[5]`/`coll[16]`.
+- Flush paths `putis`/`putims`/`getis`, plus `initmiscspr`, `initmiscspr2` (returns the redraw mask), and `drawmiscspr`.
+
+**Pixel layer**
+- `ggeti` (screen → saved buffer), `gputi` (restore), `gputim` (`(screen & mask) | data`), `gputich` (glyph path), all using the CGA interleaved address `(y&~1)*40 + (y&1)*0x2000 + x/4` and the even/odd bank step.
+
+**Notable original-vs-port difference:** the original's `setrdrwflgs` and `bcollides` retry the overlap test with the candidate sprite shifted by `+320/-2` and `-640/+4` to catch screen-edge wrapping; the port's version doesn't do this. That is reproduced in the reconstruction.
+
+Artifacts updated: `SYMBOLS.md` (sprite arrays, function table), `ANALYSIS.md`, `C/README.md`, `TODO.md`, `symbols.h`, 22 new `.lst` labels, and `digger.dat` annotations.
+
+Remaining: the title-screen/menu code (`CS:0x82A6` and its glyph drawer `0x08E5`), the INT 10h teletype/scroll path, and decoding the sprite/tile data at `CS:0x16E4..0x3B00` and the title bitmap. Both vim swap files were left untouched.
+
+## Sprite engine and pixel layer
+
+Previous commit: ea0a20a
+
+### User
+
+Commit it, then finish the title-screen/menu code
+
+### Assistant
+
+Committed the sprite engine and pixel layer (9 files). Continuing with the title-screen/menu code.
+
+## What was added
+
+- **Sprite engine** (`C/sprite.c`): 17-entry dirty/recursion flags, 16 sprites plus the misc slot, live/nominal source pairs, boxes and sizes, the draw-order table, `setspr`/`setspr2`/`setorder`, `movedrawspr`/`erasespr`/`drawspr`, `clearrdrwf`/`clearrecf`/`setrdrwflgs`, `collide`/`bcollide`/`bcollides`, `putis`/`putims`/`getis`, the misc-sprite routines, and the CGA pixel blitters `ggeti`/`gputi`/`gputim`/`gputich` with the interleaved bank step.
+- **Original-vs-port difference**: the edge-wrapping retries (`+320/-2`, `-640/+4`) in `setrdrwflgs`/`bcollides` are present in the original and reproduced here.
+
+Artifacts: `C/sprite.c`, `C/symbols.h`, `C/README.md`, `C/TODO.md`, `SYMBOLS.md`, `ANALYSIS.md`, `digger.lst`, `digger.dat`, `Worklog.md`.

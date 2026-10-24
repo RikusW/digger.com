@@ -137,6 +137,27 @@ typedef int32_t  s32;
 #define CS_KILLFIRE             0x4EE3u  /* verified */
 #define CS_MOVEDRAWSPR          0x07B1u
 #define CS_ERASESPR             0x07D3u
+#define CS_SETSPR               0x0804u  /* (spr, data, mask, w, h, bw, bh) */
+#define CS_SETSPR2              0x0754u  /* also fills the live arrays and clears sprenf */
+#define CS_DRAWSPR              0x07E4u  /* sets 0x59F/0x5A1 then falls into 0x0997 */
+#define CS_DRAWSPR_CORE         0x0997u
+#define CS_SETORDER             0x083Cu  /* draw-order pointer, default 0x0627 */
+#define CS_INITMISCSPR          0x084Fu  /* -> 0x0A32 */
+#define CS_INITMISCSPR2         0x0881u  /* -> 0x0A3C, returns the redraw mask */
+#define CS_DRAWMISCSPR          0x08ADu  /* -> 0x0CF3 */
+#define CS_GETIS                0x0876u  /* -> 0x0CBA + 0x0D13 */
+#define CS_CLEARRDRWF           0x0A65u
+#define CS_CLEARRECF            0x0A7Cu
+#define CS_SETRDRWFLGS          0x0A90u
+#define CS_COLLIDE              0x0B05u
+#define CS_BCOLLIDE             0x0B6Eu
+#define CS_BCOLLIDES            0x0D48u  /* fills first[]/coll[] */
+#define CS_PUTIS                0x0D30u  /* restore saved backgrounds */
+#define CS_PUTIMS               0x0D13u  /* draw sprites via the order table */
+#define CS_GGETI                0x0CD2u  /* screen -> buffer */
+#define CS_GPUTI                0x0BFFu  /* buffer -> screen */
+#define CS_GPUTIM               0x0CF3u  /* masked data/mask draw */
+#define CS_GPUTICH              0x0C1Eu  /* glyph draw with DS:0x0623 */
 #define CS_DRAWFIRE             0x24C6u  /* verified: 2x7; returns the collision mask */
 #define CS_GGETPIX              0x56A6u  /* ggetpix(x, y) */
 #define CS_GETFIREPFLAG         0x5DD8u  /* returns DS:0x40BC */
@@ -301,6 +322,30 @@ typedef int32_t  s32;
 #define DS_FIELD1               0x430Cu  /* saved field, player 1 */
 #define DS_EMFIELD              0x4018u  /* 15x10 bytes, row stride 0x0F */
 #define DS_EMMASK               0x40AEu  /* per-player emerald mask */
+#define DS_SPRRDRWF             0x03CFu  /* 17 words: needs redraw */
+#define DS_SPRRECF              0x03F1u  /* 17 words: recursion guard */
+#define DS_SPRENF               0x0413u  /* 16 words: on screen */
+#define DS_SPRCH                0x0433u  /* live data source */
+#define DS_SPRMASK              0x0455u  /* live mask source */
+#define DS_SPRBUF               0x0477u  /* saved background buffer */
+#define DS_SPRX                 0x0497u
+#define DS_SPRY                 0x04B9u
+#define DS_SPRWID               0x04DBu
+#define DS_SPRHEI               0x04FDu
+#define DS_SPRBWID              0x051Fu
+#define DS_SPRBHEI              0x053Fu
+#define DS_SPRNCH               0x055Fu
+#define DS_SPRNMASK             0x057Fu
+#define DS_SPRNWID              0x05A3u
+#define DS_SPRNHEI              0x05C3u
+#define DS_SPRNBWID             0x05E3u
+#define DS_SPRNBHEI             0x0603u
+#define DS_SPRNEWX              0x059Fu
+#define DS_SPRNEWY              0x05A1u
+#define DS_SPRMASKBYTE          0x0623u
+#define DS_SPRBANK              0x0624u
+#define DS_SPRORDERPTR          0x0625u
+#define DS_SPRORDER             0x0627u  /* default order 0..15 */
 #define DS_MONLEG               0x16CCu  /* 6 words: per-monster leg position */
 #define DS_MONDELTA             0x16D8u  /* 6 words: per-monster leg delta */
 #define DS_DIGLEG               0x2700u

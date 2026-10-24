@@ -58,7 +58,8 @@ reconstructed from the 8086 disassembly.
 | `drawmon`, `drawmondie`, `drawdig`, `drawgold`, `drawbonus`, `drawfire` | reconstructed | `drawing.c` |
 | `drawbackg`, `drawemerald`/`eraseemerald`, blob draws | reconstructed | `drawing.c` |
 | `creatembspr`, `initmbspr`, `createdbfspr`, `initdbfspr` | reconstructed | `drawing.c` |
-| Low-level sprite blitters (`setspr`, `drawspr`, `drawmiscspr`, `getis`) | mapped (externs) | `drawing.c` |
+| Sprite engine (`setrdrwflgs`, `collide`, `bcollides`, `putis`, `putims`, `getis`) | reconstructed | `sprite.c` |
+| Pixel layer (`ggeti`, `gputi`, `gputim`, `gputich`) | reconstructed | `sprite.c` |
 
 See `ANALYSIS.md` for the comparison and exact-match findings.
 See `CGA.md` for the CGA mode/register analysis and the DOSBox failure

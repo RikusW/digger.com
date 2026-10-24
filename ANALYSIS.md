@@ -322,6 +322,17 @@ erasemonsters/countem sequence.
   `initchars` `CS:0x89E4` calls `initmbspr` `0x1A03`, `initdigger`,
   `initmonsters`. See `C/drawing.c`.
 
+- **Sprite engine** — 16 sprites plus a misc slot; per-sprite property arrays
+  at `DS:0x03CF..0x0603` (`sprrdrwf`, `sprrecf`, `sprenf`, sources, boxes,
+  sizes) and the draw-order table at `0x0627` (0..15). `setrdrwflgs`
+  (`0x0A90`) recursively marks overlapping sprites and retries the test with
+  a +320/-2 and -640/+4 edge shift; `collide` (`0x0B05`) and `bcollide`
+  (`0x0B6E`) are the overlap tests; `bcollides` (`0x0D48`) fills the
+  `first[5]`/`coll[16]` lists. The pixel layer is `ggeti` `0x0CD2` (screen
+  → saved buffer), `gputi` `0x0BFF` (restore), `gputim` `0x0CF3`
+  (`(screen & mask) | data`) and `gputich` `0x0C1E`, using the standard CGA
+  interleaved address `(y&~1)*40 + (y&1)*0x2000 + x/4`. Reconstructed in
+  `C/sprite.c`.
 - **Rendering layer** — `creatembspr` `0x1826` / `initmbspr` `0x1A03`
   build the per-sprite frame buffers (sprites 1..7 = bags, 8..13 = monsters)
   and call `createdbfspr` `0x20F6` / `initdbfspr` `0x2167` for the digger,
@@ -405,10 +416,9 @@ reference; it is a default/legacy score image. The sector-2 read/check
 ## Open items / next work
 
 - Decode the CGA sprite/tile data behind the source addresses
-  (`CS:0x16E4..0x3B00`) and the title bitmap, and reconstruct the low-level
-  sprite blitters (`setspr`, `drawspr`, `drawmiscspr`, `getis`).
-- Reconstruct the title screen and the remaining INT 10h teletype/scroll
-  path.
+  (`CS:0x16E4..0x3B00`) and the title bitmap.
+- Reconstruct the title-screen/menu code (`CS:0x82A6`) and its glyph drawer
+  `0x08E5`, plus the remaining INT 10h teletype/scroll path.
 - Decode the CGA sprite/graphics data and its RLE title bitmap.
 - Reproduce the DOSBox CGA failure with `machine=cga` vs the default machine
   and `cycles=fixed 400` vs 3000; see `CGA.md`.

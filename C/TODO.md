@@ -45,8 +45,9 @@
   (`drawmon`/`drawmondie`/`drawdig`/`drawgold`/`drawfire`, `makefield`/
   `makeemfield`/`drawfield`/`drawstatics`/`drawemeralds`, `drawbackg`,
   the blob/emerald helpers, and the sprite-buffer initialisers).
-- The remaining work is the low-level pixel layer: `setspr`/`drawspr`/
-  `drawmiscspr`/`getis`, the CGA sprite/tile data and the title bitmap.
+- The sprite engine and its pixel layer are reconstructed in `sprite.c`.
+  The remaining work is the title-screen/menu code (`CS:0x82A6`, glyph
+  drawer `0x08E5`) and decoding the CGA sprite/tile data and title bitmap.
 
 ## CGA / DOSBox
 

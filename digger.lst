@@ -855,6 +855,7 @@ Disassembly of section .data:
      836:	89 87 03 06          	mov    WORD PTR [bx+0x603],ax
      83a:	5d                   	pop    bp
      83b:	c3                   	ret    
+; --- setorder ---
      83c:	55                   	push   bp
      83d:	8b ec                	mov    bp,sp
      83f:	8b 46 04             	mov    ax,WORD PTR [bp+0x4]
@@ -981,6 +982,7 @@ Disassembly of section .data:
      990:	e8 fd 00             	call   0xa90
      993:	e8 7d 03             	call   0xd13
      996:	c3                   	ret    
+; --- drawspr core (save/restore, dirty recursion, flush) ---
      997:	e8 cb 00             	call   0xa65
      99a:	e8 f3 00             	call   0xa90
      99d:	ff b7 97 04          	push   WORD PTR [bx+0x497]
@@ -1023,10 +1025,12 @@ Disassembly of section .data:
      a2b:	e8 e5 02             	call   0xd13
      a2e:	e8 17 03             	call   0xd48
      a31:	c3                   	ret    
+; --- initmiscspr core ---
      a32:	e8 30 00             	call   0xa65
      a35:	e8 58 00             	call   0xa90
      a38:	e8 f5 02             	call   0xd30
      a3b:	c3                   	ret    
+; --- initmiscspr2 core (returns redraw mask) ---
      a3c:	e8 26 00             	call   0xa65
      a3f:	e8 4e 00             	call   0xa90
      a42:	bb 00 00             	mov    bx,0x0
@@ -1043,6 +1047,7 @@ Disassembly of section .data:
      a5f:	83 fa 10             	cmp    dx,0x10
      a62:	75 e7                	jne    0xa4b
      a64:	c3                   	ret    
+; --- clearrdrwf ---
      a65:	e8 14 00             	call   0xa7c
      a68:	53                   	push   bx
      a69:	b9 11 00             	mov    cx,0x11
@@ -1052,6 +1057,7 @@ Disassembly of section .data:
      a78:	e2 f5                	loop   0xa6f
      a7a:	5b                   	pop    bx
      a7b:	c3                   	ret    
+; --- clearrecf ---
      a7c:	53                   	push   bx
      a7d:	b9 11 00             	mov    cx,0x11
      a80:	bb 00 00             	mov    bx,0x0
@@ -1060,6 +1066,7 @@ Disassembly of section .data:
      a8c:	e2 f5                	loop   0xa83
      a8e:	5b                   	pop    bx
      a8f:	c3                   	ret    
+; --- setrdrwflgs (recursive overlap marking) ---
      a90:	53                   	push   bx
      a91:	56                   	push   si
      a92:	83 bf f1 03 ff       	cmp    WORD PTR [bx+0x3f1],0xffff
@@ -1095,6 +1102,7 @@ Disassembly of section .data:
      b02:	5e                   	pop    si
      b03:	5b                   	pop    bx
      b04:	c3                   	ret    
+; --- collide ---
      b05:	8b 87 97 04          	mov    ax,WORD PTR [bx+0x497]
      b09:	3b 84 97 04          	cmp    ax,WORD PTR [si+0x497]
      b0d:	7c 16                	jl     0xb25
@@ -1137,6 +1145,7 @@ Disassembly of section .data:
      b6b:	c3                   	ret    
      b6c:	f9                   	stc    
      b6d:	c3                   	ret    
+; --- bcollide ---
      b6e:	8b 87 97 04          	mov    ax,WORD PTR [bx+0x497]
      b72:	3b 84 97 04          	cmp    ax,WORD PTR [si+0x497]
      b76:	7c 20                	jl     0xb98
@@ -1191,6 +1200,7 @@ Disassembly of section .data:
      bfc:	c3                   	ret    
      bfd:	f9                   	stc    
      bfe:	c3                   	ret    
+; --- gputi (buffer -> screen) ---
      bff:	06                   	push   es
      c00:	56                   	push   si
      c01:	51                   	push   cx
@@ -1206,6 +1216,7 @@ Disassembly of section .data:
      c1b:	5e                   	pop    si
      c1c:	07                   	pop    es
      c1d:	c3                   	ret    
+; --- gputich (glyph draw) ---
      c1e:	06                   	push   es
      c1f:	56                   	push   si
      c20:	51                   	push   cx
@@ -1221,6 +1232,7 @@ Disassembly of section .data:
      c3a:	5e                   	pop    si
      c3b:	07                   	pop    es
      c3c:	c3                   	ret    
+; --- sprite dest address + bank ---
      c3d:	53                   	push   bx
      c3e:	51                   	push   cx
      c3f:	8b 8f b9 04          	mov    cx,WORD PTR [bx+0x4b9]
@@ -1237,12 +1249,14 @@ Disassembly of section .data:
      c5f:	59                   	pop    cx
      c60:	5b                   	pop    bx
      c61:	c3                   	ret    
+; --- blit row: copy ---
      c62:	51                   	push   cx
      c63:	fc                   	cld    
      c64:	36 8b 8f db 04       	mov    cx,WORD PTR ss:[bx+0x4db]
      c69:	f3 a4                	rep movs BYTE PTR es:[di],BYTE PTR ds:[si]
      c6b:	59                   	pop    cx
      c6c:	c3                   	ret    
+; --- blit row: (screen & mask) | data ---
      c6d:	51                   	push   cx
      c6e:	8b 8f db 04          	mov    cx,WORD PTR [bx+0x4db]
      c72:	8b af 55 04          	mov    bp,WORD PTR [bx+0x455]
@@ -1256,6 +1270,7 @@ Disassembly of section .data:
      c86:	e2 ea                	loop   0xc72
      c88:	59                   	pop    cx
      c89:	c3                   	ret    
+; --- blit row: data & DS:0x0623 ---
      c8a:	51                   	push   cx
      c8b:	8b 8f db 04          	mov    cx,WORD PTR [bx+0x4db]
      c8f:	8a 04                	mov    al,BYTE PTR [si]
@@ -1266,6 +1281,7 @@ Disassembly of section .data:
      c9a:	e2 f3                	loop   0xc8f
      c9c:	59                   	pop    cx
      c9d:	c3                   	ret    
+; --- advance to next CGA scanline ---
      c9e:	36 2b bf db 04       	sub    di,WORD PTR ss:[bx+0x4db]
      ca3:	36 f6 16 24 06       	not    BYTE PTR ss:0x624
      ca8:	36 80 3e 24 06 ff    	cmp    BYTE PTR ss:0x624,0xff
@@ -1274,6 +1290,7 @@ Disassembly of section .data:
      cb4:	c3                   	ret    
      cb5:	81 ef b0 1f          	sub    di,0x1fb0
      cb9:	c3                   	ret    
+; --- getis: screen -> saved buffers ---
      cba:	53                   	push   bx
      cbb:	bb 00 00             	mov    bx,0x0
      cbe:	83 bf cf 03 ff       	cmp    WORD PTR [bx+0x3cf],0xffff
@@ -1284,6 +1301,7 @@ Disassembly of section .data:
      cce:	75 ee                	jne    0xcbe
      cd0:	5b                   	pop    bx
      cd1:	c3                   	ret    
+; --- ggeti (screen -> buffer) ---
      cd2:	e8 68 ff             	call   0xc3d
      cd5:	8b f7                	mov    si,di
      cd7:	8b bf 77 04          	mov    di,WORD PTR [bx+0x477]
@@ -1298,6 +1316,7 @@ Disassembly of section .data:
      cef:	e2 f4                	loop   0xce5
      cf1:	1f                   	pop    ds
      cf2:	c3                   	ret    
+; --- gputim (masked draw) ---
      cf3:	06                   	push   es
      cf4:	53                   	push   bx
      cf5:	51                   	push   cx
@@ -1315,6 +1334,7 @@ Disassembly of section .data:
      d10:	5b                   	pop    bx
      d11:	07                   	pop    es
      d12:	c3                   	ret    
+; --- putims (draw order table) ---
      d13:	53                   	push   bx
      d14:	b9 10 00             	mov    cx,0x10
      d17:	8b 36 25 06          	mov    si,WORD PTR ds:0x625
@@ -1327,6 +1347,7 @@ Disassembly of section .data:
      d2c:	e2 ed                	loop   0xd1b
      d2e:	5b                   	pop    bx
      d2f:	c3                   	ret    
+; --- putis (restore saved backgrounds) ---
      d30:	53                   	push   bx
      d31:	b9 10 00             	mov    cx,0x10
      d34:	bb 00 00             	mov    bx,0x0
@@ -1337,6 +1358,7 @@ Disassembly of section .data:
      d44:	e2 f1                	loop   0xd37
      d46:	5b                   	pop    bx
      d47:	c3                   	ret    
+; --- bcollides (first[]/coll[]) ---
      d48:	8b f3                	mov    si,bx
      d4a:	ba 00 00             	mov    dx,0x0
      d4d:	bb 00 00             	mov    bx,0x0

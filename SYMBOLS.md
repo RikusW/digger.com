@@ -130,12 +130,27 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x24C6` | `0x23C6` | `drawfire` | verified | Sprite `0x0F`, 2x7: frame 0 animates three legs, frames 1..3 fixed explosion frames; returns the mask. |
 | `0x20F6` | `0x1FF6` | `createdbfspr` | verified | Three-frame buffers for the digger/bonus/fireball and resets their animation state. |
 | `0x2167` | `0x2067` | `initdbfspr` | verified | One-frame defaults for the digger/bonus/fireball and resets their animation state. |
-| `0x0754` | `0x0654` | `setspr2` | verified | `(spr, src0, src1, src2, w, h, a, b)`. |
-| `0x07E4` | `0x06E4` | `drawspr` | verified | `(spr, x, y)`; returns the collision mask. |
+| `0x0754` | `0x0654` | `setspr2` | verified | `(spr, src0, src1, src2, w, h, a, b)`; also fills the live arrays and clears `sprenf`. |
+| `0x07E4` | `0x06E4` | `drawspr` | verified | Sets `0x59F/0x5A1`, then falls into `0x0997`. |
+| `0x0997` | `0x0897` | `drawspr` core | verified | Save/restore the live box, dirty recursion, `putis`, `ggeti`, `putims`, `bcollides`. |
 | `0x0804` | `0x0704` | `setspr` | verified | `(spr, src0, src1, w, h, a, b)`. |
-| `0x084F` | `0x074F` | `initmiscspr` | verified | `(x, y, w, h)` for the misc sprite slot. |
-| `0x08AD` | `0x07AD` | `drawmiscspr` | verified | `(x, y, src0, src1, w, h)`. |
-| `0x0876` | `0x0776` | `getis` | verified | Flushes the sprite buffer. |
+| `0x063C` | `0x053C` | `setorder` | verified | Draw-order pointer; 0 selects the default table at `0x0627`. |
+| `0x084F` | `0x074F` | `initmiscspr` | verified | `(x, y, w, h)` for the misc slot; calls `0x0A32`. |
+| `0x0881` | `0x0781` | `initmiscspr2` | verified | As above with `w/4+1`; returns a 16-bit redraw mask (`0x0A3C`). |
+| `0x08AD` | `0x07AD` | `drawmiscspr` | verified | `(x, y, src0, src1, w, h)`; calls `0x0CF3`. |
+| `0x0A65` | `0x0965` | `clearrdrwf` | verified | `clearrecf()` + clear the 17 `sprrdrwf` words. |
+| `0x0A7C` | `0x097C` | `clearrecf` | verified | Clears the 17 `sprrecf` words. |
+| `0x0A90` | `0x0990` | `setrdrwflgs` | verified | Recursive overlap marking; retries with +320/-2 and -640/+4 edge shifts. |
+| `0x0B05` | `0x0A05` | `collide` | verified | Box overlap test (width << 2). |
+| `0x0B6E` | `0x0A6E` | `bcollide` | verified | Collision-box overlap test. |
+| `0x0D48` | `0x0C48` | `bcollides` | verified | Fills `first[5]`/`coll[16]` using the edge-wrapped `bcollide`. |
+| `0x0D30` | `0x0C30` | `putis` | verified | Restores every dirty sprite's saved background. |
+| `0x0D13` | `0x0C13` | `putims` | verified | Draws dirty sprites in the order-table order. |
+| `0x0CD2` | `0x0BD2` | `ggeti` | verified | Screen → saved buffer, row by row. |
+| `0x0BFF` | `0x0AFF` | `gputi` | verified | Saved buffer → screen. |
+| `0x0CF3` | `0x0BF3` | `gputim` | verified | Masked draw: `(screen & mask) | data`. |
+| `0x0C1E` | `0x0B1E` | `gputich` | verified | Glyph draw using `DS:0x0623`. |
+| `0x0876` | `0x0776` | `getis` | verified | `ggeti` for dirty sprites, then `putims`. |
 | `0x6C3E` | `0x6B3E` | `drawfield` | verified | Draws wall pieces from the field bits; matches the port's `drawfield()`. |
 | `0x6BCA` | `0x6ACA` | `savefield` | verified | Copies the working field to the per-player saved copy. |
 | `0x21CC` | `0x20CC` | `drawrightblob` | verified | `x+16, y-1`, 2x18. |
@@ -249,6 +264,12 @@ Confidence: **verified** = cross-checked against the matching C port and the dis
 | `0x40AE` | `0xCE1E` | 2 B | `emmask`, per-player emerald mask | verified |
 | `0x3C1A` | `0xC98A` | 7x0x28 | saved bag array, player 0 | verified |
 | `0x3D5A` | `0xCACA` | 7x0x28 | saved bag array, player 1 | verified |
+| `0x03CF` | `0x913F` | 17 words | `sprrdrwf` needs-redraw flags | verified |
+| `0x03F1` | `0x9161` | 17 words | `sprrecf` recursion guard | verified |
+| `0x0413` | `0x9183` | 16 words | `sprenf` on-screen flags | verified |
+| `0x0433..0x0603` | `0x91A3..0x9373` | 16 words each | live/nominal sprite sources, boxes and sizes | verified |
+| `0x0625` | `0x9395` | 1 word | draw-order pointer (default `0x0627`) | verified |
+| `0x0627` | `0x9397` | 16 words | default draw order `0..15` | verified |
 
 ## Sound/timer state (BSS, inferred)
 
