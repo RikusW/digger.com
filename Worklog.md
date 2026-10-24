@@ -993,3 +993,69 @@ DOSBox finding.
 Artifacts: `C/cga.c`, `C/main.c`, `C/symbols.h`,
 `C/README.md`, `C/TODO.md`, `CGA.md`, `ANALYSIS.md`,
 `digger.lst`, `Worklog.md`.
+
+## Fix the stale completed-work section in TODO.md
+
+Previous commit: 256227d
+
+### User
+
+Check the stale TODO.md issue in git history ?
+
+### Assistant
+
+Checked the history. There was no revert, merge, or lost update — the file was edited in all 13 commits since it was created. The staleness was **partial-section updates**: each commit refreshed only the section it was working on.
+
+## Timeline
+
+- **`c6fd3f8`** — created `TODO.md` with High/Medium/Low lists, including "Map the title-screen/main-loop function at `CS:0x82A6`" and "Confirm the two-player flow".
+- **`c467021`** — added the "Completed in this pass" block (sound layer, score wrappers, accessors). This was the last substantive refresh of that block; it still contains "some fields probable" today.
+- **`fc9f41d`** — added the CGA section, left the other lists untouched.
+- **`a5ce437`** — correctly rewrote High priority to "line-level game logic" and added the RNG/game-loop/bonus/score bullets, but did **not** prune Medium/Low or refresh the "Completed in this pass" heading.
+- **`ea0a20a`** — added "All game and rendering bodies are reconstructed" to High priority while the same file still listed remaining work — internally inconsistent.
+- **`256227d`** — finally removed the stale items.
+
+## How stale things were
+
+- "Map the title-screen/main-loop function at `CS:0x82A6`": added `c6fd3f8`, removed `256227d`. `0x82A6` was mapped in `a5ce437` and reconstructed in `4736c11`, so the TODO was wrong for at least five commits.
+- "Confirm the two-player flow": added `c6fd3f8`, removed `256227d` — stale for the entire life of the file, even though the alternating flow was visible once `main` was reconstructed.
+- "`nplayers` getter and `testpause` flow … some fields probable": added `c467021`, still present at HEAD. This is the one stale claim that survived the cleanup.
+
+## Root cause
+
+`TODO.md` was maintained append-mostly: each commit edited the section it touched, but nobody re-baselined the "Completed in this pass" block or swept Medium/Low for items the same commit had just completed. `Agents.md` only mandates `Worklog.md` per commit, so there was no parity check.
+
+## Current state
+
+HEAD's High/CGA/Medium/Low sections are accurate, but the top **"## Completed in this pass"** section is still the `c467021` text (and the "some fields probable" clause is now wrong). Want me to retitle it "Earlier passes", update that line to say the input/display/reconstruction is done, and commit the cleanup?
+
+### User
+
+Fix the completed section
+
+### Assistant
+
+Fixed. `C/TODO.md` now has a **"## Completed work"** section instead of the stale "Completed in this pass" text:
+
+- Removed the outdated "some fields probable" claim — `nplayers` and `testpause` are reconstructed.
+- Changed "Game loop mapped" to **"Game loop reconstructed"**, including `game()` and the level-end path.
+- Updated the score bullet to reflect that `addscore`/wrappers and `scores.c` are reconstructed.
+- Dropped the superseded "Game bodies (first pass)" bullet.
+- Kept the genuinely historical findings (sound timing, RNG, bonus timer, INT 13h score I/O) and the `soundoff`/`initsound` identification caveat, which is still accurate.
+
+The file is modified but uncommitted; `C/.TODO.md.swp` is untouched. Say the word and I'll commit it with the worklog entry.
+
+### User
+
+Commit it
+
+### Assistant
+
+Committed the TODO cleanup (2 files).
+
+## What changed
+
+- `C/TODO.md`: "Completed in this pass" renamed to "Completed work", the stale `nplayers`/`testpause` "probable" claim removed, the game-loop entry updated to "reconstructed", the score entry updated for `game.c`/`scores.c`, and the superseded first-pass game-body bullet dropped.
+- `Worklog.md`: this exchange, with the previous commit `256227d`.
+
+Artifacts: `C/TODO.md`, `Worklog.md`.

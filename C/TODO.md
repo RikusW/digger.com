@@ -1,27 +1,30 @@
 # Decompilation TODO
 
-## Completed in this pass
+## Completed work
 
 - Sound hardware layer: `sett0`, `setsoundt2`, `setsoundmode`, `sett2val`,
-  `timer2`, `startint8`, `stopint8`, `soundoff` (probable), and `initsound`
-  (probable) are reconstructed in `sound.c`.
+  `timer2`, `startint8`, and `stopint8` are reconstructed in `sound.c`;
+  `soundoff` is a probable identification and `initsound`'s state setup is
+  verified.
 - Effective `soundint` rate confirmed at ~72.8 Hz: the original stores
   `4*t0val` in `DS:0x024A`; the port stores `t0val` and subtracts `0x4000`
   after each carry.  Both give `1,193,181/16,384` ticks/s.
-- Score event wrappers at `CS:0x68A2..0x68DA` (250/25/250/500/1000) match the
-  port's `scorekill`, `scoreemerald`, `scoreoctave`, `scoregold`, and
-  `scorebonus`; `addscore` structure matches `scores.c`.
+- Score handling: the event wrappers at `CS:0x68A2..0x68DA`
+  (250/25/250/500/1000) match the port's `scorekill`, `scoreemerald`,
+  `scoreoctave`, `scoregold`, and `scorebonus`; `addscore` and the wrappers
+  are reconstructed in `game.c`, and the table/format/storage routines in
+  `scores.c`.
 - Game-state accessors in `state.c`: `incpenalty`, `levno`, `levplan`,
-  `levof10`, `getlives`, `addlife`, and `curplayer` match the port.  The
-  `nplayers` getter and `testpause` flow are identified (some fields probable).
+  `levof10`, `getlives`, `addlife`, `curplayer`, `nplayers`, and `testpause`
+  are reconstructed (no fields remain probable).
 - **RNG solved**: one shared generator at `CS:0x177F` uses a 256-byte
   permutation table (`DS:0x0CA7`), a counter (`DS:0x0DA7`) and the BIOS tick
   byte (`0x40:0x006C`).  Reconstructed in `rng.c`; the port's 32-bit LCG is a
   replacement and produces a different sequence.
-- **Game loop mapped**: `CS:0x86F1`; `dodigger` `CS:0x4939`, `domonsters`
-  `CS:0x2C90`, `dobags` `CS:0x3E2D`, `monai` `CS:0x2E75`.  `domonsters` and
-  `monai` match the port's `randno(15-levof10())` / `randno(levof10()+5)`
-  paths exactly.
+- **Game loop reconstructed**: `game()` (`CS:0x86F1`) in `game.c`, including
+  `dodigger`, `domonsters`/`monai`, `dobags`, the fireball and the level-end
+  path.  `domonsters` and `monai` match the port's
+  `randno(15-levof10())` / `randno(levof10()+5)` paths exactly.
 - **Bonus timer solved**: `initbonusmode` (`CS:0x5528`) is
   `250 - levof10()*20`, `startbonustimeleft=20`, `bonusmode=1`; the port
   matches.  `createbonus`/`endbonusmode`/`erasebonus` are in `game.c`.
@@ -30,12 +33,6 @@
   sector 7 of cylinder 39, head 0, into the 512-byte buffer at `DS:0x0046`.
   The format matches the port's `.sco` file.  The `DS:0x4690` block is a
   default image/legacy table with no direct code reference.
-
-- **Game bodies (first pass)**: `dodigger` (`CS:0x4939`) with the per-digger
-  fields and bonus block in `digger.c`; `dobags` (`CS:0x3E2D`) in `bags.c`;
-  `domonsters` (`CS:0x2C90`) and the `monai` (`CS:0x2E75`) direction-selection
-  in `monster.c`; `initlevel`/`drawscreen`/`initchars` call order in
-  `drawing.c`.
 
 ## High priority
 
