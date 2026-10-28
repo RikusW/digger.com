@@ -1,0 +1,3 @@
+[submodule "digger-unix"]
+	path = digger-unix
+	url = git@github.com:RikusW/digger-unix.git
